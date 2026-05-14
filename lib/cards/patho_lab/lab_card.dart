@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/patho_lab.dart';
 import '../../theme/app_theme.dart';
-import '../services/api_url.dart';
+import '../../services/api_url.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class LabCard extends StatelessWidget {

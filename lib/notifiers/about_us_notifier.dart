@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../cards/services/about_us_services.dart';
+import '../services/about_us_services.dart';
 import '../models/about_us.dart';
 
 class AboutUsState {

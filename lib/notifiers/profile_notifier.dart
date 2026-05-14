@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
-import '../cards/services/auth_services.dart';
+import '../services/auth_services.dart';
 
 class ProfileState {
   final UserModel? user;
@@ -36,7 +36,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         state = ProfileState();
       }
     });
-    
+
     // Initial sync
     final authState = ref.read(authProvider);
     if (authState.user != null) {
@@ -76,13 +76,13 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         alternativePhoneNo: alternativePhoneNo,
         profilePhoto: profilePhoto,
       );
-      
+
       final user = UserModel.fromMap(response.data['user']);
       state = state.copyWith(user: user, isLoading: false);
-      
+
       // Update auth provider state too
-      ref.read(authProvider.notifier).loadUser(); 
-      
+      ref.read(authProvider.notifier).loadUser();
+
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

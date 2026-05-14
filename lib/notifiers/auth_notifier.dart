@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
-import '../cards/services/auth_services.dart';
+import '../services/auth_services.dart';
 import 'package:dio/dio.dart';
 
 class AuthState {

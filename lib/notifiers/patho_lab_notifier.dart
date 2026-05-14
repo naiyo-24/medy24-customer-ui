@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/patho_lab.dart';
-import '../cards/services/patho_lab_services.dart';
+import '../services/patho_lab_services.dart';
 
 class PathoLabState {
   final List<PathoLabModel> labs;
@@ -59,7 +59,10 @@ class PathoLabNotifier extends StateNotifier<PathoLabState> {
         final lab = PathoLabModel.fromJson(response.data);
         state = state.copyWith(selectedLab: lab, isLoading: false);
       } else {
-        state = state.copyWith(isLoading: false, error: "Failed to load lab details");
+        state = state.copyWith(
+          isLoading: false,
+          error: "Failed to load lab details",
+        );
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

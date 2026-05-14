@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/patho_lab.dart';
 import '../../theme/app_theme.dart';
-import '../services/api_url.dart';
+import '../../services/api_url.dart';
 
 class PathoLabHeaderCard extends StatelessWidget {
   final PathoLabModel lab;
   final VoidCallback onBack;
 
-  const PathoLabHeaderCard({super.key, required this.lab, required this.onBack});
+  const PathoLabHeaderCard({
+    super.key,
+    required this.lab,
+    required this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 280,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-      ),
+      decoration: const BoxDecoration(color: AppColors.primary),
       child: Stack(
         children: [
           // Background Image
@@ -82,7 +84,11 @@ class PathoLabHeaderCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Iconsax.location, color: AppColors.primary, size: 16),
+                      const Icon(
+                        Iconsax.location,
+                        color: AppColors.primary,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(

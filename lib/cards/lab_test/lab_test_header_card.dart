@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/lab_test.dart';
 import '../../theme/app_theme.dart';
-import '../services/api_url.dart';
+import '../../services/api_url.dart';
 import '../../providers/patho_lab_provider.dart';
 
 class LabTestHeaderCard extends ConsumerWidget {
@@ -56,7 +56,10 @@ class LabTestHeaderCard extends ConsumerWidget {
             children: [
               // Badge/Category
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withAlpha(200),
                   borderRadius: BorderRadius.circular(6),
@@ -85,7 +88,11 @@ class LabTestHeaderCard extends ConsumerWidget {
               // Lab Info
               Row(
                 children: [
-                  const Icon(Iconsax.hospital, color: AppColors.primary, size: 14),
+                  const Icon(
+                    Iconsax.hospital,
+                    color: AppColors.primary,
+                    size: 14,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(

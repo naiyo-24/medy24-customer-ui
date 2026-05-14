@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../models/user.dart';
 
-import '../../cards/services/api_url.dart';
+import '../../services/api_url.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   final UserModel user;
@@ -61,7 +61,9 @@ class ProfileHeaderCard extends StatelessWidget {
                   ),
                   image: user.profilePhoto != null
                       ? DecorationImage(
-                          image: NetworkImage(ApiUrl.imageUrl(user.profilePhoto)),
+                          image: NetworkImage(
+                            ApiUrl.imageUrl(user.profilePhoto),
+                          ),
                           fit: BoxFit.cover,
                         )
                       : null,

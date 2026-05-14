@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/lab_test.dart';
 import '../../theme/app_theme.dart';
-import '../services/api_url.dart';
+import '../../services/api_url.dart';
 import '../../providers/patho_lab_provider.dart';
 
 class LabTestCard extends ConsumerWidget {

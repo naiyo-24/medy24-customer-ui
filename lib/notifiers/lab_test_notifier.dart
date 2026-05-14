@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/lab_test.dart';
-import '../cards/services/lab_test_services.dart';
+import '../services/lab_test_services.dart';
 
 class LabTestState {
   final List<LabTestInventoryModel> tests;
@@ -49,7 +49,9 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
       final response = await _service.getAllTests(page: page);
       if (response.statusCode == 200) {
         final List data = response.data['data'] ?? [];
-        final tests = data.map((t) => LabTestInventoryModel.fromJson(t)).toList();
+        final tests = data
+            .map((t) => LabTestInventoryModel.fromJson(t))
+            .toList();
         state = state.copyWith(tests: tests, isLoading: false);
       } else {
         state = state.copyWith(isLoading: false, error: "Failed to load tests");
@@ -67,7 +69,10 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
         final test = LabTestInventoryModel.fromJson(response.data);
         state = state.copyWith(selectedTest: test, isLoading: false);
       } else {
-        state = state.copyWith(isLoading: false, error: "Failed to load test details");
+        state = state.copyWith(
+          isLoading: false,
+          error: "Failed to load test details",
+        );
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -80,10 +85,15 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
       final response = await _service.getTestsByLabId(labId);
       if (response.statusCode == 200) {
         final List data = response.data['data'] ?? [];
-        final tests = data.map((t) => LabTestInventoryModel.fromJson(t)).toList();
+        final tests = data
+            .map((t) => LabTestInventoryModel.fromJson(t))
+            .toList();
         state = state.copyWith(tests: tests, isLoading: false);
       } else {
-        state = state.copyWith(isLoading: false, error: "Failed to load lab's tests");
+        state = state.copyWith(
+          isLoading: false,
+          error: "Failed to load lab's tests",
+        );
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -100,7 +110,10 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
         final packages = data.map((p) => TestPackageModel.fromJson(p)).toList();
         state = state.copyWith(packages: packages, isLoading: false);
       } else {
-        state = state.copyWith(isLoading: false, error: "Failed to load packages");
+        state = state.copyWith(
+          isLoading: false,
+          error: "Failed to load packages",
+        );
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -112,7 +125,7 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
     try {
       final futures = labIds.map((id) => _service.getPackagesByLabId(id));
       final responses = await Future.wait(futures);
-      
+
       List<TestPackageModel> allPackages = [];
       for (var response in responses) {
         if (response.statusCode == 200) {
@@ -134,7 +147,10 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
         final package = TestPackageModel.fromJson(response.data);
         state = state.copyWith(selectedPackage: package, isLoading: false);
       } else {
-        state = state.copyWith(isLoading: false, error: "Failed to load package details");
+        state = state.copyWith(
+          isLoading: false,
+          error: "Failed to load package details",
+        );
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

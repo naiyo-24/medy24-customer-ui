@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/about_us.dart';
 import '../../theme/app_theme.dart';
-import '../services/api_url.dart';
+import '../../services/api_url.dart';
 
 class PartnerCard extends StatelessWidget {
   final AboutUsModel aboutUs;
