@@ -36,7 +36,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 // Leading Section: Logo or Back Button
                 if (showBackButton)
                   GestureDetector(
-                    onTap: onBackTap ?? () => context.pop(),
+                    onTap:
+                        onBackTap ??
+                        () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            // Fallback if there's nothing to pop
+                            context.go('/home');
+                          }
+                        },
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(

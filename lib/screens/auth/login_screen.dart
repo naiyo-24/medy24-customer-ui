@@ -245,7 +245,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             text: TextSpan(
               style: AppTextStyles.caption,
               children: [
-                const TextSpan(text: 'By signing in, you agree to our '),
+                const TextSpan(text: 'By signing in, you agree to our\n'),
                 TextSpan(
                   text: 'terms and conditions',
                   style: const TextStyle(
@@ -253,7 +253,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     fontWeight: FontWeight.w700,
                     decoration: TextDecoration.underline,
                   ),
-                  recognizer: TapGestureRecognizer()..onTap = () {},
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => context.go('/terms-conditions'),
+                ),
+                const TextSpan(text: ' and '),
+                TextSpan(
+                  text: 'privacy policies',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => context.go('/privacy-policy'),
                 ),
               ],
             ),
