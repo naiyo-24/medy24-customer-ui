@@ -8,6 +8,7 @@ class UserModel {
   final String? alternativePhoneNo;
   final List<dynamic>? savedAddresses;
   final String? profilePhoto;
+  final String? status;
   final String? token;
 
   UserModel({
@@ -18,6 +19,7 @@ class UserModel {
     this.alternativePhoneNo,
     this.savedAddresses,
     this.profilePhoto,
+    this.status,
     this.token,
   });
 
@@ -29,6 +31,7 @@ class UserModel {
     String? alternativePhoneNo,
     List<dynamic>? savedAddresses,
     String? profilePhoto,
+    String? status,
     String? token,
   }) {
     return UserModel(
@@ -39,6 +42,7 @@ class UserModel {
       alternativePhoneNo: alternativePhoneNo ?? this.alternativePhoneNo,
       savedAddresses: savedAddresses ?? this.savedAddresses,
       profilePhoto: profilePhoto ?? this.profilePhoto,
+      status: status ?? this.status,
       token: token ?? this.token,
     );
   }
@@ -52,6 +56,7 @@ class UserModel {
       'alternative_phone_no': alternativePhoneNo,
       'saved_addresses': savedAddresses,
       'profile_photo': profilePhoto,
+      'status': status,
       'token': token,
     };
   }
@@ -62,19 +67,22 @@ class UserModel {
       phoneNumber: map['phone_number'] ?? map['phoneNumber'],
       fullName: map['full_name'] ?? map['fullName'] ?? map['name'],
       email: map['email'],
-      alternativePhoneNo: map['alternative_phone_no'] ?? map['alternativePhoneNo'],
+      alternativePhoneNo:
+          map['alternative_phone_no'] ?? map['alternativePhoneNo'],
       savedAddresses: map['saved_addresses'] ?? map['savedAddresses'],
       profilePhoto: map['profile_photo'] ?? map['profilePhoto'],
+      status: map['status'],
       token: map['token'] ?? map['backend_token'],
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory UserModel.fromJson(String source) => UserModel.fromMap(json.decode(source));
+  factory UserModel.fromJson(String source) =>
+      UserModel.fromMap(json.decode(source));
 
   @override
   String toString() {
-    return 'UserModel(customerId: $customerId, phoneNumber: $phoneNumber, fullName: $fullName, email: $email, token: $token)';
+    return 'UserModel(customerId: $customerId, phoneNumber: $phoneNumber, fullName: $fullName, email: $email, status: $status, token: $token)';
   }
 }

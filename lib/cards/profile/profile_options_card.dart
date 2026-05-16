@@ -44,7 +44,7 @@ class ProfileOptionsCard extends StatelessWidget {
                   title: 'Update Profile',
                   subtitle: 'Manage your personal details',
                   color: AppColors.primary,
-                  onTap: () {},
+                  onTap: () => context.push('/update-profile'),
                 ),
                 _buildDivider(),
                 _buildOption(
@@ -53,6 +53,14 @@ class ProfileOptionsCard extends StatelessWidget {
                   subtitle: 'View items in your basket',
                   color: AppColors.primary,
                   onTap: () {},
+                ),
+                _buildDivider(),
+                _buildOption(
+                  icon: Iconsax.location,
+                  title: 'My Addresses',
+                  subtitle: 'Manage your addresses',
+                  color: AppColors.primary,
+                  onTap: () => context.push('/saved-addresses'),
                 ),
                 _buildDivider(),
                 _buildOption(

@@ -99,6 +99,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String token,
     required String phoneNumber,
     String? fullName,
+    String? email,
+    String? alternativePhoneNo,
     File? profilePhoto,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -107,6 +109,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         token: token,
         phoneNumber: phoneNumber,
         fullName: fullName,
+        email: email,
+        alternativePhoneNo: alternativePhoneNo,
         profilePhoto: profilePhoto,
       );
 

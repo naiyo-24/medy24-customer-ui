@@ -59,14 +59,6 @@ class ProfileHeaderCard extends StatelessWidget {
                     color: Colors.white.withAlpha(100),
                     width: 4,
                   ),
-                  image: user.profilePhoto != null
-                      ? DecorationImage(
-                          image: NetworkImage(
-                            ApiUrl.imageUrl(user.profilePhoto),
-                          ),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withAlpha(30),
@@ -75,15 +67,40 @@ class ProfileHeaderCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: user.profilePhoto == null
-                    ? Center(
-                        child: Icon(
-                          Icons.person_rounded,
-                          size: 55,
-                          color: AppColors.primary.withAlpha(200),
+                child: ClipOval(
+                  child: user.profilePhoto != null
+                      ? Image.network(
+                          ApiUrl.imageUrl(user.profilePhoto),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Center(
+                            child: Icon(
+                              Icons.person_rounded,
+                              size: 55,
+                              color: AppColors.primary.withAlpha(200),
+                            ),
+                          ),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                strokeWidth: 2,
+                                color: AppColors.primary.withAlpha(100),
+                              ),
+                            );
+                          },
+                        )
+                      : Center(
+                          child: Icon(
+                            Icons.person_rounded,
+                            size: 55,
+                            color: AppColors.primary.withAlpha(200),
+                          ),
                         ),
-                      )
-                    : null,
+                ),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -98,12 +115,37 @@ class ProfileHeaderCard extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       '+91 ${user.phoneNumber ?? '00000 00000'}',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: Colors.white.withAlpha(200),
                         fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (user.status == 'active')
+                            ? Colors.white.withAlpha(50)
+                            : Colors.red.withAlpha(100),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(80),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        (user.status ?? 'ACTIVE').toUpperCase(),
+                        style: AppTextStyles.tagline.copyWith(
+                          color: Colors.white,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
                   ],

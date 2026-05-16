@@ -18,6 +18,9 @@ import '../screens/medicine/order_with_prescription_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/privacy_policy/privacy_policy_screen.dart';
 import '../screens/terms_conditions/terms_conditions_screen.dart';
+import '../screens/profile/update_profile_screen.dart';
+import '../screens/profile/saved_addresses_screen.dart';
+import '../screens/profile/map_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
@@ -109,6 +112,18 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/order-with-prescription',
       builder: (context, state) => const OrderWithPrescriptionScreen(),
+    ),
+    GoRoute(
+      path: '/update-profile',
+      builder: (context, state) => const UpdateProfileScreen(),
+    ),
+    GoRoute(
+      path: '/saved-addresses',
+      builder: (context, state) => const SavedAddressesScreen(),
+    ),
+    GoRoute(
+      path: '/map-picker',
+      builder: (context, state) => const MapPickerScreen(),
     ),
   ],
 );

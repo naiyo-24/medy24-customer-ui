@@ -94,6 +94,7 @@ class AuthService {
     String? fullName,
     String? email,
     String? alternativePhoneNo,
+    String? status,
     File? profilePhoto,
   }) async {
     try {
@@ -103,6 +104,7 @@ class AuthService {
       if (alternativePhoneNo != null) {
         formDataMap['alternative_phone_no'] = alternativePhoneNo;
       }
+      if (status != null) formDataMap['status'] = status;
       if (profilePhoto != null) {
         formDataMap['profile_photo'] = await MultipartFile.fromFile(
           profilePhoto.path,
@@ -112,6 +114,45 @@ class AuthService {
 
       final formData = FormData.fromMap(formDataMap);
       return await _dio.put(ApiUrl.updateProfile(customerId), data: formData);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> addAddress({
+    required String customerId,
+    required String address1,
+    required String streetAddress,
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      return await _dio.post(
+        ApiUrl.addAddress(customerId),
+        data: {
+          'address_1': address1,
+          'street_address': streetAddress,
+          'latitude': latitude,
+          'longitude': longitude,
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> deleteAddress({
+    required String customerId,
+    required int addressId,
+    required String token,
+  }) async {
+    try {
+      return await _dio.delete(
+        ApiUrl.deleteAddress(customerId, addressId),
+        options: Options(
+          headers: {'token': token},
+        ),
+      );
     } catch (e) {
       rethrow;
     }

@@ -57,6 +57,7 @@ class ApiUrl {
   static String imageUrl(String? path) {
     if (path == null || path.isEmpty) return "";
     if (path.startsWith('http')) return path;
-    return "$baseUrl/$path";
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return "$baseUrl/$cleanPath";
   }
 }
