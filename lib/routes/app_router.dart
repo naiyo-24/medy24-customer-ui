@@ -21,6 +21,8 @@ import '../screens/terms_conditions/terms_conditions_screen.dart';
 import '../screens/profile/update_profile_screen.dart';
 import '../screens/profile/saved_addresses_screen.dart';
 import '../screens/map/map_screen.dart';
+import '../screens/book_test_package/book_test_package_screen.dart';
+import '../screens/payment/checkout_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
@@ -115,6 +117,21 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/map-picker',
       builder: (context, state) => const MapPickerScreen(),
+    ),
+    GoRoute(
+      path: '/book-test-package',
+      builder: (context, state) {
+        final type = state.uri.queryParameters['type'] ?? 'lab_test';
+        final itemId = state.uri.queryParameters['itemId'] ?? '';
+        return BookTestPackageScreen(
+          bookingType: type,
+          itemId: itemId,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/checkout',
+      builder: (context, state) => const CheckoutScreen(),
     ),
   ],
 );

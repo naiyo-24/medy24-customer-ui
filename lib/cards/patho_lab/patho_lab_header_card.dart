@@ -19,7 +19,7 @@ class PathoLabHeaderCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 280,
-      decoration: const BoxDecoration(color: AppColors.primary),
+      decoration: const BoxDecoration(color: AppColors.silver),
       child: Stack(
         children: [
           // Background Image

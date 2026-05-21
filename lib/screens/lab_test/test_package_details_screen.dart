@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../providers/lab_test_provider.dart';
 import '../../theme/app_theme.dart';
@@ -107,7 +108,11 @@ class _TestPackageDetailsScreenState extends ConsumerState<TestPackageDetailsScr
               height: 56,
               width: 160,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.push(
+                    '/book-test-package?type=package&itemId=${package.packageId}',
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),

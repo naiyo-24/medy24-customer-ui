@@ -36,6 +36,12 @@ class ApiUrl {
   static String getTestPackagesByLabId(String labId) =>
       "$testPackage/get-by-lab/$labId";
 
+  // Lab Test / Package Booking Endpoints
+  static const String labTestBooking = "$baseUrl/lab-test-bookings";
+  static const String createLabTestBooking = "$labTestBooking/create";
+  static const String testPackageBooking = "$baseUrl/test-package-bookings";
+  static const String createTestPackageBooking = "$testPackageBooking/create";
+
   // Customer Auth Endpoints
   static const String customers = "$baseUrl/customers";
   static const String checkPhone = "$customers/check-phone";
@@ -60,4 +66,7 @@ class ApiUrl {
     final cleanPath = path.startsWith('/') ? path.substring(1) : path;
     return "$baseUrl/$cleanPath";
   }
+
+  // Platform Fee Endpoints
+  static const String platformFee = "http://192.168.0.222:8000/admin/earnings/list";
 }

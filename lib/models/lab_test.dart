@@ -136,6 +136,16 @@ class TestPackageModel {
     required this.testDetails,
   });
 
+  bool get hasDiscount {
+    final savings = packageMarketPrice - packageFinalPrice;
+    return discountPercentage > 0 && savings > 0;
+  }
+
+  double get discountAmount {
+    final savings = packageMarketPrice - packageFinalPrice;
+    return savings > 0 ? savings : 0;
+  }
+
   factory TestPackageModel.fromJson(Map<String, dynamic> json) {
     var testList = json['test_details'] as List? ?? [];
     List<LabTestInventoryModel> tests = testList.map((t) {

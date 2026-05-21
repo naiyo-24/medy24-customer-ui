@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/lab_test.dart';
 import '../../providers/lab_test_provider.dart';
@@ -10,7 +11,6 @@ import '../../cards/lab_test/lab_test_sample_report_card.dart';
 import '../../cards/lab_test/lab_test_precautions_card.dart';
 import '../../cards/lab_test/lab_test_reviews_card.dart';
 import '../../cards/lab_test/lab_test_pricing_card.dart';
-import '../../cards/lab_test/lab_test_booking_bottomsheet.dart';
 import '../../cards/lab_test/lab_test_booking_bar.dart';
 
 class LabTestDetailsScreen extends ConsumerStatefulWidget {
@@ -143,18 +143,8 @@ class _LabTestDetailsScreenState extends ConsumerState<LabTestDetailsScreen> {
   }
 
   void _onBookNow(BuildContext context, LabTestInventoryModel test) {
-    LabTestBookingBottomSheet.show(
-      context,
-      test: test,
-      onConfirm: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Booking for ${test.coreTestDetails?.testName ?? 'lab test'} · ₹${test.marketPrice.toStringAsFixed(0)}',
-            ),
-          ),
-        );
-      },
+    context.push(
+      '/book-test-package?type=lab_test&itemId=${test.testId}',
     );
   }
 }
