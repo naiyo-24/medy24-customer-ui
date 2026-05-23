@@ -1,18 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../models/cart.dart';
 import '../models/medicine.dart';
 import '../models/charges.dart';
+import '../providers/cart_provider.dart';
+import '../providers/profile_provider.dart';
 
 class CartState {
   final List<CartItem> items;
   final dynamic selectedAddress;
+  final bool isLoading;
+  final String? error;
 
-  CartState({this.items = const [], this.selectedAddress});
+  CartState({
+    this.items = const [],
+    this.selectedAddress,
+    this.isLoading = false,
+    this.error,
+  });
 
-  CartState copyWith({List<CartItem>? items, dynamic selectedAddress}) {
+  CartState copyWith({
+    List<CartItem>? items,
+    dynamic selectedAddress,
+    bool? isLoading,
+    String? error,
+  }) {
     return CartState(
       items: items ?? this.items,
       selectedAddress: selectedAddress ?? this.selectedAddress,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
     );
   }
 
@@ -53,59 +70,110 @@ class CartState {
 }
 
 class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier() : super(CartState());
+  final Ref ref;
 
-  void addItem(MedicineModel medicine) {
+  CartNotifier(this.ref) : super(CartState()) {
+    Future.microtask(() => fetchCart());
+  }
+
+  String? get _customerId => ref.read(profileProvider).user?.customerId;
+
+  void _updateStateFromResponse(Response response) {
+    if (response.statusCode == 200 && response.data['cart'] != null) {
+      final List items = response.data['cart']['items'] ?? [];
+      final parsedItems = items.map((i) => CartItem.fromJson(i)).toList();
+      state = state.copyWith(items: parsedItems, isLoading: false, error: null);
+    } else {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  Future<void> fetchCart() async {
+    final cid = _customerId;
+    if (cid == null) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await ref.read(cartServiceProvider).getCart(cid);
+      _updateStateFromResponse(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> addItem(MedicineModel medicine, {int quantity = 1}) async {
+    final cid = _customerId;
+    if (cid == null) return;
+
     final existingIndex = state.items.indexWhere(
       (item) => item.medicine.medicineId == medicine.medicineId,
     );
 
+    int newQuantity = quantity;
     if (existingIndex >= 0) {
-      final updatedItems = [...state.items];
-      final existingItem = updatedItems[existingIndex];
-      updatedItems[existingIndex] = existingItem.copyWith(
-        quantity: existingItem.quantity + 1,
-      );
-      state = state.copyWith(items: updatedItems);
-    } else {
-      state = state.copyWith(
-        items: [
-          ...state.items,
-          CartItem(medicine: medicine, quantity: 1),
-        ],
-      );
+      newQuantity = state.items[existingIndex].quantity + quantity;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await ref.read(cartServiceProvider).addItem(cid, medicine.medicineId!, newQuantity);
+      _updateStateFromResponse(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
-  void updateQuantity(String medicineId, int newQuantity) {
+  Future<void> updateQuantity(String medicineId, int newQuantity) async {
+    final cid = _customerId;
+    if (cid == null) return;
+
     if (newQuantity <= 0) {
-      removeItem(medicineId);
-      return;
+      return removeItem(medicineId);
     }
 
-    final updatedItems = state.items.map((item) {
-      if (item.medicine.medicineId == medicineId) {
-        return item.copyWith(quantity: newQuantity);
-      }
-      return item;
-    }).toList();
-
-    state = state.copyWith(items: updatedItems);
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await ref.read(cartServiceProvider).updateItem(cid, medicineId, newQuantity);
+      _updateStateFromResponse(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
-  void removeItem(String medicineId) {
-    state = state.copyWith(
-      items: state.items
-          .where((item) => item.medicine.medicineId != medicineId)
-          .toList(),
-    );
+  Future<void> removeItem(String medicineId) async {
+    final cid = _customerId;
+    if (cid == null) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await ref.read(cartServiceProvider).removeItem(cid, medicineId);
+      _updateStateFromResponse(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
   void selectAddress(dynamic address) {
     state = state.copyWith(selectedAddress: address);
   }
 
-  void clearCart() {
+  Future<void> clearCart() async {
+    final cid = _customerId;
+    if (cid == null) {
+      clearCartLocal();
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await ref.read(cartServiceProvider).clearCart(cid);
+      _updateStateFromResponse(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void clearCartLocal() {
     state = CartState(selectedAddress: state.selectedAddress);
   }
 }

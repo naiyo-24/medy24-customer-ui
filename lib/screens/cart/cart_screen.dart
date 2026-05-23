@@ -39,22 +39,28 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             : '${cartState.items.length} items',
         showBackButton: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.screenPadding),
-        child: Column(
-          children: [
-            const CartItemsCard(),
-            if (!isCartEmpty) ...[
-              const SizedBox(height: AppSpacing.sectionGap),
-              const CartBillSummaryCard(),
-              const SizedBox(height: AppSpacing.sectionGap),
-              const CartAddressCard(),
-              const SizedBox(
-                height: 200,
-              ), // extra padding for bottom navigation
-            ],
-          ],
-        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.screenPadding),
+            child: Column(
+              children: [
+                const CartItemsCard(),
+                if (!isCartEmpty) ...[
+                  const SizedBox(height: AppSpacing.sectionGap),
+                  const CartBillSummaryCard(),
+                  const SizedBox(height: AppSpacing.sectionGap),
+                  const CartAddressCard(),
+                  const SizedBox(
+                    height: 200,
+                  ), // extra padding for bottom navigation
+                ],
+              ],
+            ),
+          ),
+          if (cartState.isLoading)
+            const LinearProgressIndicator(color: AppColors.primary),
+        ],
       ),
       bottomSheet: isCartEmpty
           ? null

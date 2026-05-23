@@ -15,7 +15,7 @@ import '../screens/medicine/medicine_list_screen.dart';
 import '../screens/medicine/medicine_details_screen.dart';
 import '../screens/medicine/medicine_search_screen.dart';
 import '../screens/home/home_screen.dart';
-import '../screens/medicine/order_with_prescription_screen.dart';
+import '../screens/order_medicine/order_with_prescription_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/privacy_policy/privacy_policy_screen.dart';
 import '../screens/terms_conditions/terms_conditions_screen.dart';
@@ -125,10 +125,7 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final type = state.uri.queryParameters['type'] ?? 'lab_test';
         final itemId = state.uri.queryParameters['itemId'] ?? '';
-        return BookTestPackageScreen(
-          bookingType: type,
-          itemId: itemId,
-        );
+        return BookTestPackageScreen(bookingType: type, itemId: itemId);
       },
     ),
     GoRoute(
@@ -142,9 +139,6 @@ final appRouter = GoRouter(
         return MyTestBookingsScreen(customerId: customerId);
       },
     ),
-    GoRoute(
-      path: '/cart',
-      builder: (context, state) => const CartScreen(),
-    ),
+    GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
   ],
 );

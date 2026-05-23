@@ -72,6 +72,16 @@ class ApiUrl {
     return "$baseUrl/$cleanPath";
   }
 
+  // Cart Endpoints
+  static const String cart = "$baseUrl/cart";
+  static const String cartAddItem = "$cart/add-item";
+  static String cartUpdateItem(String medicineId) => "$cart/update-item/$medicineId";
+  static String cartRemoveItem(String medicineId) => "$cart/remove-item/$medicineId";
+  static const String cartGet = "$cart/"; // New endpoint GET /
+  static const String cartGetAll = "$cart/get-all"; // Legacy
+  static const String cartClear = "$cart/clear";
+  static const String cartSummary = "$cart/summary";
+
   // Platform Fee Endpoints
   static const String platformFee =
       "http://192.168.0.222:8000/admin/earnings/list";
