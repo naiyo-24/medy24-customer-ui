@@ -5,7 +5,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../providers/patho_lab_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
-import '../../widgets/bottom_nav_bar.dart';
 import '../../cards/patho_lab/lab_card.dart';
 
 class PathoLabListScreen extends ConsumerStatefulWidget {
@@ -47,7 +46,9 @@ class _PathoLabListScreenState extends ConsumerState<PathoLabListScreen> {
         showBackButton: false,
         actions: [
           IconButton(
-            icon: Icon(_isSearching ? Iconsax.close_circle : Iconsax.search_normal_1),
+            icon: Icon(
+              _isSearching ? Iconsax.close_circle : Iconsax.search_normal_1,
+            ),
             onPressed: () {
               setState(() {
                 _isSearching = !_isSearching;
@@ -64,14 +65,21 @@ class _PathoLabListScreenState extends ConsumerState<PathoLabListScreen> {
         children: [
           if (_isSearching)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding,
+                vertical: 8,
+              ),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'Search patho labs...',
-                  prefixIcon: const Icon(Iconsax.search_normal, size: 20, color: AppColors.primary),
+                  prefixIcon: const Icon(
+                    Iconsax.search_normal,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -80,32 +88,26 @@ class _PathoLabListScreenState extends ConsumerState<PathoLabListScreen> {
             child: pathoLabState.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : pathoLabState.error != null
-                    ? Center(child: Text('Error: ${pathoLabState.error}'))
-                    : RefreshIndicator(
-                        onRefresh: () => ref.read(pathoLabProvider.notifier).fetchLabs(),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                          itemCount: pathoLabState.labs.length,
-                          itemBuilder: (context, index) {
-                            final lab = pathoLabState.labs[index];
-                              return LabCard(
-                                lab: lab,
-                                onTap: () {
-                                  context.push('/patho-lab-details/${lab.labId}');
-                                },
-                              );
+                ? Center(child: Text('Error: ${pathoLabState.error}'))
+                : RefreshIndicator(
+                    onRefresh: () =>
+                        ref.read(pathoLabProvider.notifier).fetchLabs(),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(AppSpacing.screenPadding),
+                      itemCount: pathoLabState.labs.length,
+                      itemBuilder: (context, index) {
+                        final lab = pathoLabState.labs[index];
+                        return LabCard(
+                          lab: lab,
+                          onTap: () {
+                            context.push('/patho-lab-details/${lab.labId}');
                           },
-                        ),
-                      ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 3,
-        onTap: (index) {
-          if (index == 0) context.go('/patho-lab-list');
-          if (index == 2) context.go('/lab-test-list');
-        },
       ),
     );
   }

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
-import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/explore_package_card.dart';
 import '../../widgets/order_medicines_card.dart';
 import '../../widgets/order_with_prescription_card.dart';
@@ -91,15 +90,9 @@ class HomeScreen extends ConsumerWidget {
 
             const SizedBox(height: 32),
             const FooterCard(),
-            const SizedBox(height: 120), // Spacing for bottom nav bar
+            const SizedBox(height: 24),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 0,
-        onTap: (index) {
-          // Bottom nav bar tap handling is usually handled within the widget via context.go
-        },
       ),
     );
   }

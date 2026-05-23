@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -25,11 +26,18 @@ import '../screens/map/map_screen.dart';
 import '../screens/book_test_package/book_test_package_screen.dart';
 import '../screens/payment/checkout_screen.dart';
 import '../screens/cart/cart_screen.dart';
+import '../widgets/bottom_nav_bar.dart';
+
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _shellNavigatorMedsKey = GlobalKey<NavigatorState>(debugLabel: 'meds');
+final _shellNavigatorTestsKey = GlobalKey<NavigatorState>(debugLabel: 'tests');
+final _shellNavigatorLabsKey = GlobalKey<NavigatorState>(debugLabel: 'labs');
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
+  navigatorKey: _rootNavigatorKey,
   routes: [
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
@@ -38,6 +46,60 @@ final appRouter = GoRouter(
         final phone = state.pathParameters['phone']!;
         return SignupScreen(phoneNumber: phone);
       },
+    ),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: CustomBottomNavBar(
+            currentIndex: navigationShell.currentIndex,
+            onTap: (index) {
+              navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              );
+            },
+          ),
+        );
+      },
+      branches: [
+        StatefulShellBranch(
+          navigatorKey: _shellNavigatorHomeKey,
+          routes: [
+            GoRoute(
+              path: '/home',
+              builder: (context, state) => const HomeScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _shellNavigatorMedsKey,
+          routes: [
+            GoRoute(
+              path: '/medicine-list',
+              builder: (context, state) => const MedicineListScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _shellNavigatorTestsKey,
+          routes: [
+            GoRoute(
+              path: '/lab-test-list',
+              builder: (context, state) => const LabTestListScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _shellNavigatorLabsKey,
+          routes: [
+            GoRoute(
+              path: '/patho-lab-list',
+              builder: (context, state) => const PathoLabListScreen(),
+            ),
+          ],
+        ),
+      ],
     ),
     GoRoute(
       path: '/profile',
@@ -48,19 +110,11 @@ final appRouter = GoRouter(
       builder: (context, state) => const AboutUsScreen(),
     ),
     GoRoute(
-      path: '/patho-lab-list',
-      builder: (context, state) => const PathoLabListScreen(),
-    ),
-    GoRoute(
       path: '/patho-lab-details/:labId',
       builder: (context, state) {
         final labId = state.pathParameters['labId']!;
         return PathoLabDetailsScreen(labId: labId);
       },
-    ),
-    GoRoute(
-      path: '/lab-test-list',
-      builder: (context, state) => const LabTestListScreen(),
     ),
     GoRoute(
       path: '/lab-test-details/:testId',
@@ -79,10 +133,6 @@ final appRouter = GoRouter(
         final packageId = state.pathParameters['packageId']!;
         return TestPackageDetailsScreen(packageId: packageId);
       },
-    ),
-    GoRoute(
-      path: '/medicine-list',
-      builder: (context, state) => const MedicineListScreen(),
     ),
     GoRoute(
       path: '/medicine-details',

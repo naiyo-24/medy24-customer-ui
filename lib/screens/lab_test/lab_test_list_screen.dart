@@ -6,7 +6,6 @@ import '../../providers/lab_test_provider.dart';
 import '../../providers/patho_lab_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
-import '../../widgets/bottom_nav_bar.dart';
 import '../../cards/lab_test/lab_test_card.dart';
 import '../../widgets/explore_package_card.dart';
 
@@ -120,14 +119,6 @@ class _LabTestListScreenState extends ConsumerState<LabTestListScreen> {
                   ),
           ),
         ],
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 2,
-        onTap: (index) {
-          if (index == 0) context.go('/patho-lab-list'); // For now
-          if (index == 1) {} // Medicines
-          if (index == 3) context.go('/patho-lab-list');
-        },
       ),
     );
   }

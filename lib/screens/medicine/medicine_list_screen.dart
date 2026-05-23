@@ -4,7 +4,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/medicine_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/order_with_prescription_card.dart';
 import '../../widgets/app_bar.dart';
 import '../../cards/medicine/medicine_card.dart';
@@ -83,7 +82,11 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                       ),
                       child: Text(
                         '$cartItemCount',
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   );
@@ -152,15 +155,9 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 ),
               )
             else
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 100), // Space for bottom nav
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 1,
-        onTap: (index) {},
       ),
     );
   }
