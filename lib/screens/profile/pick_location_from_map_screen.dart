@@ -73,7 +73,9 @@ class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
     // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.
     try {
-      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
       setState(() {
         _currentPosition = LatLng(position.latitude, position.longitude);
         _selectedPosition = _currentPosition;
