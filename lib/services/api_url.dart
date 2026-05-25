@@ -82,6 +82,16 @@ class ApiUrl {
   static const String cartClear = "$cart/clear";
   static const String cartSummary = "$cart/summary";
 
+  // Medicine Orders Endpoints
+  static const String orders = "$baseUrl/orders";
+  static const String orderPlaceFromCart = "$orders/place-from-cart";
+  static const String orderPlaceFromPrescription = "$orders/place-from-prescription";
+  static const String orderGetAll = "$orders/get-all";
+  static String orderGetById(String id) => "$orders/get-by-id/$id";
+  static String orderCancel(String id) => "$orders/$id/cancel";
+  static String orderInitiateOnlinePayment(String id) => "$orders/$id/initiate-online-payment";
+  static String orderVerifyOnlinePayment(String id) => "$orders/$id/verify-online-payment";
+
   // Platform Fee Endpoints
   static const String platformFee =
       "http://192.168.0.222:8000/admin/earnings/list";

@@ -8,13 +8,17 @@ import '../../models/test_package_booking.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_test_package_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../providers/order_provider.dart';
+import '../../providers/charges_provider.dart';
 import '../../services/api_url.dart';
 import '../../services/razorpay_payment_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
-  const CheckoutScreen({super.key});
+  final String checkoutType; // 'lab_test' or 'medicine'
+  const CheckoutScreen({super.key, this.checkoutType = 'lab_test'});
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -23,6 +27,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final RazorpayPaymentService _razorpayService = RazorpayPaymentService();
   bool _isPaying = false;
+  String? _medicineOrderId;
 
   @override
   void dispose() {
@@ -30,13 +35,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-  void _onPaymentSuccess(PaymentSuccessResponse response) {
-    ref
-        .read(bookTestPackageProvider.notifier)
-        .setRazorpayPaymentId(response.paymentId ?? '');
-    if (!mounted) return;
-    setState(() => _isPaying = false);
-    _showSuccessAndExit();
+  void _onPaymentSuccess(PaymentSuccessResponse response) async {
+    if (widget.checkoutType == 'lab_test') {
+      ref
+          .read(bookTestPackageProvider.notifier)
+          .setRazorpayPaymentId(response.paymentId ?? '');
+      if (!mounted) return;
+      setState(() => _isPaying = false);
+      _showSuccessAndExit();
+    } else if (widget.checkoutType == 'medicine') {
+      if (_medicineOrderId != null) {
+        final success = await ref
+            .read(orderProvider.notifier)
+            .verifyOnlinePayment(
+              orderId: _medicineOrderId!,
+              razorpayPaymentId: response.paymentId ?? '',
+              razorpayOrderId: response.orderId ?? '',
+              razorpaySignature: response.signature ?? '',
+            );
+        if (!mounted) return;
+        setState(() => _isPaying = false);
+        if (success) {
+          _showSuccessAndExit();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment verification failed')),
+          );
+        }
+      }
+    }
   }
 
   void _onPaymentError(PaymentFailureResponse response) {
@@ -44,36 +71,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     setState(() => _isPaying = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          response.message ?? 'Payment failed. Please try again.',
-        ),
+        content: Text(response.message ?? 'Payment failed. Please try again.'),
       ),
     );
   }
 
   Future<void> _onPayOnline() async {
     try {
-      // Verify that Razorpay key is configured
       final _ = ApiUrl.razorpayKeyId;
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Razorpay configuration error: ${e.toString()}',
-          ),
+          content: Text('Razorpay configuration error: ${e.toString()}'),
         ),
-      );
-      return;
-    }
-
-    final user = ref.read(profileProvider).user ?? ref.read(authProvider).user;
-    final bookingState = ref.read(bookTestPackageProvider);
-    final booking = bookingState.confirmedBooking;
-
-    if (booking == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No booking found')),
       );
       return;
     }
@@ -88,8 +99,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Razorpay is not loaded. Stop the app completely, then run '
-            'flutter run (hot restart does not load native plugins).',
+            'Razorpay is not loaded. Stop the app completely, then run flutter run.',
           ),
           duration: Duration(seconds: 5),
         ),
@@ -98,17 +108,38 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
 
     setState(() => _isPaying = true);
+    final user = ref.read(profileProvider).user ?? ref.read(authProvider).user;
+
+    if (widget.checkoutType == 'lab_test') {
+      await _payOnlineForLabTest(user);
+    } else {
+      await _payOnlineForMedicine(user);
+    }
+  }
+
+  Future<void> _payOnlineForLabTest(dynamic user) async {
+    final bookingState = ref.read(bookTestPackageProvider);
+    final booking = bookingState.confirmedBooking;
+
+    if (booking == null) {
+      setState(() => _isPaying = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No booking found')));
+      return;
+    }
 
     BookingResponse? response = bookingState.bookingResponse;
     if (response?.transactionId == null) {
-      response = await ref.read(bookTestPackageProvider.notifier).placeOnlineBooking(
-        customerId: user?.customerId,
-        savedAddresses: user?.savedAddresses,
-      );
+      response = await ref
+          .read(bookTestPackageProvider.notifier)
+          .placeOnlineBooking(
+            customerId: user?.customerId,
+            savedAddresses: user?.savedAddresses,
+          );
     }
 
     if (!mounted) return;
-
     final error = ref.read(bookTestPackageProvider).error;
     if (response == null || response.transactionId == null) {
       setState(() => _isPaying = false);
@@ -118,9 +149,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
 
-    final amountPaise =
-        (response.totalAmountToBePaid * 100).round();
-
+    final amountPaise = (response.totalAmountToBePaid * 100).round();
     try {
       await _razorpayService.openCheckout(
         orderId: response.transactionId!,
@@ -134,28 +163,115 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() => _isPaying = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Razorpay plugin unavailable. Stop the app and run flutter run again.',
-          ),
-        ),
+        const SnackBar(content: Text('Razorpay plugin unavailable.')),
+      );
+    }
+  }
+
+  Future<void> _payOnlineForMedicine(dynamic user) async {
+    final cartState = ref.read(cartProvider);
+    final chargesState = ref.read(chargesProvider);
+    final summary = cartState.getSummary(chargesState.selectedCharge);
+
+    if (cartState.selectedAddress == null) {
+      setState(() => _isPaying = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No address selected')));
+      return;
+    }
+
+    final selectedAddress = cartState.selectedAddress as Map<String, dynamic>?;
+    final addressString = [
+      selectedAddress?['address_1'],
+      selectedAddress?['street_address'],
+    ].where((e) => e != null).join(', ');
+
+    // Place the order first
+    final order = await ref
+        .read(orderProvider.notifier)
+        .placeOrderFromCart(
+          platformFee: summary.platformCharges,
+          deliveryFee: summary.deliveryFees,
+          taxes: summary.taxes,
+          paymentMode: 'online',
+          receiverName: user?.fullName ?? 'Myself',
+          receiverPhone: user?.phoneNumber ?? 'N/A',
+          deliveryAddress: {
+            'address': addressString,
+            'lat': selectedAddress?['lat'] ?? 0.0,
+            'lng': selectedAddress?['lng'] ?? 0.0,
+          },
+        );
+
+    if (order == null) {
+      if (!mounted) return;
+      setState(() => _isPaying = false);
+      final error = ref.read(orderProvider).error;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error ?? 'Failed to place order')));
+      return;
+    }
+
+    _medicineOrderId = order.orderId;
+
+    // Initiate online payment with razorpay
+    final rpResponse = await ref
+        .read(orderProvider.notifier)
+        .initiateOnlinePayment(order.orderId!);
+    if (rpResponse == null || rpResponse['razorpay_order_id'] == null) {
+      if (!mounted) return;
+      setState(() => _isPaying = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to initiate razorpay order')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    final double amount = (rpResponse['amount'] is int)
+        ? (rpResponse['amount'] as int).toDouble()
+        : (rpResponse['amount'] ?? 0.0);
+    final amountPaise = (amount * 100).round();
+
+    try {
+      await _razorpayService.openCheckout(
+        orderId: rpResponse['razorpay_order_id'],
+        amountPaise: amountPaise,
+        contact: user?.phoneNumber ?? '',
+        email: user?.email ?? '',
+        name: user?.fullName ?? '',
+        description: 'Medicine Order',
+      );
+    } on MissingPluginException {
+      if (!mounted) return;
+      setState(() => _isPaying = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Razorpay plugin unavailable.')),
       );
     }
   }
 
   Future<void> _showSuccessAndExit() async {
-    final bookingResponse = ref.read(bookTestPackageProvider).bookingResponse;
-    final paymentId = ref.read(bookTestPackageProvider).razorpayPaymentId;
+    String msg = '';
+    if (widget.checkoutType == 'lab_test') {
+      final bookingResponse = ref.read(bookTestPackageProvider).bookingResponse;
+      final paymentId = ref.read(bookTestPackageProvider).razorpayPaymentId;
+      msg =
+          'Booking ID: ${bookingResponse?.bookingId ?? '—'}\n'
+          '${paymentId != null ? 'Payment ID: $paymentId\n' : ''}'
+          'Your lab test booking is confirmed.';
+    } else {
+      msg = 'Your medicine order has been placed successfully.';
+    }
 
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Payment successful'),
-        content: Text(
-          'Booking ID: ${bookingResponse?.bookingId ?? '—'}\n'
-          '${paymentId != null ? 'Payment ID: $paymentId\n' : ''}'
-          'Your lab test booking is confirmed.',
-        ),
+        content: Text(msg),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
@@ -170,22 +286,96 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.checkoutType == 'lab_test') {
+      return _buildLabTestUI();
+    } else {
+      return _buildMedicineUI();
+    }
+  }
+
+  Widget _buildLabTestUI() {
     final bookingState = ref.watch(bookTestPackageProvider);
     final booking = bookingState.confirmedBooking;
 
     if (booking == null) {
-      return Scaffold(
-        appBar: const CustomAppBar(
+      return const Scaffold(
+        appBar: CustomAppBar(
           showBackButton: true,
           title: 'Checkout',
           subtitle: 'Review and pay',
         ),
-        body: const Center(child: Text('No booking found')),
+        body: Center(child: Text('No booking found')),
       );
     }
 
     final summary = booking.priceSummary;
+    return _buildCheckoutLayout(
+      title: booking.itemName,
+      subtitle: booking.itemSubtitle,
+      patientName: booking.patient.fullName,
+      address: booking.collectionAddress?.displayAddress ?? '',
+      subtotal: summary.subtotal,
+      discount: summary.discount,
+      platformFee: summary.platformFee,
+      taxCharges: summary.taxCharges,
+      totalAmount: summary.totalAmount,
+      isSubmitting: bookingState.isSubmitting,
+      deliveryFee: 0.0,
+    );
+  }
 
+  Widget _buildMedicineUI() {
+    final cartState = ref.watch(cartProvider);
+    final chargesState = ref.watch(chargesProvider);
+    final summary = cartState.getSummary(chargesState.selectedCharge);
+
+    if (cartState.items.isEmpty) {
+      return const Scaffold(
+        appBar: CustomAppBar(
+          showBackButton: true,
+          title: 'Checkout',
+          subtitle: 'Review and pay',
+        ),
+        body: Center(child: Text('Cart is empty')),
+      );
+    }
+
+    final user = ref.read(profileProvider).user ?? ref.read(authProvider).user;
+    final orderState = ref.watch(orderProvider);
+    final selectedAddress = cartState.selectedAddress as Map<String, dynamic>?;
+    final addressString = [
+      selectedAddress?['address_1'],
+      selectedAddress?['street_address'],
+    ].where((e) => e != null).join(', ');
+
+    return _buildCheckoutLayout(
+      title: 'Medicine Order',
+      subtitle: '${cartState.items.length} items',
+      patientName: user?.fullName ?? 'Myself',
+      address: addressString,
+      subtotal: summary.totalItemAmount,
+      discount: summary.totalDiscount,
+      platformFee: summary.platformCharges,
+      deliveryFee: summary.deliveryFees,
+      taxCharges: summary.taxes,
+      totalAmount: summary.totalAmountToBePaid,
+      isSubmitting: orderState.isLoading,
+    );
+  }
+
+  Widget _buildCheckoutLayout({
+    required String title,
+    String? subtitle,
+    required String patientName,
+    required String address,
+    required double subtotal,
+    required double discount,
+    required double platformFee,
+    required double deliveryFee,
+    required double taxCharges,
+    required double totalAmount,
+    required bool isSubmitting,
+  }) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(
@@ -203,13 +393,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    booking.itemName,
+                    title,
                     style: AppTextStyles.cardTitle.copyWith(fontSize: 17),
                   ),
-                  if (booking.itemSubtitle != null) ...[
+                  if (subtitle != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      booking.itemSubtitle!,
+                      subtitle,
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -217,11 +407,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ],
                   const SizedBox(height: 12),
                   Text(
-                    'Patient: ${booking.patient.fullName}',
+                    'Patient/Receiver: $patientName',
                     style: AppTextStyles.bodyMedium,
                   ),
                   Text(
-                    booking.collectionAddress?.displayAddress ?? '',
+                    address,
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -233,13 +423,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             _buildCard(
               child: Column(
                 children: [
-                  _row('Subtotal', summary.subtotal),
-                  if (summary.discount > 0)
-                    _row('Discount', summary.discount, isDiscount: true),
-                  _row('Platform commission', summary.platformFee),
-                  _row('Tax charges', summary.taxCharges),
+                  _row('Subtotal', subtotal),
+                  if (discount > 0)
+                    _row('Discount', discount, isDiscount: true),
+                  _row('Platform commission', platformFee),
+                  if (deliveryFee > 0) _row('Delivery Fee', deliveryFee),
+                  _row('Tax charges', taxCharges),
                   const Divider(height: 24),
-                  _row('Total', summary.totalAmount, isTotal: true),
+                  _row('Total', totalAmount, isTotal: true),
                 ],
               ),
             ),
@@ -278,10 +469,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Iconsax.tick_circle,
-                    color: AppColors.primary,
-                  ),
+                  const Icon(Iconsax.tick_circle, color: AppColors.primary),
                 ],
               ),
             ),
@@ -308,10 +496,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: _isPaying || bookingState.isSubmitting
-                  ? null
-                  : _onPayOnline,
-              child: _isPaying || bookingState.isSubmitting
+              onPressed: _isPaying || isSubmitting ? null : _onPayOnline,
+              child: _isPaying || isSubmitting
                   ? const SizedBox(
                       height: 22,
                       width: 22,
@@ -320,9 +506,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : Text(
-                      'Pay Online · ₹${summary.totalAmount.toStringAsFixed(0)}',
-                    ),
+                  : Text('Pay Online · ₹${totalAmount.toStringAsFixed(0)}'),
             ),
           ),
         ),
@@ -339,8 +523,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _row(String label, double amount,
-      {bool isDiscount = false, bool isTotal = false}) {
+  Widget _row(
+    String label,
+    double amount, {
+    bool isDiscount = false,
+    bool isTotal = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -350,8 +538,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               label,
               style: AppTextStyles.caption.copyWith(
                 fontWeight: isTotal ? FontWeight.w800 : FontWeight.w600,
-                color:
-                    isTotal ? AppColors.textPrimary : AppColors.textSecondary,
+                color: isTotal
+                    ? AppColors.textPrimary
+                    : AppColors.textSecondary,
               ),
             ),
           ),
@@ -364,8 +553,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               color: isDiscount
                   ? AppColors.error
                   : isTotal
-                      ? AppColors.primaryAccent
-                      : AppColors.textPrimary,
+                  ? AppColors.primaryAccent
+                  : AppColors.textPrimary,
             ),
           ),
         ],

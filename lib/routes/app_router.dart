@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
+import '../screens/medicine/my_order_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
 import '../screens/patho_lab/patho_lab_list_screen.dart';
@@ -180,7 +181,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/checkout',
-      builder: (context, state) => const CheckoutScreen(),
+      builder: (context, state) {
+        final type = state.uri.queryParameters['type'] ?? 'lab_test';
+        return CheckoutScreen(checkoutType: type);
+      },
     ),
     GoRoute(
       path: '/my-test-bookings/:customerId',
@@ -188,6 +192,10 @@ final appRouter = GoRouter(
         final customerId = state.pathParameters['customerId']!;
         return MyTestBookingsScreen(customerId: customerId);
       },
+    ),
+    GoRoute(
+      path: '/my-medicine-orders',
+      builder: (context, state) => const MyOrderScreen(),
     ),
     GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
   ],

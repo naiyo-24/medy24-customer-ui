@@ -72,7 +72,7 @@ class ProfileOptionsCard extends ConsumerWidget {
                   title: 'My Orders',
                   subtitle: 'Track your medicine deliveries',
                   color: AppColors.primary,
-                  onTap: () {},
+                  onTap: () => context.push('/my-medicine-orders'),
                 ),
                 _buildDivider(),
                 _buildOption(

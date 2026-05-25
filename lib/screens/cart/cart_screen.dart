@@ -4,6 +4,10 @@ import '../../providers/cart_provider.dart';
 import '../../providers/charges_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
+import 'package:go_router/go_router.dart';
+import '../../providers/order_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../cards/cart/cart_items_card.dart';
 import '../../cards/cart/cart_bill_summary_card.dart';
 import '../../cards/cart/cart_address_card.dart';
@@ -112,7 +116,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               if (cartState.selectedAddress == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -124,13 +128,67 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 );
                                 return;
                               }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Processing Cash on Delivery...',
-                                  ),
-                                ),
+
+                              final user =
+                                  ref.read(profileProvider).user ??
+                                  ref.read(authProvider).user;
+                              final summary = cartState.getSummary(
+                                chargesState.selectedCharge,
                               );
+
+                              final selectedAddress =
+                                  cartState.selectedAddress
+                                      as Map<String, dynamic>?;
+                              final addressString = [
+                                selectedAddress?['address_1'],
+                                selectedAddress?['street_address'],
+                              ].where((e) => e != null).join(', ');
+
+                              final order = await ref
+                                  .read(orderProvider.notifier)
+                                  .placeOrderFromCart(
+                                    platformFee: summary.platformCharges,
+                                    deliveryFee: summary.deliveryFees,
+                                    taxes: summary.taxes,
+                                    paymentMode: 'cod',
+                                    receiverName: user?.fullName ?? 'Myself',
+                                    receiverPhone: user?.phoneNumber ?? 'N/A',
+                                    deliveryAddress: {
+                                      'address': addressString,
+                                      'lat': selectedAddress?['lat'] ?? 0.0,
+                                      'lng': selectedAddress?['lng'] ?? 0.0,
+                                    },
+                                  );
+
+                              if (order != null) {
+                                if (!context.mounted) return;
+                                await showDialog<void>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Order Placed'),
+                                    content: const Text(
+                                      'Your medicine order has been placed successfully with Cash on Delivery.',
+                                    ),
+                                    actions: [
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(ctx),
+                                        child: const Text('Done'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (context.mounted) context.go('/home');
+                              } else {
+                                if (!context.mounted) return;
+                                final error = ref.read(orderProvider).error;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      error ?? 'Failed to place order',
+                                    ),
+                                  ),
+                                );
+                              }
                             },
                             child: const Text(
                               'Pay COD',
@@ -162,11 +220,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 );
                                 return;
                               }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Redirecting to Payment...'),
-                                ),
-                              );
+                              context.push('/checkout?type=medicine');
                             },
                             child: const Text(
                               'Pay Online',
