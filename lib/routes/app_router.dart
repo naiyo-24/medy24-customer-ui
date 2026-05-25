@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
-import '../screens/medicine/my_order_screen.dart';
+import '../screens/order_medicine/my_order_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
 import '../screens/patho_lab/patho_lab_list_screen.dart';
