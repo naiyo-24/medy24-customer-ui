@@ -11,6 +11,7 @@ import '../../providers/profile_provider.dart';
 import '../../cards/cart/cart_items_card.dart';
 import '../../cards/cart/cart_bill_summary_card.dart';
 import '../../cards/cart/cart_address_card.dart';
+import '../../cards/cart/cart_order_pop_up.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -161,27 +162,21 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                   );
 
                               if (order != null) {
-                                if (!context.mounted) return;
+                                if (!mounted) return;
                                 await showDialog<void>(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    title: const Text('Order Placed'),
-                                    content: const Text(
-                                      'Your medicine order has been placed successfully with Cash on Delivery.',
-                                    ),
-                                    actions: [
-                                      ElevatedButton(
-                                        onPressed: () => Navigator.pop(ctx),
-                                        child: const Text('Done'),
-                                      ),
-                                    ],
+                                  context: this.context,
+                                  barrierDismissible: false,
+                                  builder: (ctx) => const CartOrderPopUp(
+                                    title: 'Order Placed Successfully!',
+                                    description: 'Thank you for your order. Your medicines will be delivered soon.',
+                                    trackRoute: '/my-medicine-orders',
                                   ),
                                 );
-                                if (context.mounted) context.go('/home');
+                                // Do not navigate to home here, the popup handles navigation
                               } else {
-                                if (!context.mounted) return;
+                                if (!mounted) return;
                                 final error = ref.read(orderProvider).error;
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                ScaffoldMessenger.of(!mounted ? context : context).showSnackBar(
                                   SnackBar(
                                     content: Text(
                                       error ?? 'Failed to place order',

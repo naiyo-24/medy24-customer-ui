@@ -1,9 +1,9 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiUrl {
-  static const String baseUrl =
-      "http://10.0.2.2:8000"; // Update for real device if needed
-  // static const String baseUrl = "http://192.168.0.189:8000";
+  // static const String baseUrl =
+  //     "http://10.0.2.2:8000"; // Update for real device if needed
+  static const String baseUrl = "http://192.168.0.189:8000";
   // static const String baseUrl = "http://0.0.0.0:8000";
   // About Us Endpoints
   static const String aboutUs = "$baseUrl/about-us";

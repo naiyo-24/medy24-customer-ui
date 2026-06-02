@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../models/test_package_booking.dart';
@@ -15,6 +14,7 @@ import '../../services/api_url.dart';
 import '../../services/razorpay_payment_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
+import '../../cards/cart/cart_order_pop_up.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   final String checkoutType; // 'lab_test' or 'medicine'
@@ -256,6 +256,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   Future<void> _showSuccessAndExit() async {
     String msg = '';
+    String trackRoute = '';
     if (widget.checkoutType == 'lab_test') {
       final bookingResponse = ref.read(bookTestPackageProvider).bookingResponse;
       final paymentId = ref.read(bookTestPackageProvider).razorpayPaymentId;
@@ -263,25 +264,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           'Booking ID: ${bookingResponse?.bookingId ?? '—'}\n'
           '${paymentId != null ? 'Payment ID: $paymentId\n' : ''}'
           'Your lab test booking is confirmed.';
+      final user =
+          ref.read(profileProvider).user ?? ref.read(authProvider).user;
+      trackRoute = '/my-test-bookings/${user?.customerId ?? ''}';
     } else {
       msg = 'Your medicine order has been placed successfully.';
+      trackRoute = '/my-medicine-orders';
     }
 
     await showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Payment successful'),
-        content: Text(msg),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Done'),
-          ),
-        ],
+      barrierDismissible: false,
+      builder: (ctx) => CartOrderPopUp(
+        title: 'Payment successful',
+        description: msg,
+        trackRoute: trackRoute,
       ),
     );
-
-    if (mounted) context.go('/home');
+    // Navigation is handled by the popup
   }
 
   @override
