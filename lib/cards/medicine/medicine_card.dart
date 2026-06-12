@@ -32,16 +32,10 @@ class MedicineCard extends ConsumerWidget {
                   ),
                   child: AspectRatio(
                     aspectRatio: 1.3,
-                    child:
-                        medicine.medicinePhoto != null &&
-                            medicine.medicinePhoto!.isNotEmpty
-                        ? Image.network(
-                            ApiUrl.imageUrl(medicine.medicinePhoto),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                _buildPlaceholder(),
-                          )
-                        : _buildPlaceholder(),
+                    child: Image.asset(
+                      'assets/logo/demo_med_image.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 if (medicine.discountPercent != null &&

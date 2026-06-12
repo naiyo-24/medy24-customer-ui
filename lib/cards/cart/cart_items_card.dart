@@ -81,9 +81,10 @@ class CartItemsCard extends ConsumerWidget {
               color: AppColors.background,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: medicine.medicinePhoto != null
-                ? Image.network(medicine.medicinePhoto!, fit: BoxFit.cover)
-                : const Icon(Iconsax.box, color: AppColors.primary),
+            child: Image.asset(
+              'assets/logo/demo_med_image.png',
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

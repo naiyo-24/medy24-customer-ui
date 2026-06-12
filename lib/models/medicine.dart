@@ -92,13 +92,27 @@ class MedicineModel {
       finalPrice: (map['final_selling_price'] as num?)?.toDouble(),
       medicineDescription: map['medicine_description'],
       medicineComposition: map['medicine_composition'],
-      precautions: map['precautions'] is String
-          ? json.decode(map['precautions'])
-          : map['precautions'],
+      precautions: _parsePrecautions(map['precautions']),
       prescriptionRequired: map['prescription_required']?.toString(),
       medicinePhoto: map['medicine_photo'],
       isActive: map['is_active'],
     );
+  }
+
+  static List<dynamic>? _parsePrecautions(dynamic data) {
+    if (data == null) return null;
+    if (data is String) {
+      try {
+        data = json.decode(data);
+      } catch (_) {
+        return [data];
+      }
+    }
+    if (data is List) return data;
+    if (data is Map) {
+      return data.entries.map((e) => '\${e.key}: \${e.value}').toList();
+    }
+    return [data.toString()];
   }
 
   String toJson() => json.encode(toMap());

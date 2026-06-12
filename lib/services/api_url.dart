@@ -1,46 +1,45 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiUrl {
-  // static const String baseUrl =
-  //     "http://10.0.2.2:8000"; // Update for real device if needed
-  static const String baseUrl = "http://192.168.0.189:8000";
-  // static const String baseUrl = "http://0.0.0.0:8000";
+  // Read base URL from .env, fallback to localhost if not found
+  static String get baseUrl =>
+      dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8009";
   // About Us Endpoints
-  static const String aboutUs = "$baseUrl/about-us";
-  static const String getAboutUsAll = "$aboutUs/get-all";
+  static String get aboutUs => "$baseUrl/about-us";
+  static String get getAboutUsAll => "$aboutUs/get-all";
   static String getAboutUsById(int id) => "$aboutUs/get-by/$id";
 
   // Terms and Conditions Endpoints
-  static const String termsConditions = "$baseUrl/terms-conditions";
-  static const String getTermsConditionsAll = "$termsConditions/get-all";
+  static String get termsConditions => "$baseUrl/terms-conditions";
+  static String get getTermsConditionsAll => "$termsConditions/get-all";
 
   // Privacy Policy Endpoints
-  static const String privacyPolicies = "$baseUrl/privacy-policies";
-  static const String getPrivacyPoliciesAll = "$privacyPolicies/get-all";
+  static String get privacyPolicies => "$baseUrl/privacy-policies";
+  static String get getPrivacyPoliciesAll => "$privacyPolicies/get-all";
 
   // Patho Lab Endpoints
-  static const String pathoLab = "$baseUrl/auth/patho-lab";
-  static const String getPathoLabAll = "$pathoLab/get-all";
+  static String get pathoLab => "$baseUrl/auth/patho-lab";
+  static String get getPathoLabAll => "$pathoLab/get-all";
   static String getPathoLabById(String id) => "$pathoLab/get-by/$id";
 
   // Lab Test Inventory Endpoints
-  static const String labTestInventory = "$baseUrl/lab-test-inventory";
-  static const String getLabTestAll = "$labTestInventory/get-all";
+  static String get labTestInventory => "$baseUrl/lab-test-inventory";
+  static String get getLabTestAll => "$labTestInventory/get-all";
   static String getLabTestById(String id) => "$labTestInventory/get-by/$id";
   static String getLabTestsByLabId(String labId) =>
       "$labTestInventory/get-by-lab/$labId";
 
   // Test Package Endpoints
-  static const String testPackage = "$baseUrl/test-packages";
-  static const String getTestPackageAll =
+  static String get testPackage => "$baseUrl/test-packages";
+  static String get getTestPackageAll =>
       "$testPackage/get-all"; // Assuming it exists or will be needed
   static String getTestPackageById(String id) => "$testPackage/get-by/$id";
   static String getTestPackagesByLabId(String labId) =>
       "$testPackage/get-by-lab/$labId";
 
   // Lab Test / Package Booking Endpoints
-  static const String testPackageBooking = "$baseUrl/test-package-bookings";
-  static const String createTestPackageBooking =
+  static String get testPackageBooking => "$baseUrl/test-package-bookings";
+  static String get createTestPackageBooking =>
       "$testPackageBooking/create-booking";
   static String getCustomerBookings(String customerId) =>
       "$testPackageBooking/customer/$customerId";
@@ -48,10 +47,10 @@ class ApiUrl {
       "$testPackageBooking/update/$bookingId";
 
   // Customer Auth Endpoints
-  static const String customers = "$baseUrl/customers";
-  static const String checkPhone = "$customers/check-phone";
-  static const String sendOtp = "$customers/send-otp";
-  static const String verifyOtp = "$customers/verify-otp";
+  static String get customers => "$baseUrl/customers";
+  static String get checkPhone => "$customers/check-phone";
+  static String get sendOtp => "$customers/send-otp";
+  static String get verifyOtp => "$customers/verify-otp";
   static String getProfile(String id) => "$customers/get-profile/$id";
   static String updateProfile(String id) => "$customers/profile/$id";
   static String addAddress(String id) => "$customers/add-addresses/$id";
@@ -59,9 +58,9 @@ class ApiUrl {
       "$customers/delete-address/$customerId/$addressId";
 
   // Medicine Inventory Endpoints
-  static const String medicineInventory = "$baseUrl/medicines";
-  static const String getMedicineAll = "$medicineInventory/get-all";
-  static const String searchMedicines = "$medicineInventory/search";
+  static String get medicineInventory => "$baseUrl/medicines";
+  static String get getMedicineAll => "$medicineInventory/get-all";
+  static String get searchMedicines => "$medicineInventory/search";
   static String getMedicineById(String id) => "$medicineInventory/get-by/$id";
 
   // Helper for image URLs
@@ -73,16 +72,16 @@ class ApiUrl {
   }
 
   // Cart Endpoints
-  static const String cart = "$baseUrl/cart";
-  static const String cartAddItem = "$cart/add-item";
+  static String get cart => "$baseUrl/cart";
+  static String get cartAddItem => "$cart/add-item";
   static String cartUpdateItem(String medicineId) =>
       "$cart/update-item/$medicineId";
   static String cartRemoveItem(String medicineId) =>
       "$cart/remove-item/$medicineId";
-  static const String cartGet = "$cart/"; // New endpoint GET /
-  static const String cartGetAll = "$cart/get-all"; // Legacy
-  static const String cartClear = "$cart/clear";
-  static const String cartSummary = "$cart/summary";
+  static String get cartGet => "$cart/"; // New endpoint GET /
+  static String get cartGetAll => "$cart/get-all"; // Legacy
+  static String get cartClear => "$cart/clear";
+  static String get cartSummary => "$cart/summary";
 
   // Medicine Orders WebSocket Endpoint
   static String orderWebSocket(String customerId) {
@@ -91,8 +90,7 @@ class ApiUrl {
   }
 
   // Platform Fee Endpoints
-  static const String platformFee =
-      "http://192.168.0.222:8000/admin/earnings/list";
+  static String get platformFee => "$baseUrl/admin/earnings/list";
 
   /// Get Razorpay Key ID from environment variables
   static String get razorpayKeyId {

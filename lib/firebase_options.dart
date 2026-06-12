@@ -51,11 +51,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCaXYrhKRcabtMOhidkUAXk_Y0flkTIX10',
-    appId: '1:111920544193:android:449eaae779c0ecebff9740',
-    messagingSenderId: '111920544193',
-    projectId: 'medy24-d75cf',
-    storageBucket: 'medy24-d75cf.firebasestorage.app',
+    apiKey: 'AIzaSyBOgbQZZ7Lbt58Gstg4YnvBUcw3tRtKiIk',
+    appId: '1:128696037827:android:4494d40549950074fb4d76',
+    messagingSenderId: '128696037827',
+    projectId: 'medy24-new',
+    storageBucket: 'medy24-new.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

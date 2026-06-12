@@ -22,14 +22,10 @@ class MedicineHeaderCard extends StatelessWidget {
         children: [
           // Background Image
           Positioned.fill(
-            child:
-                medicine.medicinePhoto != null &&
-                    medicine.medicinePhoto!.isNotEmpty
-                ? Image.network(
-                    ApiUrl.imageUrl(medicine.medicinePhoto),
-                    fit: BoxFit.cover,
-                  )
-                : Container(color: AppColors.divider),
+            child: Image.asset(
+              'assets/logo/demo_med_image.png',
+              fit: BoxFit.cover,
+            ),
           ),
 
           // Gradient Overlay for readability

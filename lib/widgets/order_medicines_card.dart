@@ -32,6 +32,15 @@ class OrderMedicinesCard extends StatelessWidget {
                     child: Image.asset(
                       'assets/logo/order_medicine.png',
                       fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(
+                            Icons.medical_services_outlined,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),

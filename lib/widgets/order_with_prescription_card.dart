@@ -102,6 +102,15 @@ class OrderWithPrescriptionCard extends StatelessWidget {
                     child: Image.asset(
                       'assets/logo/order_with_prescription.png',
                       fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(
+                            Icons.receipt_long_outlined,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
