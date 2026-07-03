@@ -24,7 +24,7 @@ class AuthService {
     try {
       return await _dio.post(
         ApiUrl.checkPhone,
-        data: {'phone_number': phoneNumber},
+        data: {'phone': phoneNumber},
       );
     } catch (e) {
       rethrow;
@@ -52,30 +52,15 @@ class AuthService {
     File? profilePhoto,
   }) async {
     try {
-      // Backend expects Form data (multipart/form-data) for all fields
-      final formDataMap = <String, dynamic>{
-        'token': token,
-        'phone_number': phoneNumber,
-      };
-
-      if (fullName != null) formDataMap['full_name'] = fullName;
-      if (email != null) formDataMap['email'] = email;
-      if (alternativePhoneNo != null) {
-        formDataMap['alternative_phone_no'] = alternativePhoneNo;
-      }
-      if (savedAddresses != null) {
-        formDataMap['saved_addresses'] = savedAddresses;
-      }
-
-      if (profilePhoto != null) {
-        formDataMap['profile_photo'] = await MultipartFile.fromFile(
-          profilePhoto.path,
-          filename: profilePhoto.path.split('/').last,
-        );
-      }
-
-      final formData = FormData.fromMap(formDataMap);
-      return await _dio.post(ApiUrl.verifyOtp, data: formData);
+      // The new backend endpoint only expects the Firebase token in the Authorization header
+      return await _dio.post(
+        ApiUrl.customerLogin,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
     } catch (e) {
       rethrow;
     }

@@ -3,7 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiUrl {
   // Read base URL from .env, fallback to localhost if not found
   static String get baseUrl =>
-      dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8009";
+      // dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8009";
+      dotenv.env['API_BASE_URL'] ?? "http://192.168.1.17:8000";
   // About Us Endpoints
   static String get aboutUs => "$baseUrl/about-us";
   static String get getAboutUsAll => "$aboutUs/get-all";
@@ -48,9 +49,9 @@ class ApiUrl {
 
   // Customer Auth Endpoints
   static String get customers => "$baseUrl/customers";
-  static String get checkPhone => "$customers/check-phone";
+  static String get checkPhone => "$baseUrl/api/auth/customer/check-phone";
   static String get sendOtp => "$customers/send-otp";
-  static String get verifyOtp => "$customers/verify-otp";
+  static String get customerLogin => "$baseUrl/api/auth/customer/login";
   static String getProfile(String id) => "$customers/get-profile/$id";
   static String updateProfile(String id) => "$customers/profile/$id";
   static String addAddress(String id) => "$customers/add-addresses/$id";

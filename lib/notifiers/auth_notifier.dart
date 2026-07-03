@@ -114,9 +114,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
         profilePhoto: profilePhoto,
       );
 
-      final user = UserModel.fromMap(response.data['user']);
-      final backendToken = response.data['backend_token'];
-      final authenticatedUser = user.copyWith(token: backendToken);
+      final backendToken = response.data['access_token'];
+      final customerId = response.data['user_id'];
+      
+      // Create a basic user model since the new endpoint only returns tokens and ID
+      final authenticatedUser = UserModel(
+        customerId: customerId,
+        phoneNumber: phoneNumber,
+        fullName: fullName ?? 'Customer',
+        email: email,
+        alternativePhoneNo: alternativePhoneNo,
+        profilePhoto: profilePhoto?.path,
+        token: backendToken,
+      );
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user', authenticatedUser.toJson());
