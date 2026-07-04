@@ -79,6 +79,8 @@ class MedicineCard extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     medicine.medicineQuantity ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.cardSubtitle,
                   ),
                   const SizedBox(height: 8),

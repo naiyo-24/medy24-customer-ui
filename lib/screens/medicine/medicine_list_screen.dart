@@ -129,7 +129,7 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.62,
+                    childAspectRatio: 0.56,
                     crossAxisSpacing: AppSpacing.elementGap,
                     mainAxisSpacing: AppSpacing.elementGap,
                   ),

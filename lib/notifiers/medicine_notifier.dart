@@ -112,7 +112,7 @@ class MedicineNotifier extends StateNotifier<MedicineState> {
           : await _service.getAllMedicines(page: page);
 
       if (response.statusCode == 200) {
-        final List data = response.data['data'] ?? [];
+        final List data = response.data['data']?['searchMedicines'] ?? [];
         final newMedicines = data.map((m) => MedicineModel.fromMap(m)).toList();
 
         final hasMoreData =
@@ -148,8 +148,16 @@ class MedicineNotifier extends StateNotifier<MedicineState> {
     try {
       final response = await _service.getMedicineById(id);
       if (response.statusCode == 200) {
-        final medicine = MedicineModel.fromMap(response.data['data']);
-        state = state.copyWith(selectedMedicine: medicine, isLoading: false);
+        final medicineData = response.data['data']?['getMedicineById'];
+        if (medicineData != null) {
+          final medicine = MedicineModel.fromMap(medicineData);
+          state = state.copyWith(selectedMedicine: medicine, isLoading: false);
+        } else {
+          state = state.copyWith(
+            isLoading: false,
+            error: "Medicine not found",
+          );
+        }
       } else {
         state = state.copyWith(
           isLoading: false,
@@ -208,7 +216,7 @@ class MedicineNotifier extends StateNotifier<MedicineState> {
       );
 
       if (response.statusCode == 200) {
-        final List data = response.data['data'] ?? [];
+        final List data = response.data['data']?['searchMedicines'] ?? [];
         final results = data.map((m) => MedicineModel.fromMap(m)).toList();
 
         final hasMoreData = results.isNotEmpty && results.length >= 20;

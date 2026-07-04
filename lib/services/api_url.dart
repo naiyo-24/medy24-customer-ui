@@ -58,6 +58,9 @@ class ApiUrl {
   static String deleteAddress(String customerId, int addressId) =>
       "$customers/delete-address/$customerId/$addressId";
 
+  // GraphQL Endpoint
+  static String get graphql => "$baseUrl/graphql";
+
   // Medicine Inventory Endpoints
   static String get medicineInventory => "$baseUrl/medicines";
   static String get getMedicineAll => "$medicineInventory/get-all";
