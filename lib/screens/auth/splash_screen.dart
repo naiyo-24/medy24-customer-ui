@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/app_theme.dart';
 
@@ -47,20 +46,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (user != null) {
         context.go('/home');
       } else {
-        final prefs = await SharedPreferences.getInstance();
-
-        // TEMPORARY: Reset the memory flag so you can test it again!
-        await prefs.remove('has_seen_onboarding');
-
-        final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
-
-        if (!mounted) return;
-
-        if (!hasSeenOnboarding) {
-          context.go('/onboarding');
-        } else {
-          context.go('/login');
-        }
+        context.go('/login');
       }
     }
   }
