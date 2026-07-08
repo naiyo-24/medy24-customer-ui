@@ -22,7 +22,7 @@ class OrderService {
   void _connectInternal() {
     if (_lastCustomerId == null) return;
     disconnect();
-    
+
     final url = ApiUrl.orderWebSocket(_lastCustomerId!);
     try {
       _channel = WebSocketChannel.connect(Uri.parse(url));
@@ -44,14 +44,20 @@ class OrderService {
           }
           _channel = null;
           // Optionally, broadcast an error so UI knows we disconnected
-          _messageController.add({"type": "error", "message": "Connection lost"});
+          _messageController.add({
+            "type": "error",
+            "message": "Connection lost",
+          });
         },
         onError: (error) {
           if (kDebugMode) {
             print("WebSocket error: $error");
           }
           _channel = null;
-          _messageController.add({"type": "error", "message": "Connection error"});
+          _messageController.add({
+            "type": "error",
+            "message": "Connection error",
+          });
         },
       );
     } catch (e) {
@@ -73,7 +79,7 @@ class OrderService {
       // Try to reconnect if dropped
       _connectInternal();
     }
-    
+
     if (_channel != null) {
       _channel!.sink.add(json.encode(message));
     } else {
@@ -82,6 +88,23 @@ class OrderService {
       }
       throw Exception("Cannot connect to server.");
     }
+  }
+
+  void approveQuote(String orderId, String quoteId, String paymentMode) {
+    sendMessage({
+      "type": "approve_quote",
+      "order_id": orderId,
+      "quote_id": quoteId,
+      "payment_mode": paymentMode,
+    });
+  }
+
+  void rejectQuote(String orderId, String quoteId) {
+    sendMessage({
+      "type": "reject_quote",
+      "order_id": orderId,
+      "quote_id": quoteId,
+    });
   }
 
   void dispose() {

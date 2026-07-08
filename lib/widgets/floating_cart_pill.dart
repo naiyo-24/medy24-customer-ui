@@ -16,8 +16,17 @@ class FloatingCartPill extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartState = ref.watch(cartProvider);
 
+    // Always keep the cartKey in the widget tree so the animation can find it on the first add.
     if (cartState.items.isEmpty) {
-      return const SizedBox.shrink();
+      return Positioned(
+        bottom: -100, // Off-screen
+        left: 0,
+        right: 0,
+        child: AddToCartIcon(
+          key: CartAnimationService.cartKey,
+          icon: const Icon(Icons.shopping_cart),
+        ),
+      );
     }
 
     // Limit to 3 images to avoid overflow

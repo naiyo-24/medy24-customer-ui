@@ -110,7 +110,7 @@ class MedicineModel {
     }
     if (data is List) return data;
     if (data is Map) {
-      return data.entries.map((e) => '\${e.key}: \${e.value}').toList();
+      return data.entries.map((e) => '${e.key}: ${e.value}').toList();
     }
     return [data.toString()];
   }

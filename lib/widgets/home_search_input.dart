@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_theme.dart';
 
 /// The search bar styled like Apollo/1mg — flat white pill with camera icon.

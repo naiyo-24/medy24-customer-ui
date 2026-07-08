@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/auth/splash_screen.dart';
+// import '../screens/auth/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/order_medicine/my_order_screen.dart';
+// import '../screens/order_medicine/order_tracking_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
 import '../screens/patho_lab/patho_lab_list_screen.dart';
@@ -18,6 +20,7 @@ import '../screens/medicine/medicine_list_screen.dart';
 import '../screens/medicine/medicine_details_screen.dart';
 import '../screens/medicine/medicine_search_screen.dart';
 import '../screens/home/home_screen.dart';
+// import '../screens/medicine/skin_care_screen.dart';
 import '../screens/order_medicine/order_with_prescription_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/privacy_policy/privacy_policy_screen.dart';
@@ -29,6 +32,9 @@ import '../screens/book_test_package/book_test_package_screen.dart';
 import '../screens/payment/checkout_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/floating_cart_pill.dart';
+import '../services/cart_animation_service.dart';
+import 'package:add_to_cart_animation/add_to_cart_animation.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -41,6 +47,7 @@ final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+    // GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/signup/:phone',
@@ -53,47 +60,96 @@ final appRouter = GoRouter(
       builder: (context, state, navigationShell) {
         return PopScope(
           canPop: false,
-          onPopInvoked: (didPop) async {
+          onPopInvokedWithResult: (didPop, result) async {
             if (didPop) return;
-            
+
             if (navigationShell.currentIndex != 0) {
-              // Return to Home tab
               navigationShell.goBranch(0);
-            } else {
-              // Ask for permission to exit
-              final shouldExit = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Exit App'),
-                  content: const Text('Are you sure you want to exit?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('No'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Yes'),
-                    ),
-                  ],
+              return;
+            }
+
+            final shouldExit = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              );
-              
-              if (shouldExit == true) {
-                SystemNavigator.pop();
-              }
+                title: const Text(
+                  'Exit App',
+                  style: TextStyle(
+                    fontFamily: 'Lexend',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                content: const Text(
+                  'Are you sure you want to exit Medy24?',
+                  style: TextStyle(fontFamily: 'Lexend'),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontFamily: 'Lexend',
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Exit',
+                      style: TextStyle(
+                        fontFamily: 'Lexend',
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldExit == true) {
+              SystemNavigator.pop();
             }
           },
-          child: Scaffold(
-            body: navigationShell,
-            bottomNavigationBar: CustomBottomNavBar(
-              currentIndex: navigationShell.currentIndex,
-              onTap: (index) {
-                navigationShell.goBranch(
-                  index,
-                  initialLocation: index == navigationShell.currentIndex,
-                );
-              },
+          child: AddToCartAnimation(
+            cartKey: CartAnimationService.cartKey,
+            createAddToCartAnimation: (runAddToCartAnimation) {
+              CartAnimationService.runAddToCartAnimation =
+                  runAddToCartAnimation;
+            },
+            jumpAnimation: const JumpAnimationOptions(
+              curve: Curves.ease,
+              duration: Duration(milliseconds: 100),
+            ),
+            dragAnimation: const DragToCartAnimationOptions(
+              rotation: true,
+              curve: Curves.easeIn,
+              duration: Duration(milliseconds: 800),
+            ),
+            child: Scaffold(
+              body: Stack(
+                children: [navigationShell, const FloatingCartPill()],
+              ),
+              bottomNavigationBar: CustomBottomNavBar(
+                currentIndex: navigationShell.currentIndex,
+                onTap: (index) {
+                  navigationShell.goBranch(
+                    index,
+                    initialLocation: index == navigationShell.currentIndex,
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -232,6 +288,13 @@ final appRouter = GoRouter(
       path: '/my-medicine-orders',
       builder: (context, state) => const MyOrderScreen(),
     ),
+    // GoRoute(
+    //   path: '/order-tracking/:orderId',
+    //   builder: (context, state) {
+    //     final orderId = state.pathParameters['orderId']!;
+    //     return OrderTrackingScreen(orderId: orderId);
+    //   },
+    // ),
     GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
   ],
 );

@@ -4,14 +4,17 @@ import '../../providers/cart_provider.dart';
 import '../../providers/charges_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
-import 'package:go_router/go_router.dart';
+
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../cards/cart/cart_items_card.dart';
 import '../../cards/cart/cart_bill_summary_card.dart';
+import '../../cards/cart/cart_tip_card.dart';
+
 import '../../cards/cart/cart_address_card.dart';
 import '../../cards/cart/cart_order_pop_up.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -25,7 +28,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(chargesProvider.notifier).fetchChargeByServiceType('parcel');
+      ref.read(chargesProvider.notifier).fetchChargeByServiceType('medicine');
     });
   }
 
@@ -53,12 +56,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 const CartItemsCard(),
                 if (!isCartEmpty) ...[
                   const SizedBox(height: AppSpacing.sectionGap),
-                  const CartBillSummaryCard(),
+                  const CartTipCard(),
                   const SizedBox(height: AppSpacing.sectionGap),
-                  const CartAddressCard(),
-                  const SizedBox(
-                    height: 200,
-                  ), // extra padding for bottom navigation
+                  const CartBillSummaryCard(),
+                  // Give enough padding at bottom for smooth scrolling behind the bottom bar
+                  const SizedBox(height: 40),
                 ],
               ],
             ),
@@ -67,10 +69,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             const LinearProgressIndicator(color: AppColors.primary),
         ],
       ),
-      bottomSheet: isCartEmpty
+      bottomNavigationBar: isCartEmpty
           ? null
           : Container(
-              padding: const EdgeInsets.all(AppSpacing.screenPadding),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: const BorderRadius.vertical(
@@ -88,142 +89,217 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total Payable',
-                          style: AppTextStyles.cardSubtitle,
+                    // Delivery Address Row
+                    GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(24),
+                            ),
+                          ),
+                          builder: (ctx) => Padding(
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                            ),
+                            child: const SingleChildScrollView(
+                              child: CartAddressCard(),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
-                        Text(
-                          '₹${cartState.getSummary(chargesState.selectedCharge).totalAmountToBePaid.toStringAsFixed(2)}',
-                          style: AppTextStyles.cardTitle.copyWith(
-                            color: AppColors.primary,
-                            fontSize: 20,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: AppColors.divider.withAlpha(128),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textPrimary,
-                              side: const BorderSide(color: AppColors.primary),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.warning.withAlpha(30),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Iconsax.home_2,
+                                color: AppColors.warning,
+                                size: 20,
                               ),
                             ),
-                            onPressed: () async {
-                              if (cartState.selectedAddress == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please select an address first',
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Delivering to ${cartState.selectedAddress?['address_type']?.toString().toUpperCase() ?? 'ADDRESS'}',
+                                    style: AppTextStyles.bodyMedium.copyWith(
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    backgroundColor: AppColors.error,
                                   ),
-                                );
-                                return;
-                              }
+                                  Text(
+                                    cartState.selectedAddress?['address_1'] ??
+                                        'Select a delivery address',
+                                    style: AppTextStyles.caption,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Text(
+                              'Change',
+                              style: TextStyle(
+                                color: AppColors.success,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
-                              final user =
-                                  ref.read(profileProvider).user ??
-                                  ref.read(authProvider).user;
-                              final summary = cartState.getSummary(
-                                chargesState.selectedCharge,
+                    // Place Order Row
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () async {
+                          if (cartState.selectedAddress == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please select an address first'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Handle COD flow
+                          final user =
+                              ref.read(profileProvider).user ??
+                              ref.read(authProvider).user;
+                          final summary = cartState.getSummary(
+                            chargesState.selectedCharge,
+                          );
+
+                          final selectedAddress =
+                              cartState.selectedAddress
+                                  as Map<String, dynamic>?;
+                          final addressString = [
+                            selectedAddress?['address_1'],
+                            selectedAddress?['street_address'],
+                          ].where((e) => e != null).join(', ');
+
+                          final order = await ref
+                              .read(orderProvider.notifier)
+                              .placeOrderFromCart(
+                                platformFee: summary.platformCharges,
+                                deliveryFee: summary.deliveryFees,
+                                taxes: summary.taxes,
+                                deliveryTip: summary.deliveryTip,
+                                paymentMode: 'cod',
+                                receiverName: user?.fullName ?? 'Myself',
+                                receiverPhone: user?.phoneNumber ?? 'N/A',
+                                deliveryAddress: {
+                                  'address': addressString,
+                                  'lat': selectedAddress?['latitude'] ?? 0.0,
+                                  'lng': selectedAddress?['longitude'] ?? 0.0,
+                                },
                               );
 
-                              final selectedAddress =
-                                  cartState.selectedAddress
-                                      as Map<String, dynamic>?;
-                              final addressString = [
-                                selectedAddress?['address_1'],
-                                selectedAddress?['street_address'],
-                              ].where((e) => e != null).join(', ');
-
-                              final order = await ref
-                                  .read(orderProvider.notifier)
-                                  .placeOrderFromCart(
-                                    platformFee: summary.platformCharges,
-                                    deliveryFee: summary.deliveryFees,
-                                    taxes: summary.taxes,
-                                    paymentMode: 'cod',
-                                    receiverName: user?.fullName ?? 'Myself',
-                                    receiverPhone: user?.phoneNumber ?? 'N/A',
-                                    deliveryAddress: {
-                                      'address': addressString,
-                                      'lat': selectedAddress?['latitude'] ?? 0.0,
-                                      'lng': selectedAddress?['longitude'] ?? 0.0,
-                                    },
-                                  );
-
-                              if (order != null) {
-                                if (!mounted) return;
-                                await showDialog<void>(
-                                  context: this.context,
-                                  barrierDismissible: false,
-                                  builder: (ctx) => const CartOrderPopUp(
-                                    title: 'Order Placed Successfully!',
-                                    description: 'Thank you for your order. Your medicines will be delivered soon.',
-                                    trackRoute: '/my-medicine-orders',
-                                  ),
-                                );
-                                // Do not navigate to home here, the popup handles navigation
-                              } else {
-                                if (!mounted) return;
-                                final error = ref.read(orderProvider).error;
-                                ScaffoldMessenger.of(!mounted ? context : context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      error ?? 'Failed to place order',
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                            child: const Text(
-                              'Pay COD',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                          if (order != null) {
+                            if (!mounted) return;
+                            await showDialog<void>(
+                              context: this.context,
+                              barrierDismissible: false,
+                              builder: (ctx) => CartOrderPopUp(
+                                title: 'Order Placed Successfully!',
+                                description:
+                                    'Thank you for your order. Your medicines will be delivered soon.',
+                                trackRoute: order.orderId != null
+                                    ? '/order-tracking/${order.orderId}'
+                                    : '/my-medicine-orders',
                               ),
-                              elevation: 2,
-                            ),
-                            onPressed: () {
-                              if (cartState.selectedAddress == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please select an address first',
-                                    ),
-                                    backgroundColor: AppColors.error,
+                            );
+                          } else {
+                            if (!mounted) return;
+                            final error = ref.read(orderProvider).error;
+                            ScaffoldMessenger.of(
+                              !mounted ? context : context,
+                            ).showSnackBar(
+                              SnackBar(
+                                content: Text(error ?? 'Failed to place order'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '₹${cartState.getSummary(chargesState.selectedCharge).totalAmountToBePaid.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
                                   ),
-                                );
-                                return;
-                              }
-                              context.push('/checkout?type=medicine');
-                            },
-                            child: const Text(
-                              'Pay Online',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const Text(
+                                  'TOTAL',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                            Row(
+                              children: const [
+                                Text(
+                                  'Request Order',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(
+                                  Icons.play_arrow,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

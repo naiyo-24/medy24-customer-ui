@@ -12,12 +12,14 @@ class CartState {
   final dynamic selectedAddress;
   final bool isLoading;
   final String? error;
+  final double deliveryTip;
 
   CartState({
     this.items = const [],
     this.selectedAddress,
     this.isLoading = false,
     this.error,
+    this.deliveryTip = 0.0,
   });
 
   CartState copyWith({
@@ -25,47 +27,60 @@ class CartState {
     dynamic selectedAddress,
     bool? isLoading,
     String? error,
+    double? deliveryTip,
   }) {
     return CartState(
       items: items ?? this.items,
       selectedAddress: selectedAddress ?? this.selectedAddress,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      deliveryTip: deliveryTip ?? this.deliveryTip,
     );
   }
 
   CartSummary getSummary(ChargesModel? charges) {
     double itemAmount = 0.0;
-    double discount = 0.0;
+    double itemDiscount = 0.0;
 
     for (var item in items) {
       double mrp = item.medicine.mrp ?? 0.0;
       double finalPrice = item.medicine.finalPrice ?? mrp;
 
       itemAmount += mrp * item.quantity;
-      discount += (mrp - finalPrice) * item.quantity;
+      itemDiscount += (mrp - finalPrice) * item.quantity;
     }
 
-    double platformCharges = items.isEmpty
-        ? 0.0
-        : (charges?.platformCommission ?? 30.0);
-    double deliveryFees = items.isEmpty ? 0.0 : (charges?.baseFare ?? 40.0);
-    double subTotal = itemAmount - discount;
+    double subTotalBeforeOrderDiscount = itemAmount - itemDiscount;
+    double orderValueDiscount = 0.0;
+
+    if (subTotalBeforeOrderDiscount >= 500 &&
+        subTotalBeforeOrderDiscount < 1000) {
+      orderValueDiscount = subTotalBeforeOrderDiscount * 0.03;
+    } else if (subTotalBeforeOrderDiscount >= 1000) {
+      orderValueDiscount = subTotalBeforeOrderDiscount * 0.05;
+    }
+
+    double subTotal = subTotalBeforeOrderDiscount - orderValueDiscount;
+
+    double platformCharges = items.isEmpty ? 0.0 : 10.0;
+    double deliveryFees = items.isEmpty ? 0.0 : 10.0;
     double taxPercent = charges?.gstPercentage ?? 5.0;
     double taxes = subTotal * (taxPercent / 100);
 
     double totalToPay = items.isEmpty
         ? 0.0
-        : subTotal + platformCharges + deliveryFees + taxes;
+        : subTotal + platformCharges + deliveryFees + taxes + deliveryTip;
 
     return CartSummary(
       totalItemAmount: itemAmount,
-      totalDiscount: discount,
+      totalDiscount: itemDiscount,
+      orderValueDiscount: orderValueDiscount,
       platformCharges: platformCharges,
       deliveryFees: deliveryFees,
       taxes: taxes,
+      deliveryTip: deliveryTip,
       totalAmountToBePaid: totalToPay,
-      totalSaved: discount,
+      totalSaved: itemDiscount + orderValueDiscount,
     );
   }
 }
@@ -80,13 +95,29 @@ class CartNotifier extends StateNotifier<CartState> {
   String? get _customerId => ref.read(profileProvider).user?.customerId;
 
   void _updateStateFromResponse(Response response) {
-    if (response.statusCode == 200 && response.data['cart'] != null) {
-      final List items = response.data['cart']['items'] ?? [];
-      final parsedItems = items.map((i) => CartItem.fromJson(i)).toList();
-      state = state.copyWith(items: parsedItems, isLoading: false, error: null);
-    } else {
-      state = state.copyWith(isLoading: false);
+    if (response.statusCode == 200) {
+      final data = response.data['data'];
+      if (data != null) {
+        // Find which operation was executed and returned the cart
+        final possibleOperations = ['getMyCart', 'addToCart', 'updateCartQuantity', 'removeFromCart', 'clearCart'];
+        Map<String, dynamic>? cartData;
+        
+        for (var op in possibleOperations) {
+          if (data[op] != null) {
+            cartData = data[op];
+            break;
+          }
+        }
+
+        if (cartData != null) {
+          final List items = cartData['items'] ?? [];
+          final parsedItems = items.map((i) => CartItem.fromJson(i)).toList();
+          state = state.copyWith(items: parsedItems, isLoading: false, error: null);
+          return;
+        }
+      }
     }
+    state = state.copyWith(isLoading: false);
   }
 
   Future<void> fetchCart() async {
@@ -164,6 +195,10 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(selectedAddress: address);
   }
 
+  void setDeliveryTip(double amount) {
+    state = state.copyWith(deliveryTip: amount);
+  }
+
   Future<void> clearCart() async {
     final cid = _customerId;
     if (cid == null) {
@@ -181,6 +216,6 @@ class CartNotifier extends StateNotifier<CartState> {
   }
 
   void clearCartLocal() {
-    state = CartState(selectedAddress: state.selectedAddress);
+    state = CartState(selectedAddress: state.selectedAddress, deliveryTip: 0.0);
   }
 }

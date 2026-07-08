@@ -1,13 +1,83 @@
 import 'dart:convert';
 import 'cart.dart';
 
+class QuoteModel {
+  final String? quoteId;
+  final String? orderId;
+  final String? shopId;
+  final String? shopName;
+  final String? shopPhone;
+  final String? shopAddress;
+  final List<CartItem> items;
+  final double? itemTotal;
+  final double? platformFee;
+  final double? deliveryFee;
+  final double? taxes;
+  final double? totalBillAmount;
+  final String? status;
+  final DateTime? createdAt;
+
+  QuoteModel({
+    this.quoteId,
+    this.orderId,
+    this.shopId,
+    this.shopName,
+    this.shopPhone,
+    this.shopAddress,
+    this.items = const [],
+    this.itemTotal,
+    this.platformFee,
+    this.deliveryFee,
+    this.taxes,
+    this.totalBillAmount,
+    this.status,
+    this.createdAt,
+  });
+
+  factory QuoteModel.fromMap(Map<String, dynamic> map) {
+    return QuoteModel(
+      quoteId: map['quote_id']?.toString(),
+      orderId: map['order_id']?.toString(),
+      shopId: map['shop_id']?.toString(),
+      shopName: map['shop_name']?.toString(),
+      shopPhone: map['shop_phone']?.toString(),
+      shopAddress: map['shop_address']?.toString(),
+      items: map['items'] != null
+          ? List<CartItem>.from(map['items']?.map((x) => CartItem.fromJson(x)))
+          : [],
+      itemTotal: map['item_total'] != null
+          ? double.tryParse(map['item_total'].toString())
+          : null,
+      platformFee: map['platform_fee'] != null
+          ? double.tryParse(map['platform_fee'].toString())
+          : null,
+      deliveryFee: map['delivery_fee'] != null
+          ? double.tryParse(map['delivery_fee'].toString())
+          : null,
+      taxes: map['taxes'] != null
+          ? double.tryParse(map['taxes'].toString())
+          : null,
+      totalBillAmount: map['total_bill_amount'] != null
+          ? double.tryParse(map['total_bill_amount'].toString())
+          : null,
+      status: map['status']?.toString(),
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'])
+          : null,
+    );
+  }
+}
+
 class OrderModel {
   final String? orderId;
   final String? customerId;
   final String? shopId;
+  final String? shopName;
+  final String? shopPhone;
   final String? orderType;
   final String? prescriptionUrl;
   final List<CartItem> items;
+  final List<QuoteModel> quotes;
   final String? receiverName;
   final String? receiverPhone;
   final Map<String, dynamic>? deliveryAddress;
@@ -23,6 +93,7 @@ class OrderModel {
   final String? riderPhone;
   final String? vehicleNumber;
   final String? vehicleModel;
+  final String? deliveryOtp;
   final String? transactionId;
   final DateTime? acceptedAt;
   final DateTime? deliveredAt;
@@ -32,9 +103,12 @@ class OrderModel {
     this.orderId,
     this.customerId,
     this.shopId,
+    this.shopName,
+    this.shopPhone,
     this.orderType,
     this.prescriptionUrl,
     this.items = const [],
+    this.quotes = const [],
     this.receiverName,
     this.receiverPhone,
     this.deliveryAddress,
@@ -50,6 +124,7 @@ class OrderModel {
     this.riderPhone,
     this.vehicleNumber,
     this.vehicleModel,
+    this.deliveryOtp,
     this.transactionId,
     this.acceptedAt,
     this.deliveredAt,
@@ -61,21 +136,39 @@ class OrderModel {
       orderId: map['order_id']?.toString(),
       customerId: map['customer_id']?.toString(),
       shopId: map['shop_id']?.toString(),
+      shopName: map['shop_name']?.toString(),
+      shopPhone: map['shop_phone']?.toString(),
       orderType: map['order_type']?.toString(),
       prescriptionUrl: map['prescription_url']?.toString(),
       items: map['items'] != null
           ? List<CartItem>.from(map['items']?.map((x) => CartItem.fromJson(x)))
           : [],
+      quotes: map['quotes'] != null
+          ? List<QuoteModel>.from(
+              map['quotes']?.map((x) => QuoteModel.fromMap(x)),
+            )
+          : [],
       receiverName: map['receiver_name']?.toString(),
       receiverPhone: map['receiver_phone']?.toString(),
-      deliveryAddress: map['delivery_address'] != null && map['delivery_address'] is Map
+      deliveryAddress:
+          map['delivery_address'] != null && map['delivery_address'] is Map
           ? Map<String, dynamic>.from(map['delivery_address'])
           : null,
-      itemTotal: map['item_total'] != null ? double.tryParse(map['item_total'].toString()) : null,
-      platformFee: map['platform_fee'] != null ? double.tryParse(map['platform_fee'].toString()) : null,
-      deliveryFee: map['delivery_fee'] != null ? double.tryParse(map['delivery_fee'].toString()) : null,
-      taxes: map['taxes'] != null ? double.tryParse(map['taxes'].toString()) : null,
-      totalBillAmount: map['total_bill_amount'] != null ? double.tryParse(map['total_bill_amount'].toString()) : null,
+      itemTotal: map['item_total'] != null
+          ? double.tryParse(map['item_total'].toString())
+          : null,
+      platformFee: map['platform_fee'] != null
+          ? double.tryParse(map['platform_fee'].toString())
+          : null,
+      deliveryFee: map['delivery_fee'] != null
+          ? double.tryParse(map['delivery_fee'].toString())
+          : null,
+      taxes: map['taxes'] != null
+          ? double.tryParse(map['taxes'].toString())
+          : null,
+      totalBillAmount: map['total_bill_amount'] != null
+          ? double.tryParse(map['total_bill_amount'].toString())
+          : null,
       paymentMode: map['payment_mode']?.toString(),
       paymentStatus: map['payment_status']?.toString(),
       orderStatus: map['order_status']?.toString(),
@@ -83,20 +176,30 @@ class OrderModel {
       riderPhone: map['rider_phone']?.toString(),
       vehicleNumber: map['vehicle_number']?.toString(),
       vehicleModel: map['vehicle_model']?.toString(),
+      deliveryOtp: map['delivery_otp']?.toString(),
       transactionId: map['transaction_id']?.toString(),
-      acceptedAt: map['accepted_at'] != null ? DateTime.tryParse(map['accepted_at']) : null,
-      deliveredAt: map['delivered_at'] != null ? DateTime.tryParse(map['delivered_at']) : null,
-      createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at']) : null,
+      acceptedAt: map['accepted_at'] != null
+          ? DateTime.tryParse(map['accepted_at'])
+          : null,
+      deliveredAt: map['delivered_at'] != null
+          ? DateTime.tryParse(map['delivered_at'])
+          : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'])
+          : null,
     );
   }
 
-  factory OrderModel.fromJson(String source) => OrderModel.fromMap(json.decode(source));
+  factory OrderModel.fromJson(String source) =>
+      OrderModel.fromMap(json.decode(source));
 
   Map<String, dynamic> toMap() {
     return {
       'order_id': orderId,
       'customer_id': customerId,
       'shop_id': shopId,
+      'shop_name': shopName,
+      'shop_phone': shopPhone,
       'order_type': orderType,
       'prescription_url': prescriptionUrl,
       // 'items': items.map((x) => x.toMap()).toList(), // cart item to map not strictly needed for UI models
@@ -115,6 +218,7 @@ class OrderModel {
       'rider_phone': riderPhone,
       'vehicle_number': vehicleNumber,
       'vehicle_model': vehicleModel,
+      'delivery_otp': deliveryOtp,
       'transaction_id': transactionId,
       'accepted_at': acceptedAt?.toIso8601String(),
       'delivered_at': deliveredAt?.toIso8601String(),

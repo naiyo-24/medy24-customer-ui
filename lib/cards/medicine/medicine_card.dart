@@ -3,43 +3,58 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/medicine.dart';
 import '../../theme/app_theme.dart';
-import '../../services/api_url.dart';
-import '../../providers/cart_provider.dart';
 
-class MedicineCard extends ConsumerWidget {
+import '../../providers/cart_provider.dart';
+import '../../services/cart_animation_service.dart';
+
+class MedicineCard extends ConsumerStatefulWidget {
   final MedicineModel medicine;
   final VoidCallback onTap;
 
   const MedicineCard({super.key, required this.medicine, required this.onTap});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isOutOfStock = medicine.isActive == false;
+  ConsumerState<MedicineCard> createState() => _MedicineCardState();
+}
+
+class _MedicineCardState extends ConsumerState<MedicineCard> {
+  final GlobalKey _imageKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    final isOutOfStock = widget.medicine.isActive == false;
+    final cartState = ref.watch(cartProvider);
+    final cartItemIndex = cartState.items.indexWhere((item) => item.medicine.medicineId == widget.medicine.medicineId);
+    final isInCart = cartItemIndex != -1;
+    final cartItem = isInCart ? cartState.items[cartItemIndex] : null;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         decoration: AppCardStyles.sleekCard,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image Section
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppSpacing.cardRadius),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1.3,
-                    child: Image.asset(
-                      'assets/logo/demo_med_image.png',
-                      fit: BoxFit.cover,
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppSpacing.cardRadius),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      key: _imageKey,
+                      child: Image.asset(
+                        'assets/logo/demo_med_image.png',
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                if (medicine.discountPercent != null &&
-                    medicine.discountPercent! > 0)
+                if (widget.medicine.discountPercent != null &&
+                    widget.medicine.discountPercent! > 0)
                   Positioned(
                     top: 10,
                     left: 10,
@@ -53,7 +68,7 @@ class MedicineCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '${medicine.discountPercent!.toInt()}% OFF',
+                        '${widget.medicine.discountPercent!.toInt()}% OFF',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -64,6 +79,7 @@ class MedicineCard extends ConsumerWidget {
                   ),
               ],
             ),
+          ),
 
             Padding(
               padding: const EdgeInsets.all(12),
@@ -71,16 +87,14 @@ class MedicineCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    medicine.medicineName ?? 'Unknown Medicine',
+                    widget.medicine.medicineName ?? 'Unknown Medicine',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.cardTitle,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    medicine.medicineQuantity ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    widget.medicine.medicineQuantity ?? '',
                     style: AppTextStyles.cardSubtitle,
                   ),
                   const SizedBox(height: 8),
@@ -89,16 +103,16 @@ class MedicineCard extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        '₹${medicine.finalPrice?.toStringAsFixed(0) ?? '0'}',
+                        '₹${widget.medicine.finalPrice?.toStringAsFixed(0) ?? '0'}',
                         style: AppTextStyles.cardTitle.copyWith(
                           color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(width: 6),
-                      if (medicine.discountPercent != null &&
-                          medicine.discountPercent! > 0)
+                      if (widget.medicine.discountPercent != null &&
+                          widget.medicine.discountPercent! > 0)
                         Text(
-                          '₹${medicine.mrp?.toStringAsFixed(0) ?? '0'}',
+                          '₹${widget.medicine.mrp?.toStringAsFixed(0) ?? '0'}',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -136,34 +150,72 @@ class MedicineCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: isOutOfStock ? null : () {
-                          ref.read(cartProvider.notifier).addItem(medicine);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Added to cart'),
-                              backgroundColor: AppColors.success,
-                              behavior: SnackBarBehavior.floating,
-                              duration: const Duration(seconds: 1),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      isInCart
+                          ? Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  InkWell(
+                                    onTap: () => ref.read(cartProvider.notifier).updateQuantity(widget.medicine.medicineId!, cartItem!.quantity - 1),
+                                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(6.0),
+                                      child: Icon(Iconsax.minus, size: 16, color: Colors.white),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    constraints: const BoxConstraints(minWidth: 20),
+                                    child: Text(
+                                      '${cartItem!.quantity}',
+                                      textAlign: TextAlign.center,
+                                      style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () => ref.read(cartProvider.notifier).updateQuantity(widget.medicine.medicineId!, cartItem.quantity + 1),
+                                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(6.0),
+                                      child: Icon(Iconsax.add, size: 16, color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : GestureDetector(
+                              onTap: isOutOfStock ? null : () {
+                                CartAnimationService.triggerAnimation(_imageKey);
+                                ref.read(cartProvider.notifier).addItem(widget.medicine);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('Added to cart'),
+                                    backgroundColor: AppColors.success,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 1),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: isOutOfStock
+                                      ? AppColors.divider
+                                      : AppColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Iconsax.add,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: isOutOfStock
-                                ? AppColors.divider
-                                : AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Iconsax.add,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ],
@@ -172,13 +224,6 @@ class MedicineCard extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Container(
-      color: AppColors.divider,
-      child: Center(child: Icon(Iconsax.box, color: AppColors.textSecondary)),
     );
   }
 }

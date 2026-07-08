@@ -32,8 +32,8 @@ class OrderCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              order.createdAt != null 
-                  ? DateFormat('dd MMM yyyy, hh:mm a').format(order.createdAt!) 
+              order.createdAt != null
+                  ? DateFormat('dd MMM yyyy, hh:mm a').format(order.createdAt!)
                   : 'Unknown Date',
               style: AppTextStyles.cardSubtitle,
             ),
@@ -44,18 +44,32 @@ class OrderCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Total Amount', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    const Text(
+                      'Total Amount',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       '₹${order.totalBillAmount?.toStringAsFixed(2) ?? '0.00'}',
-                      style: AppTextStyles.cardTitle.copyWith(color: AppColors.primary),
+                      style: AppTextStyles.cardTitle.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text('Payment Mode', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    const Text(
+                      'Payment Mode',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       order.paymentMode?.toUpperCase() ?? 'COD',
@@ -65,13 +79,79 @@ class OrderCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (order.shopName != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.local_pharmacy,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Fulfilled by ${order.shopName}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (order.items.isNotEmpty)
+                    Text(
+                      '${order.items.length} Item(s)',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
+              ),
+            ],
             if (order.items.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Text(
-                '${order.items.length} Item(s)',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-              )
-            ]
+              const Text(
+                'Items:',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              ...order.items.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${item.quantity}x ${item.medicine.medicineName ?? "Unknown"}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '₹${((item.quantity) * (item.medicine.finalPrice ?? 0.0)).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -85,11 +165,19 @@ class OrderCard extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'broadcast':
         color = Colors.orange;
-        text = 'PENDING ASSIGNMENT';
+        text = 'WAITING FOR QUOTES';
+        break;
+      case 'awaiting_customer_approval':
+        color = Colors.blueAccent;
+        text = 'QUOTES RECEIVED';
         break;
       case 'accepted':
         color = Colors.blue;
         text = 'ACCEPTED';
+        break;
+      case 'pending_payment':
+        color = Colors.orange;
+        text = 'PENDING PAYMENT';
         break;
       case 'packing':
         color = Colors.indigo;
@@ -121,7 +209,11 @@ class OrderCard extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
       ),
     );
   }

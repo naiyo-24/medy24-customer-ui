@@ -76,7 +76,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Future<void> _onPayOnline() async {
+  Future<void> _onProceed() async {
+    if (widget.checkoutType == 'medicine') {
+      setState(() => _isPaying = true);
+      final user =
+          ref.read(profileProvider).user ?? ref.read(authProvider).user;
+      await _requestQuotesForMedicine(user);
+      return;
+    }
+
     try {
       final _ = ApiUrl.razorpayKeyId;
     } catch (e) {
@@ -109,12 +117,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     setState(() => _isPaying = true);
     final user = ref.read(profileProvider).user ?? ref.read(authProvider).user;
-
-    if (widget.checkoutType == 'lab_test') {
-      await _payOnlineForLabTest(user);
-    } else {
-      await _payOnlineForMedicine(user);
-    }
+    await _payOnlineForLabTest(user);
   }
 
   Future<void> _payOnlineForLabTest(dynamic user) async {
@@ -168,7 +171,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
-  Future<void> _payOnlineForMedicine(dynamic user) async {
+  Future<void> _requestQuotesForMedicine(dynamic user) async {
     final cartState = ref.read(cartProvider);
     final chargesState = ref.read(chargesProvider);
     final summary = cartState.getSummary(chargesState.selectedCharge);
@@ -187,14 +190,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       selectedAddress?['street_address'],
     ].where((e) => e != null).join(', ');
 
-    // Place the order first
+    // Place the order as a quote request
     final order = await ref
         .read(orderProvider.notifier)
         .placeOrderFromCart(
           platformFee: summary.platformCharges,
           deliveryFee: summary.deliveryFees,
           taxes: summary.taxes,
-          paymentMode: 'online',
+          deliveryTip: summary.deliveryTip,
+          paymentMode:
+              'cod', // Payment will be chosen later upon quote acceptance
           receiverName: user?.fullName ?? 'Myself',
           receiverPhone: user?.phoneNumber ?? 'N/A',
           deliveryAddress: {
@@ -208,50 +213,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() => _isPaying = false);
       final error = ref.read(orderProvider).error;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error ?? 'Failed to place order')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Failed to request quotes')),
+      );
       return;
     }
 
     _medicineOrderId = order.orderId;
-
-    // Initiate online payment with razorpay
-    final rpResponse = await ref
-        .read(orderProvider.notifier)
-        .initiateOnlinePayment(order.orderId!);
-    if (rpResponse == null || rpResponse['razorpay_order_id'] == null) {
-      if (!mounted) return;
-      setState(() => _isPaying = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to initiate razorpay order')),
-      );
-      return;
-    }
-
     if (!mounted) return;
-
-    final double amount = (rpResponse['amount'] is int)
-        ? (rpResponse['amount'] as int).toDouble()
-        : (rpResponse['amount'] ?? 0.0);
-    final amountPaise = (amount * 100).round();
-
-    try {
-      await _razorpayService.openCheckout(
-        orderId: rpResponse['razorpay_order_id'],
-        amountPaise: amountPaise,
-        contact: user?.phoneNumber ?? '',
-        email: user?.email ?? '',
-        name: user?.fullName ?? '',
-        description: 'Medicine Order',
-      );
-    } on MissingPluginException {
-      if (!mounted) return;
-      setState(() => _isPaying = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Razorpay plugin unavailable.')),
-      );
-    }
+    setState(() => _isPaying = false);
+    _showSuccessAndExit();
   }
 
   Future<void> _showSuccessAndExit() async {
@@ -268,8 +239,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ref.read(profileProvider).user ?? ref.read(authProvider).user;
       trackRoute = '/my-test-bookings/${user?.customerId ?? ''}';
     } else {
-      msg = 'Your medicine order has been placed successfully.';
-      trackRoute = '/my-medicine-orders';
+      msg = 'Your quote request has been sent to nearby pharmacies.';
+      trackRoute =
+          '/my-medicine-orders'; // We redirect them to orders list where they can see quotes
     }
 
     await showDialog<void>(
@@ -321,6 +293,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       totalAmount: summary.totalAmount,
       isSubmitting: bookingState.isSubmitting,
       deliveryFee: 0.0,
+      buttonText: 'Pay Online · ₹${summary.totalAmount.toStringAsFixed(0)}',
+      paymentMethodText: 'Pay Online',
+      paymentMethodDesc: 'UPI, Credit Card, Debit Card',
     );
   }
 
@@ -360,6 +335,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       taxCharges: summary.taxes,
       totalAmount: summary.totalAmountToBePaid,
       isSubmitting: orderState.isLoading,
+      buttonText: 'Request Quotes',
+      paymentMethodText: 'Select Later',
+      paymentMethodDesc: 'Choose payment method after accepting a quote',
     );
   }
 
@@ -375,6 +353,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     required double taxCharges,
     required double totalAmount,
     required bool isSubmitting,
+    required String buttonText,
+    required String paymentMethodText,
+    required String paymentMethodDesc,
   }) {
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -455,13 +436,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Pay Online',
+                          paymentMethodText,
                           style: AppTextStyles.bodyMedium.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
-                          'UPI, Credit Card, Debit Card',
+                          paymentMethodDesc,
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -496,7 +477,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: _isPaying || isSubmitting ? null : _onPayOnline,
+              onPressed: _isPaying || isSubmitting ? null : _onProceed,
               child: _isPaying || isSubmitting
                   ? const SizedBox(
                       height: 22,
@@ -506,7 +487,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : Text('Pay Online · ₹${totalAmount.toStringAsFixed(0)}'),
+                  : Text(buttonText),
             ),
           ),
         ),

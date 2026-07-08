@@ -19,7 +19,7 @@ final orderProvider = StateNotifierProvider<OrderNotifier, OrderState>((ref) {
   ref.listen(profileProvider, (previous, next) {
     final previousId = previous?.user?.customerId;
     final nextId = next.user?.customerId;
-    
+
     if (previousId != nextId) {
       if (nextId != null) {
         service.connect(nextId);

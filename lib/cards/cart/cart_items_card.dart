@@ -126,18 +126,18 @@ class CartItemsCard extends ConsumerWidget {
           ),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(15),
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primary.withAlpha(50)),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 InkWell(
                   onTap: () => ref.read(cartProvider.notifier).updateQuantity(medicine.medicineId!, item.quantity - 1),
                   borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
                   child: const Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Icon(Iconsax.minus, size: 16, color: AppColors.primary),
+                    child: Icon(Iconsax.minus, size: 16, color: Colors.white),
                   ),
                 ),
                 Container(
@@ -146,7 +146,7 @@ class CartItemsCard extends ConsumerWidget {
                   child: Text(
                     '${item.quantity}',
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+                    style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),
                 InkWell(
@@ -154,7 +154,7 @@ class CartItemsCard extends ConsumerWidget {
                   borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
                   child: const Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Icon(Iconsax.add, size: 16, color: AppColors.primary),
+                    child: Icon(Iconsax.add, size: 16, color: Colors.white),
                   ),
                 ),
               ],

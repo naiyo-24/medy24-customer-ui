@@ -19,9 +19,60 @@ class CartService {
     );
   }
 
-  Options _getOptions(String customerId) {
-    return Options(headers: {'Authorization': 'Bearer $customerId'});
-  }
+  static const String _getMyCartQuery = """
+    query GetMyCart(\$customerId: String!) {
+      getMyCart(customerId: \$customerId) {
+        cartId
+        customerId
+        items
+        totalPrice
+      }
+    }
+  """;
+
+  static const String _addToCartMutation = """
+    mutation AddToCart(\$customerId: String!, \$medicineId: String!, \$quantity: Int!) {
+      addToCart(customerId: \$customerId, medicineId: \$medicineId, quantity: \$quantity) {
+        cartId
+        customerId
+        items
+        totalPrice
+      }
+    }
+  """;
+
+  static const String _updateCartQuantityMutation = """
+    mutation UpdateCartQuantity(\$customerId: String!, \$medicineId: String!, \$quantity: Int!) {
+      updateCartQuantity(customerId: \$customerId, medicineId: \$medicineId, quantity: \$quantity) {
+        cartId
+        customerId
+        items
+        totalPrice
+      }
+    }
+  """;
+
+  static const String _removeFromCartMutation = """
+    mutation RemoveFromCart(\$customerId: String!, \$medicineId: String!) {
+      removeFromCart(customerId: \$customerId, medicineId: \$medicineId) {
+        cartId
+        customerId
+        items
+        totalPrice
+      }
+    }
+  """;
+
+  static const String _clearCartMutation = """
+    mutation ClearCart(\$customerId: String!) {
+      clearCart(customerId: \$customerId) {
+        cartId
+        customerId
+        items
+        totalPrice
+      }
+    }
+  """;
 
   Future<Response> addItem(
     String customerId,
@@ -30,9 +81,15 @@ class CartService {
   ) async {
     try {
       return await _dio.post(
-        ApiUrl.cartAddItem,
-        data: {'medicine_id': medicineId, 'quantity': quantity},
-        options: _getOptions(customerId),
+        ApiUrl.graphql,
+        data: {
+          'query': _addToCartMutation,
+          'variables': {
+            'customerId': customerId,
+            'medicineId': medicineId,
+            'quantity': quantity,
+          },
+        },
       );
     } catch (e) {
       rethrow;
@@ -45,12 +102,16 @@ class CartService {
     int quantity,
   ) async {
     try {
-      final options = _getOptions(customerId);
-      options.contentType = Headers.jsonContentType;
-      return await _dio.put(
-        ApiUrl.cartUpdateItem(medicineId),
-        data: quantity,
-        options: options,
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _updateCartQuantityMutation,
+          'variables': {
+            'customerId': customerId,
+            'medicineId': medicineId,
+            'quantity': quantity,
+          },
+        },
       );
     } catch (e) {
       rethrow;
@@ -59,9 +120,15 @@ class CartService {
 
   Future<Response> removeItem(String customerId, String medicineId) async {
     try {
-      return await _dio.delete(
-        ApiUrl.cartRemoveItem(medicineId),
-        options: _getOptions(customerId),
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _removeFromCartMutation,
+          'variables': {
+            'customerId': customerId,
+            'medicineId': medicineId,
+          },
+        },
       );
     } catch (e) {
       rethrow;
@@ -70,7 +137,15 @@ class CartService {
 
   Future<Response> getCart(String customerId) async {
     try {
-      return await _dio.get(ApiUrl.cartGet, options: _getOptions(customerId));
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _getMyCartQuery,
+          'variables': {
+            'customerId': customerId,
+          },
+        },
+      );
     } catch (e) {
       rethrow;
     }
@@ -78,23 +153,23 @@ class CartService {
 
   Future<Response> clearCart(String customerId) async {
     try {
-      return await _dio.delete(
-        ApiUrl.cartClear,
-        options: _getOptions(customerId),
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _clearCartMutation,
+          'variables': {
+            'customerId': customerId,
+          },
+        },
       );
     } catch (e) {
       rethrow;
     }
   }
 
+  // Summary is now calculated locally in the notifier, so this could be removed, 
+  // but to maintain compatibility we can just return getCart
   Future<Response> getSummary(String customerId) async {
-    try {
-      return await _dio.get(
-        ApiUrl.cartSummary,
-        options: _getOptions(customerId),
-      );
-    } catch (e) {
-      rethrow;
-    }
+    return getCart(customerId);
   }
 }

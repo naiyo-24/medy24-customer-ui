@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/app_theme.dart';
+import '../profile/add_saved_address_bottomsheet.dart';
 
 class CartAddressCard extends ConsumerWidget {
   const CartAddressCard({super.key});
@@ -40,6 +41,24 @@ class CartAddressCard extends ConsumerWidget {
               'Please add an address in your profile to proceed with the checkout.',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // Close the current address selection sheet first
+                  Navigator.of(context).pop();
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const AddSavedAddressBottomSheet(),
+                  );
+                },
+                icon: const Icon(Iconsax.add_square),
+                label: const Text('Add New Address'),
+              ),
             ),
           ],
         ),
@@ -119,6 +138,29 @@ class CartAddressCard extends ConsumerWidget {
               ),
             );
           }),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              onPressed: () {
+                // Close the current address selection sheet first
+                Navigator.of(context).pop();
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const AddSavedAddressBottomSheet(),
+                );
+              },
+              icon: const Icon(Iconsax.add_square),
+              label: const Text('Add New Address', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
         ],
       ),
     );

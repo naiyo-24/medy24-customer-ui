@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
 import '../../providers/order_provider.dart';
 import '../../cards/medicine_orders/order_card.dart';
 import '../../theme/app_theme.dart';
-// import 'order_details_screen.dart'; // Create later if needed
 
 class MyOrderScreen extends ConsumerStatefulWidget {
   const MyOrderScreen({super.key});
@@ -41,6 +41,16 @@ class _MyOrderScreenState extends ConsumerState<MyOrderScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
         title: const Text('My Medicine Orders'),
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
@@ -56,22 +66,15 @@ class _MyOrderScreenState extends ConsumerState<MyOrderScreen> {
                       child: ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.all(16),
-                        itemCount: orderState.orders.length + (orderState.hasMore ? 1 : 0),
+                        itemCount: orderState.orders.length,
                         itemBuilder: (context, index) {
-                          if (index == orderState.orders.length) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-
                           final order = orderState.orders[index];
                           return OrderCard(
                             order: order,
                             onTap: () {
-                              // Navigator.push(context, MaterialPageRoute(builder: (_) => OrderDetailsScreen(orderId: order.orderId!)));
+                              if (order.orderId != null) {
+                                context.push('/order-tracking/${order.orderId}');
+                              }
                             },
                           );
                         },
