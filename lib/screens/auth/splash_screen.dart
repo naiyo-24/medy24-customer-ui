@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/app_theme.dart';
 
@@ -26,14 +25,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _checkAuth() async {
     // Wait for splash animation/branding (minimum 2 seconds)
     await Future.delayed(const Duration(milliseconds: 2000));
-    
+
     if (!mounted) return;
 
     final authState = ref.read(authProvider);
-    
+
     // If not initialized yet, wait for it
     if (!authState.isInitialized) {
-      // We can either poll or use a completer, but simplest is to wait a bit more 
+      // We can either poll or use a completer, but simplest is to wait a bit more
       // or rely on ref.listen in build if we want to be reactive.
       // However, loadUser is usually very fast (SharedPreferences).
       int retry = 0;
@@ -46,9 +45,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (mounted) {
       final user = ref.read(authProvider).user;
       if (user != null) {
-        context.go('/patho-lab-list');
+        context.go('/home');
       } else {
-        context.go('/login');
+        final prefs = await SharedPreferences.getInstance();
+
+        // TEMPORARY: Reset the memory flag so you can test it again!
+        await prefs.remove('has_seen_onboarding');
+
+        final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+
+        if (!mounted) return;
+
+        if (!hasSeenOnboarding) {
+          context.go('/onboarding');
+        } else {
+          context.go('/login');
+        }
       }
     }
   }
@@ -56,112 +68,174 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // Background Animations
-          ...List.generate(15, (index) {
-            final random = Random();
-            final icon = [
-              Iconsax.box,
-              Iconsax.firstline,
-              Iconsax.hospital,
-              Iconsax.activity,
-              Iconsax.archive_1,
-            ][random.nextInt(5)];
-
-            return Positioned(
-              left: random.nextDouble() * MediaQuery.of(context).size.width,
-              top: random.nextDouble() * MediaQuery.of(context).size.height,
+      backgroundColor: Colors.white,
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.5,
+            colors: [
+              Colors.white,
+              Color(0xFFF1F5F9), // Very soft slate gray for extreme cleanliness
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Ambient ripple rings in background
+            Center(
               child:
-                  Icon(
-                        icon,
-                        color: AppColors.primary.withAlpha(20),
-                        size: 30 + random.nextDouble() * 40,
+                  Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary.withAlpha(20),
+                            width: 2,
+                          ),
+                        ),
                       )
                       .animate(onPlay: (controller) => controller.repeat())
+                      .scale(
+                        duration: 2500.ms,
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(3.5, 3.5),
+                      )
+                      .fadeOut(duration: 2500.ms, curve: Curves.easeOut),
+            ),
+            Center(
+              child:
+                  Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary.withAlpha(40),
+                            width: 1,
+                          ),
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .scale(
+                        delay: 1250.ms,
+                        duration: 2500.ms,
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(3.5, 3.5),
+                      )
+                      .fadeOut(duration: 2500.ms, curve: Curves.easeOut),
+            ),
+
+            // Center Content
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Premium 3D Logo Reveal
+                  Image.asset(
+                        'assets/logo/logo.png',
+                        width: 240,
+                        fit: BoxFit.contain,
+                      )
+                      .animate()
+                      .flip(
+                        duration: 1200.ms,
+                        curve: Curves.easeOutBack,
+                        begin: -0.15,
+                        end: 0,
+                      )
+                      .scale(duration: 1200.ms, curve: Curves.easeOutBack)
+                      .fadeIn(duration: 1000.ms)
+                      .shimmer(
+                        delay: 1200.ms,
+                        duration: 2500.ms,
+                        color: Colors.white.withAlpha(200),
+                      ),
+
+                  const SizedBox(height: 40),
+
+                  // App Name
+                  Text(
+                        'MEDY24',
+                        style: AppTextStyles.header.copyWith(
+                          fontSize: 34,
+                          letterSpacing: 8,
+                          color: AppColors
+                              .textPrimary, // Darker color for cleaner contrast
+                          fontWeight: FontWeight.w900,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(delay: 600.ms, duration: 800.ms)
                       .moveY(
-                        begin: 0,
-                        end: -20,
-                        duration: (2000 + random.nextInt(3000)).ms,
-                        curve: Curves.easeInOut,
+                        begin: 30,
+                        end: 0,
+                        duration: 800.ms,
+                        curve: Curves.easeOutCirc,
+                      ),
+
+                  const SizedBox(height: 12),
+
+                  // Tagline
+                  Text(
+                        'Your Health, Our Priority',
+                        style: AppTextStyles.tagline.copyWith(
+                          fontSize: 13,
+                          letterSpacing: 3.0,
+                          color: AppColors.textSecondary,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(delay: 1000.ms, duration: 800.ms)
+                      .moveY(
+                        begin: 20,
+                        end: 0,
+                        duration: 800.ms,
+                        curve: Curves.easeOutCirc,
+                      ),
+                ],
+              ),
+            ),
+
+            // Minimalist Dot Loader
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) {
+                  return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .scale(
+                        delay: (index * 200).ms,
+                        duration: 600.ms,
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(1.5, 1.5),
+                        curve: Curves.easeInOutSine,
                       )
                       .then()
-                      .moveY(
-                        begin: -20,
-                        end: 0,
-                        duration: (2000 + random.nextInt(3000)).ms,
-                        curve: Curves.easeInOut,
-                      )
-                      .rotate(
-                        begin: 0,
-                        end: 0.1,
-                        duration: (3000 + random.nextInt(2000)).ms,
-                      ),
-            );
-          }),
-
-          // Center Logo and Tagline
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withAlpha(30),
-                            blurRadius: 40,
-                            spreadRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'assets/logo/logo.png',
-                        width: 120,
-                        height: 120,
-                      ),
-                    )
-                    .animate()
-                    .scale(duration: 800.ms, curve: Curves.easeInOutBack)
-                    .fadeIn(),
-                const SizedBox(height: 24),
-                Text(
-                  'MEDY24',
-                  style: AppTextStyles.header.copyWith(
-                    letterSpacing: 4,
-                    color: AppColors.primary,
-                  ),
-                ).animate().fadeIn(delay: 400.ms).moveY(begin: 20, end: 0),
-                const SizedBox(height: 8),
-                const Text(
-                  'Your Health, Our Priority',
-                  style: AppTextStyles.tagline,
-                ).animate().fadeIn(delay: 600.ms),
-              ],
+                      .scale(
+                        duration: 600.ms,
+                        begin: const Offset(1.5, 1.5),
+                        end: const Offset(0.5, 0.5),
+                        curve: Curves.easeInOutSine,
+                      );
+                }),
+              ).animate().fadeIn(delay: 1500.ms),
             ),
-          ),
-
-          // Bottom Progress Indicator (Optional but adds sleek feel)
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: SizedBox(
-                width: 40,
-                height: 2,
-                child: LinearProgressIndicator(
-                  backgroundColor: AppColors.divider,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
-              ),
-            ).animate().fadeIn(delay: 1000.ms),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
