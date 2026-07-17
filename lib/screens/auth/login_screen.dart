@@ -147,7 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
               Expanded(
                 child: PageView(
                   controller: _pageController,
@@ -173,8 +173,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildPhoneSlide(AuthState authState) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'STEP 1 OF 2',
@@ -273,12 +274,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 20),
       ],
+      ),
     );
   }
 
   Widget _buildOtpSlide(AuthState authState) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
           onTap: _previousPage,
@@ -390,6 +393,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 20),
       ],
+      ),
     );
   }
 

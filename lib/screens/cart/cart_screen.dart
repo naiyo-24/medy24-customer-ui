@@ -215,6 +215,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           final order = await ref
                               .read(orderProvider.notifier)
                               .placeOrderFromCart(
+                                cartItems: cartState.items,
+                                itemTotal: summary.totalItemAmount,
+                                totalBillAmount: summary.totalAmountToBePaid,
                                 platformFee: summary.platformCharges,
                                 deliveryFee: summary.deliveryFees,
                                 taxes: summary.taxes,

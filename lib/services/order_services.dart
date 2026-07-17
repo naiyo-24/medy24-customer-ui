@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -84,10 +85,27 @@ class OrderService {
     );
   }
 
+  Future<Response> uploadPrescription(String customerId, File file) async {
+    final formData = FormData.fromMap({
+      'customer_id': customerId,
+      'prescription': await MultipartFile.fromFile(file.path),
+    });
+    return await _dio.post(
+      ApiUrl.uploadPrescription,
+      data: formData,
+    );
+  }
+
   Future<Response> acceptBid(String orderId, String bidId) async {
     return await _dio.post(
       ApiUrl.acceptBid(orderId),
       data: {'bid_id': bidId},
+    );
+  }
+
+  Future<Response> cancelOrder(String orderId) async {
+    return await _dio.post(
+      ApiUrl.cancelOrder(orderId),
     );
   }
 

@@ -9,6 +9,7 @@ import '../models/order.dart';
 import '../providers/profile_provider.dart';
 import '../providers/cart_provider.dart';
 import '../services/order_services.dart';
+import '../models/cart.dart';
 
 class OrderState {
   final List<OrderModel> orders;
@@ -261,6 +262,9 @@ class OrderNotifier extends StateNotifier<OrderState> {
   }
 
   Future<OrderModel?> placeOrderFromCart({
+    required List<CartItem> cartItems,
+    required double itemTotal,
+    required double totalBillAmount,
     required double platformFee,
     required double deliveryFee,
     required double taxes,
@@ -287,6 +291,14 @@ class OrderNotifier extends StateNotifier<OrderState> {
         "delivery_lng": deliveryAddress['longitude'] ?? 0.0,
         "is_emergency": false,
         "instructions": "",
+        "items": cartItems.map((e) => e.toMap()).toList(),
+        "item_total": itemTotal,
+        "platform_fee": platformFee,
+        "delivery_fee": deliveryFee,
+        "taxes": taxes,
+        "total_bill_amount": totalBillAmount,
+        "payment_mode": paymentMode,
+        "order_type": "cart",
       };
       
       final response = await _orderService.placeOrder(payload);
@@ -360,12 +372,73 @@ class OrderNotifier extends StateNotifier<OrderState> {
     required double taxes,
     required String paymentMode,
   }) async {
-    state = state.copyWith(isLoading: false, error: "Not yet implemented on backend");
+    final cid = _customerId;
+    if (cid == null) return null;
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      // 1. Upload the prescription
+      final uploadResponse = await _orderService.uploadPrescription(cid, prescriptionFile);
+      if (uploadResponse.data['status'] != 'success') {
+         throw Exception(uploadResponse.data['detail'] ?? 'Failed to upload prescription');
+      }
+      final prescriptionUrl = uploadResponse.data['prescription_url'];
+
+      // 2. Place the order
+      final String addressText = "\${deliveryAddress['addressLine1']}, \${deliveryAddress['addressLine2']}, \${deliveryAddress['city']}, \${deliveryAddress['state']}, \${deliveryAddress['pincode']}";
+      
+      final payload = {
+        "customer_id": cid,
+        "receiver_name": receiverName,
+        "receiver_phone": receiverPhone,
+        "delivery_address_text": addressText,
+        "delivery_lat": deliveryAddress['latitude'] ?? 0.0,
+        "delivery_lng": deliveryAddress['longitude'] ?? 0.0,
+        "is_emergency": false,
+        "instructions": "",
+        "order_type": "prescription",
+        "prescription_url": prescriptionUrl,
+        "payment_mode": paymentMode,
+      };
+      
+      final response = await _orderService.placeOrder(payload);
+      
+      if (response.data['status'] == 'success') {
+        final orderId = response.data['order_id'];
+        
+        _orderService.connectBidding(orderId);
+        await fetchOrders(refresh: true);
+        state = state.copyWith(isLoading: false, activeBiddingOrderId: orderId);
+        
+        final index = state.orders.indexWhere((o) => o.orderId == orderId);
+        if (index >= 0) return state.orders[index];
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to place order');
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+
     return null;
   }
 
   Future<void> cancelOrder(String orderId) async {
-    state = state.copyWith(isLoading: false, error: "Cancel order not yet implemented on backend");
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _orderService.cancelOrder(orderId);
+      if (response.data['status'] == 'success') {
+         if (state.activeBiddingOrderId == orderId) {
+             _orderService.disconnectBidding();
+             state = state.copyWith(activeBiddingOrderId: null);
+         }
+         await fetchOrders(refresh: true);
+      } else {
+         throw Exception(response.data['message'] ?? 'Failed to cancel order');
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
   Future<Map<String, dynamic>?> initiateOnlinePayment(String orderId) async {

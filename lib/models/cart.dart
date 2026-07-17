@@ -32,6 +32,17 @@ class CartItem {
       quantity: json['quantity'] ?? 1,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'medicine_id': medicine.medicineId,
+      'medicine_name': medicine.medicineName,
+      'price_per_unit': medicine.finalPrice ?? medicine.mrp,
+      'pack_size': medicine.medicineQuantity,
+      'medicine_photo': medicine.medicinePhoto,
+      'quantity': quantity,
+    };
+  }
 }
 
 class CartSummary {
