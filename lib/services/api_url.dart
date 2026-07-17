@@ -4,7 +4,7 @@ class ApiUrl {
   // Read base URL from .env, fallback to localhost if not found
   static String get baseUrl =>
       // dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8009";
-      dotenv.env['API_BASE_URL'] ?? "http://192.168.1.17:8000";
+      dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8000";
   // About Us Endpoints
   static String get aboutUs => "$baseUrl/about-us";
   static String get getAboutUsAll => "$aboutUs/get-all";
