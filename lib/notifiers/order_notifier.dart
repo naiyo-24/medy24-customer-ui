@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -15,6 +16,8 @@ class OrderState {
   final String? error;
   final int currentPage;
   final bool hasMore;
+  final String? activeBiddingOrderId;
+  final String? activeTrackingOrderId;
 
   OrderState({
     this.orders = const [],
@@ -22,6 +25,8 @@ class OrderState {
     this.error,
     this.currentPage = 1,
     this.hasMore = true,
+    this.activeBiddingOrderId,
+    this.activeTrackingOrderId,
   });
 
   OrderState copyWith({
@@ -30,6 +35,8 @@ class OrderState {
     String? error,
     int? currentPage,
     bool? hasMore,
+    String? activeBiddingOrderId,
+    String? activeTrackingOrderId,
   }) {
     return OrderState(
       orders: orders ?? this.orders,
@@ -37,6 +44,8 @@ class OrderState {
       error: error,
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
+      activeBiddingOrderId: activeBiddingOrderId ?? this.activeBiddingOrderId,
+      activeTrackingOrderId: activeTrackingOrderId ?? this.activeTrackingOrderId,
     );
   }
 }
@@ -47,51 +56,24 @@ class OrderNotifier extends StateNotifier<OrderState> {
 
   OrderService get orderService => _orderService;
 
-  Completer<OrderModel?>? _approveQuoteCompleter;
-  Completer<OrderModel?>? _rejectQuoteCompleter;
-
-  Future<OrderModel?> approveQuote(
-    String orderId,
-    String quoteId,
-    String paymentMode,
-  ) async {
-    _approveQuoteCompleter = Completer<OrderModel?>();
-    _orderService.sendMessage({
-      "type": "approve_quote",
-      "order_id": orderId,
-      "quote_id": quoteId,
-      "payment_mode": paymentMode,
-    });
-    return _approveQuoteCompleter!.future;
-  }
-
-  Future<OrderModel?> rejectQuote(String orderId, String quoteId) async {
-    _rejectQuoteCompleter = Completer<OrderModel?>();
-    _orderService.rejectQuote(orderId, quoteId);
-    return _rejectQuoteCompleter!.future;
-  }
-
   StreamSubscription? _wsSubscription;
-
-  // Completers to simulate request/response over WebSocket
-  Completer<OrderModel?>? _placeOrderCompleter;
-  Completer<Map<String, dynamic>?>? _paymentInitiateCompleter;
-  Completer<bool>? _paymentVerifyCompleter;
-  Completer<void>? _cancelCompleter;
 
   OrderNotifier(this.ref, this._orderService) : super(OrderState()) {
     _wsSubscription = _orderService.messageStream.listen(
       _handleWebSocketMessage,
     );
 
-    // Connect initially if customer is logged in
+    // Fetch initially if customer is logged in
     Future.microtask(() {
       final cid = _customerId;
       if (cid != null) {
-        _orderService.connect(cid);
         fetchOrders(refresh: true);
       }
     });
+  }
+
+  void reset() {
+    state = OrderState();
   }
 
   @override
@@ -106,78 +88,69 @@ class OrderNotifier extends StateNotifier<OrderState> {
     final type = data['type'];
 
     if (data['status'] == 'error' || type == 'error') {
-      final errorMsg = data['message'] ?? 'An error occurred';
-      state = state.copyWith(isLoading: false, error: errorMsg);
-      _rejectAllCompleters();
+      final errorMsg = data['message'] ?? 'An error occurred in live tracking';
+      if (kDebugMode) print("WebSocket Message Error: $errorMsg");
       return;
     }
 
     switch (type) {
-      case 'orders_list':
-        final List ordersData = data['data'] ?? [];
-        final parsedOrders = ordersData
-            .map((e) => OrderModel.fromMap(e))
-            .toList();
-        final total = data['total'] ?? 0;
-        final page = data['page'] ?? 1;
-
-        final newOrders = (page == 1)
-            ? parsedOrders
-            : [...state.orders, ...parsedOrders];
-
-        state = state.copyWith(
-          orders: newOrders,
-          isLoading: false,
-          currentPage: page + 1,
-          hasMore: newOrders.length < total,
-        );
-        break;
-
-      case 'order_details':
-        final updatedOrder = OrderModel.fromMap(data['order']);
-        _updateSingleOrderInState(updatedOrder);
-        break;
-
-      case 'order_placed':
-        final newOrder = OrderModel.fromMap(data['order']);
-        _updateSingleOrderInState(newOrder);
-
-        if (newOrder.orderType == 'cart') {
-          ref.read(cartProvider.notifier).clearCartLocal();
-        }
-
-        state = state.copyWith(isLoading: false);
-        _placeOrderCompleter?.complete(newOrder);
-        _placeOrderCompleter = null;
-        break;
-
-      case 'order_accepted':
-      case 'order_status_update':
-      case 'order_updated':
-      case 'quote_approved':
-      case 'quote_rejected':
-        final updatedOrder = OrderModel.fromMap(data['order']);
-        _updateSingleOrderInState(updatedOrder);
-        if (type == 'quote_approved') {
-          _approveQuoteCompleter?.complete(updatedOrder);
-          _approveQuoteCompleter = null;
-        } else if (type == 'quote_rejected') {
-          _rejectQuoteCompleter?.complete(updatedOrder);
-          _rejectQuoteCompleter = null;
+      case 'REHYDRATE_BIDS':
+        final List bidsData = data['bids'] ?? [];
+        if (state.activeBiddingOrderId != null) {
+          final orderId = state.activeBiddingOrderId!;
+          final index = state.orders.indexWhere((o) => o.orderId == orderId);
+          if (index >= 0) {
+            final order = state.orders[index];
+            final newQuotes = bidsData.map((e) => QuoteModel.fromMap(e)).toList();
+            final updatedOrder = OrderModel(
+              orderId: order.orderId,
+              customerId: order.customerId,
+              shopId: order.shopId,
+              shopName: order.shopName,
+              shopPhone: order.shopPhone,
+              orderType: order.orderType,
+              prescriptionUrl: order.prescriptionUrl,
+              items: order.items,
+              quotes: newQuotes,
+              receiverName: order.receiverName,
+              receiverPhone: order.receiverPhone,
+              deliveryAddress: order.deliveryAddress,
+              itemTotal: order.itemTotal,
+              platformFee: order.platformFee,
+              deliveryFee: order.deliveryFee,
+              taxes: order.taxes,
+              totalBillAmount: order.totalBillAmount,
+              paymentMode: order.paymentMode,
+              paymentStatus: order.paymentStatus,
+              orderStatus: order.orderStatus,
+              riderName: order.riderName,
+              riderPhone: order.riderPhone,
+              vehicleNumber: order.vehicleNumber,
+              vehicleModel: order.vehicleModel,
+              deliveryOtp: order.deliveryOtp,
+              transactionId: order.transactionId,
+              acceptedAt: order.acceptedAt,
+              deliveredAt: order.deliveredAt,
+              createdAt: order.createdAt,
+            );
+            _updateSingleOrderInState(updatedOrder);
+          }
         }
         break;
 
-      case 'quote_received':
-        final orderId = data['order_id'];
-        final quoteData = data['quote'];
+      case 'NEW_BID':
+        final bidData = data['data'];
+        final orderId = bidData['order_id'];
+        
         final index = state.orders.indexWhere((o) => o.orderId == orderId);
         if (index >= 0) {
           final order = state.orders[index];
-          final newQuote = QuoteModel.fromMap(quoteData);
-
+          final newQuote = QuoteModel.fromMap(bidData);
+          
           final existingQuoteIndex = order.quotes.indexWhere(
             (q) => q.shopId == newQuote.shopId,
           );
+          
           List<QuoteModel> updatedQuotes;
           if (existingQuoteIndex >= 0) {
             updatedQuotes = List<QuoteModel>.from(order.quotes);
@@ -185,7 +158,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
           } else {
             updatedQuotes = List<QuoteModel>.from(order.quotes)..add(newQuote);
           }
-
+          
           final updatedOrder = OrderModel(
             orderId: order.orderId,
             customerId: order.customerId,
@@ -206,9 +179,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
             totalBillAmount: order.totalBillAmount,
             paymentMode: order.paymentMode,
             paymentStatus: order.paymentStatus,
-            orderStatus: order.orderStatus == 'broadcast'
-                ? 'awaiting_customer_approval'
-                : order.orderStatus,
+            orderStatus: order.orderStatus,
             riderName: order.riderName,
             riderPhone: order.riderPhone,
             vehicleNumber: order.vehicleNumber,
@@ -219,36 +190,18 @@ class OrderNotifier extends StateNotifier<OrderState> {
             deliveredAt: order.deliveredAt,
             createdAt: order.createdAt,
           );
-
           _updateSingleOrderInState(updatedOrder);
         }
         break;
 
-      case 'order_cancelled':
-        final cancelledOrder = OrderModel.fromMap(data['order']);
-        _updateSingleOrderInState(cancelledOrder);
-        state = state.copyWith(isLoading: false);
-        _cancelCompleter?.complete();
-        _cancelCompleter = null;
+      case 'AUCTION_CLOSED':
+        // The backend indicates auction closed. 
+        _orderService.disconnectBidding();
+        state = state.copyWith(activeBiddingOrderId: null);
         break;
-
-      case 'payment_initiated':
-        _paymentInitiateCompleter?.complete({
-          'razorpay_order_id': data['razorpay_order_id'],
-          'amount': data['amount'],
-          'currency': data['currency'],
-        });
-        _paymentInitiateCompleter = null;
-        break;
-
-      case 'payment_verified':
-        final verifiedOrder = OrderModel.fromMap(data['order']);
-        _updateSingleOrderInState(verifiedOrder);
-        _paymentVerifyCompleter?.complete(true);
-        _paymentVerifyCompleter = null;
-        break;
-
-      case 'pong':
+        
+      case 'RIDER_LOCATION_UPDATE':
+        // Handle rider tracking logic here
         break;
     }
   }
@@ -264,38 +217,9 @@ class OrderNotifier extends StateNotifier<OrderState> {
     }
   }
 
-  void _rejectAllCompleters() {
-    if (_placeOrderCompleter?.isCompleted == false) {
-      _placeOrderCompleter?.complete(null);
-    }
-    if (_paymentInitiateCompleter?.isCompleted == false) {
-      _paymentInitiateCompleter?.complete(null);
-    }
-    if (_paymentVerifyCompleter?.isCompleted == false) {
-      _paymentVerifyCompleter?.complete(false);
-    }
-    if (_cancelCompleter?.isCompleted == false) {
-      _cancelCompleter?.complete(); // Just complete it normally
-    }
-
-    _placeOrderCompleter = null;
-    _paymentInitiateCompleter = null;
-    _paymentVerifyCompleter = null;
-    _cancelCompleter = null;
-  }
-
-  void _ensureConnection() {
-    final cid = _customerId;
-    if (cid != null && !_orderService.isConnected) {
-      _orderService.connect(cid);
-    }
-  }
-
   Future<void> fetchOrders({bool refresh = false}) async {
     final cid = _customerId;
     if (cid == null) return;
-
-    _ensureConnection();
 
     if (refresh) {
       state = state.copyWith(
@@ -310,11 +234,27 @@ class OrderNotifier extends StateNotifier<OrderState> {
     }
 
     try {
-      _orderService.sendMessage({
-        "type": "get_orders",
-        "page": state.currentPage,
-        "limit": 10,
-      });
+      final response = await _orderService.fetchOrderHistory(cid, 20);
+      final data = response.data;
+      if (data['errors'] != null) {
+         throw Exception(data['errors'][0]['message']);
+      }
+      
+      final ordersList = data['data']['getMyOrderHistory'] as List;
+      final parsedOrders = ordersList.map((e) => OrderModel.fromMap(e)).toList();
+      
+      final newOrders = refresh
+          ? parsedOrders
+          : [...state.orders, ...parsedOrders];
+
+      state = state.copyWith(
+        orders: newOrders,
+        isLoading: false,
+        currentPage: state.currentPage + 1,
+        hasMore: parsedOrders.isNotEmpty,
+      );
+    } on DioException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -333,30 +273,81 @@ class OrderNotifier extends StateNotifier<OrderState> {
     final cid = _customerId;
     if (cid == null) return null;
 
-    _ensureConnection();
-
     state = state.copyWith(isLoading: true, error: null);
-    _placeOrderCompleter = Completer<OrderModel?>();
-    final future = _placeOrderCompleter!.future;
 
     try {
-      _orderService.sendMessage({
-        "type": "place_order_from_cart",
-        "platform_fee": platformFee,
-        "delivery_fee": deliveryFee,
-        "taxes": taxes,
-        "delivery_tip": deliveryTip,
-        "payment_mode": paymentMode,
+      final String addressText = "\${deliveryAddress['addressLine1']}, \${deliveryAddress['addressLine2']}, \${deliveryAddress['city']}, \${deliveryAddress['state']}, \${deliveryAddress['pincode']}";
+      
+      final payload = {
+        "customer_id": cid,
         "receiver_name": receiverName,
         "receiver_phone": receiverPhone,
-        "delivery_address": deliveryAddress,
-      });
+        "delivery_address_text": addressText,
+        "delivery_lat": deliveryAddress['latitude'] ?? 0.0,
+        "delivery_lng": deliveryAddress['longitude'] ?? 0.0,
+        "is_emergency": false,
+        "instructions": "",
+      };
+      
+      final response = await _orderService.placeOrder(payload);
+      
+      if (response.data['status'] == 'success') {
+        final orderId = response.data['order_id'];
+        
+        _orderService.connectBidding(orderId);
+        await fetchOrders(refresh: true);
+        state = state.copyWith(isLoading: false, activeBiddingOrderId: orderId);
+        
+        final index = state.orders.indexWhere((o) => o.orderId == orderId);
+        if (index >= 0) {
+          // Clear cart on success
+          ref.read(cartProvider.notifier).clearCartLocal();
+          return state.orders[index];
+        }
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to place order');
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
-      _rejectAllCompleters();
     }
 
-    return future;
+    return null;
+  }
+
+  Future<OrderModel?> approveQuote(
+    String orderId,
+    String quoteId,
+    String paymentMode,
+  ) async {
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      final response = await _orderService.acceptBid(orderId, quoteId);
+      
+      if (response.data['status'] == 'success') {
+        await fetchOrders(refresh: true);
+        state = state.copyWith(isLoading: false);
+        
+        if (state.activeBiddingOrderId == orderId) {
+           _orderService.disconnectBidding();
+           state = state.copyWith(activeBiddingOrderId: null);
+        }
+        
+        final index = state.orders.indexWhere((o) => o.orderId == orderId);
+        if (index >= 0) return state.orders[index];
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to accept bid');
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+    
+    return null;
+  }
+
+  Future<OrderModel?> rejectQuote(String orderId, String quoteId) async {
+    if (kDebugMode) print("rejectQuote not yet implemented on backend");
+    return null;
   }
 
   Future<OrderModel?> placeOrderFromPrescription({
@@ -369,77 +360,17 @@ class OrderNotifier extends StateNotifier<OrderState> {
     required double taxes,
     required String paymentMode,
   }) async {
-    final cid = _customerId;
-    if (cid == null) return null;
-
-    _ensureConnection();
-
-    state = state.copyWith(isLoading: true, error: null);
-    _placeOrderCompleter = Completer<OrderModel?>();
-    final future = _placeOrderCompleter!.future;
-
-    final bytes = await prescriptionFile.readAsBytes();
-    final base64Image = base64Encode(bytes);
-
-    try {
-      _orderService.sendMessage({
-        "type": "place_order_from_prescription",
-        "platform_fee": platformFee,
-        "delivery_fee": deliveryFee,
-        "taxes": taxes,
-        "payment_mode": paymentMode,
-        "receiver_name": receiverName,
-        "receiver_phone": receiverPhone,
-        "delivery_address": deliveryAddress,
-        "prescription": base64Image,
-      });
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-      _rejectAllCompleters();
-    }
-
-    return future;
+    state = state.copyWith(isLoading: false, error: "Not yet implemented on backend");
+    return null;
   }
 
   Future<void> cancelOrder(String orderId) async {
-    final cid = _customerId;
-    if (cid == null) return;
-
-    _ensureConnection();
-
-    state = state.copyWith(isLoading: true, error: null);
-    _cancelCompleter = Completer<void>();
-    final future = _cancelCompleter!.future;
-
-    try {
-      _orderService.sendMessage({"type": "cancel_order", "order_id": orderId});
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-      _rejectAllCompleters();
-    }
-
-    return future;
+    state = state.copyWith(isLoading: false, error: "Cancel order not yet implemented on backend");
   }
 
   Future<Map<String, dynamic>?> initiateOnlinePayment(String orderId) async {
-    final cid = _customerId;
-    if (cid == null) return null;
-
-    _ensureConnection();
-
-    _paymentInitiateCompleter = Completer<Map<String, dynamic>?>();
-    final future = _paymentInitiateCompleter!.future;
-
-    try {
-      _orderService.sendMessage({
-        "type": "initiate_payment",
-        "order_id": orderId,
-      });
-    } catch (e) {
-      _rejectAllCompleters();
-    }
-
-    return future;
+    state = state.copyWith(isLoading: false, error: "Online payment flow needs to be integrated with REST API");
+    return null;
   }
 
   Future<bool> verifyOnlinePayment({
@@ -448,26 +379,6 @@ class OrderNotifier extends StateNotifier<OrderState> {
     required String razorpayOrderId,
     required String razorpaySignature,
   }) async {
-    final cid = _customerId;
-    if (cid == null) return false;
-
-    _ensureConnection();
-
-    _paymentVerifyCompleter = Completer<bool>();
-    final future = _paymentVerifyCompleter!.future;
-
-    try {
-      _orderService.sendMessage({
-        "type": "verify_payment",
-        "order_id": orderId,
-        "razorpay_payment_id": razorpayPaymentId,
-        "razorpay_order_id": razorpayOrderId,
-        "razorpay_signature": razorpaySignature,
-      });
-    } catch (e) {
-      _rejectAllCompleters();
-    }
-
-    return future;
+    return false;
   }
 }

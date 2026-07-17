@@ -104,6 +104,28 @@ class AuthService {
     }
   }
 
+  static const String _addAddressMutation = """
+    mutation AddSavedAddress(\$customerId: String!, \$addressType: String!, \$address1: String!, \$streetAddress: String!, \$latitude: Float!, \$longitude: Float!) {
+      addSavedAddress(
+        customerId: \$customerId,
+        addressType: \$addressType,
+        address1: \$address1,
+        streetAddress: \$streetAddress,
+        latitude: \$latitude,
+        longitude: \$longitude
+      )
+    }
+  """;
+
+  static const String _deleteAddressMutation = """
+    mutation DeleteSavedAddress(\$customerId: String!, \$addressId: String!) {
+      deleteSavedAddress(
+        customerId: \$customerId,
+        addressId: \$addressId
+      )
+    }
+  """;
+
   Future<Response> addAddress({
     required String customerId,
     required String address1,
@@ -113,12 +135,17 @@ class AuthService {
   }) async {
     try {
       return await _dio.post(
-        ApiUrl.addAddress(customerId),
+        ApiUrl.graphql,
         data: {
-          'address_1': address1,
-          'street_address': streetAddress,
-          'latitude': latitude,
-          'longitude': longitude,
+          'query': _addAddressMutation,
+          'variables': {
+            'customerId': customerId,
+            'addressType': 'Home',
+            'address1': address1,
+            'streetAddress': streetAddress,
+            'latitude': latitude,
+            'longitude': longitude,
+          }
         },
       );
     } catch (e) {
@@ -128,14 +155,21 @@ class AuthService {
 
   Future<Response> deleteAddress({
     required String customerId,
-    required int addressId,
+    required String addressId,
     required String token,
   }) async {
     try {
-      return await _dio.delete(
-        ApiUrl.deleteAddress(customerId, addressId),
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _deleteAddressMutation,
+          'variables': {
+            'customerId': customerId,
+            'addressId': addressId,
+          }
+        },
         options: Options(
-          headers: {'token': token},
+          headers: {'Authorization': 'Bearer $token'},
         ),
       );
     } catch (e) {

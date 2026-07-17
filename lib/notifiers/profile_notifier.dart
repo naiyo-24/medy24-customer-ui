@@ -124,8 +124,11 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         longitude: longitude,
       );
 
-      final user = UserModel.fromMap(response.data['user']);
-      final updatedUser = user.copyWith(token: currentUser.token);
+      final newAddress = response.data['data']['addSavedAddress'];
+      final addresses = List<dynamic>.from(currentUser.savedAddresses ?? []);
+      addresses.add(newAddress);
+      
+      final updatedUser = currentUser.copyWith(savedAddresses: addresses);
       state = state.copyWith(user: updatedUser, isLoading: false);
 
       final prefs = await SharedPreferences.getInstance();
@@ -139,7 +142,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     }
   }
 
-  Future<bool> deleteAddress(int addressId) async {
+  Future<bool> deleteAddress(String addressId) async {
     final currentUser = state.user;
     if (currentUser?.customerId == null) return false;
 
@@ -156,15 +159,22 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         token: firebaseToken,
       );
 
-      final user = UserModel.fromMap(response.data['user']);
-      final updatedUser = user.copyWith(token: currentUser.token);
-      state = state.copyWith(user: updatedUser, isLoading: false);
+      final success = response.data['data']['deleteSavedAddress'] == true;
+      if (success) {
+        final addresses = List<dynamic>.from(currentUser.savedAddresses ?? [])
+            ..removeWhere((addr) => addr['address_id'] == addressId);
+            
+        final updatedUser = currentUser.copyWith(savedAddresses: addresses);
+        state = state.copyWith(user: updatedUser, isLoading: false);
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user', updatedUser.toJson());
-      ref.read(authProvider.notifier).loadUser();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', updatedUser.toJson());
+        ref.read(authProvider.notifier).loadUser();
+      } else {
+        state = state.copyWith(isLoading: false, error: 'Failed to delete address');
+      }
 
-      return true;
+      return success;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;

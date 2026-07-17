@@ -65,7 +65,7 @@ class SavedAddressesScreen extends ConsumerWidget {
                   onDelete: () async {
                     final success = await ref
                         .read(profileProvider.notifier)
-                        .deleteAddress(address['id']);
+                        .deleteAddress(address['address_id']);
                     if (success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Address deleted')),

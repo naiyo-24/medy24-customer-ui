@@ -128,25 +128,33 @@ class _MedicineCardState extends ConsumerState<MedicineCard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isOutOfStock
-                              ? AppColors.error.withAlpha(30)
-                              : AppColors.primary.withAlpha(30),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          isOutOfStock ? 'OUT OF STOCK' : 'IN STOCK',
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                            color: isOutOfStock
-                                ? AppColors.error
-                                : AppColors.primary,
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isOutOfStock
+                                    ? AppColors.error.withAlpha(30)
+                                    : AppColors.primary.withAlpha(30),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                isOutOfStock ? 'OUT OF STOCK' : 'IN STOCK',
+                                style: TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                  color: isOutOfStock
+                                      ? AppColors.error
+                                      : AppColors.primary,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),

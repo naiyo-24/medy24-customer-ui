@@ -22,10 +22,9 @@ final orderProvider = StateNotifierProvider<OrderNotifier, OrderState>((ref) {
 
     if (previousId != nextId) {
       if (nextId != null) {
-        service.connect(nextId);
         notifier.fetchOrders(refresh: true);
       } else {
-        service.disconnect();
+        notifier.reset(); // Reset state on logout
       }
     }
   });

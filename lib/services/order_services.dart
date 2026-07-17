@@ -1,114 +1,159 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'api_url.dart';
 
 class OrderService {
-  WebSocketChannel? _channel;
-  String? _lastCustomerId;
+  WebSocketChannel? _biddingChannel;
+  WebSocketChannel? _trackingChannel;
+  final Dio _dio = Dio();
+  
   final StreamController<Map<String, dynamic>> _messageController =
       StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
 
-  bool get isConnected => _channel != null;
-
-  void connect(String customerId) {
-    _lastCustomerId = customerId;
-    _connectInternal();
+  OrderService() {
+    _dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ),
+    );
   }
 
-  void _connectInternal() {
-    if (_lastCustomerId == null) return;
-    disconnect();
+  // GraphQL query to get order history
+  static const String _getOrderHistoryQuery = """
+    query GetMyOrderHistory(\$customerId: String!, \$limit: Int!) {
+      getMyOrderHistory(customerId: \$customerId, limit: \$limit) {
+        order_id: orderId
+        customer_id: customerId
+        shop_id: shopId
+        order_type: orderType
+        prescription_url: prescriptionUrl
+        items
+        receiver_name: receiverName
+        receiver_phone: receiverPhone
+        delivery_address: deliveryAddress
+        item_total: itemTotal
+        platform_fee: platformFee
+        delivery_fee: deliveryFee
+        taxes
+        total_bill_amount: totalBillAmount
+        payment_mode: paymentMode
+        payment_status: paymentStatus
+        order_status: orderStatus
+        rider_name: riderName
+        rider_phone: riderPhone
+        vehicle_number: vehicleNumber
+        vehicle_model: vehicleModel
+        delivery_otp: dropOtp
+        transaction_id: transactionId
+        accepted_at: acceptedAt
+        delivered_at: deliveredAt
+        created_at: createdAt
+      }
+    }
+  """;
 
-    final url = ApiUrl.orderWebSocket(_lastCustomerId!);
+  Future<Response> fetchOrderHistory(String customerId, int limit) async {
+    return await _dio.post(
+      ApiUrl.graphql,
+      data: {
+        'query': _getOrderHistoryQuery,
+        'variables': {
+          'customerId': customerId,
+          'limit': limit,
+        }
+      },
+    );
+  }
+
+  Future<Response> placeOrder(Map<String, dynamic> payload) async {
+    return await _dio.post(
+      ApiUrl.placeOrder,
+      data: payload,
+    );
+  }
+
+  Future<Response> acceptBid(String orderId, String bidId) async {
+    return await _dio.post(
+      ApiUrl.acceptBid(orderId),
+      data: {'bid_id': bidId},
+    );
+  }
+
+  void connectBidding(String orderId) {
+    disconnectBidding();
+    final url = ApiUrl.biddingWebSocket(orderId);
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(url));
-
-      _channel!.stream.listen(
+      _biddingChannel = WebSocketChannel.connect(Uri.parse(url));
+      _biddingChannel!.stream.listen(
         (data) {
           try {
             final decoded = json.decode(data as String) as Map<String, dynamic>;
             _messageController.add(decoded);
           } catch (e) {
-            if (kDebugMode) {
-              print("WebSocket parse error: $e");
-            }
+            if (kDebugMode) print("Bidding WS parse error: $e");
           }
         },
-        onDone: () {
-          if (kDebugMode) {
-            print("WebSocket disconnected");
-          }
-          _channel = null;
-          // Optionally, broadcast an error so UI knows we disconnected
-          _messageController.add({
-            "type": "error",
-            "message": "Connection lost",
-          });
-        },
-        onError: (error) {
-          if (kDebugMode) {
-            print("WebSocket error: $error");
-          }
-          _channel = null;
-          _messageController.add({
-            "type": "error",
-            "message": "Connection error",
-          });
+        onDone: () => _biddingChannel = null,
+        onError: (e) {
+          if (kDebugMode) print("Bidding WS error: $e");
+          _biddingChannel = null;
         },
       );
     } catch (e) {
-      if (kDebugMode) {
-        print("Failed to initiate WebSocket connection: $e");
-      }
-      _channel = null;
-      _messageController.add({"type": "error", "message": "Connection failed"});
+      if (kDebugMode) print("Failed to initiate Bidding WS: $e");
     }
   }
 
-  void disconnect() {
-    _channel?.sink.close();
-    _channel = null;
+  void disconnectBidding() {
+    _biddingChannel?.sink.close();
+    _biddingChannel = null;
   }
 
-  void sendMessage(Map<String, dynamic> message) {
-    if (_channel == null && _lastCustomerId != null) {
-      // Try to reconnect if dropped
-      _connectInternal();
+  void connectTracking(String orderId) {
+    disconnectTracking();
+    final url = ApiUrl.trackingWebSocket(orderId);
+    try {
+      _trackingChannel = WebSocketChannel.connect(Uri.parse(url));
+      _trackingChannel!.stream.listen(
+        (data) {
+          try {
+            final decoded = json.decode(data as String) as Map<String, dynamic>;
+            _messageController.add(decoded);
+          } catch (e) {
+            if (kDebugMode) print("Tracking WS parse error: $e");
+          }
+        },
+        onDone: () => _trackingChannel = null,
+        onError: (e) {
+          if (kDebugMode) print("Tracking WS error: $e");
+          _trackingChannel = null;
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) print("Failed to initiate Tracking WS: $e");
     }
-
-    if (_channel != null) {
-      _channel!.sink.add(json.encode(message));
-    } else {
-      if (kDebugMode) {
-        print("WebSocket not connected. Cannot send message.");
-      }
-      throw Exception("Cannot connect to server.");
-    }
   }
 
-  void approveQuote(String orderId, String quoteId, String paymentMode) {
-    sendMessage({
-      "type": "approve_quote",
-      "order_id": orderId,
-      "quote_id": quoteId,
-      "payment_mode": paymentMode,
-    });
-  }
-
-  void rejectQuote(String orderId, String quoteId) {
-    sendMessage({
-      "type": "reject_quote",
-      "order_id": orderId,
-      "quote_id": quoteId,
-    });
+  void disconnectTracking() {
+    _trackingChannel?.sink.close();
+    _trackingChannel = null;
   }
 
   void dispose() {
-    disconnect();
+    disconnectBidding();
+    disconnectTracking();
     _messageController.close();
   }
 }

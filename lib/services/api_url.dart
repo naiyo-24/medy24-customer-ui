@@ -87,10 +87,20 @@ class ApiUrl {
   static String get cartClear => "$cart/clear";
   static String get cartSummary => "$cart/summary";
 
-  // Medicine Orders WebSocket Endpoint
-  static String orderWebSocket(String customerId) {
+  // Orders Endpoints
+  static String get ordersBase => "$baseUrl/api/rest/orders";
+  static String get placeOrder => "$ordersBase/place";
+  static String acceptBid(String orderId) => "$ordersBase/$orderId/accept-bid";
+
+  // WebSocket Endpoints for Orders
+  static String biddingWebSocket(String orderId) {
     final wsBaseUrl = baseUrl.replaceFirst('http', 'ws');
-    return "$wsBaseUrl/orders-ws/customer/${Uri.encodeComponent(customerId)}";
+    return "$wsBaseUrl/ws/bidding/customer/${Uri.encodeComponent(orderId)}";
+  }
+
+  static String trackingWebSocket(String orderId) {
+    final wsBaseUrl = baseUrl.replaceFirst('http', 'ws');
+    return "$wsBaseUrl/ws/tracking/customer/${Uri.encodeComponent(orderId)}";
   }
 
   // Platform Fee Endpoints
