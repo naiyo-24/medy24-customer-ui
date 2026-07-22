@@ -107,6 +107,15 @@ class _QuoteApprovalCardState extends ConsumerState<QuoteApprovalCard> {
           setState(() => _isProcessing = false);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Razorpay plugin unavailable.')));
         }
+      } else if (updatedOrder != null && _paymentMode == 'cod') {
+        final success = await ref.read(orderProvider.notifier).completeCheckout(updatedOrder.orderId!, 'cod');
+        if (!mounted) return;
+        setState(() => _isProcessing = false);
+        if (!success) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Checkout failed')));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order placed successfully (COD)')));
+        }
       } else {
         setState(() => _isProcessing = false);
       }
@@ -214,29 +223,35 @@ class _QuoteApprovalCardState extends ConsumerState<QuoteApprovalCard> {
           Row(
             children: [
               Expanded(
-                child: RadioListTile<String>(
-                  title: const Text('COD', style: TextStyle(fontSize: 12)),
-                  value: 'cod',
-                  groupValue: _paymentMode,
-                  onChanged: (val) {
-                    if (val != null) setState(() => _paymentMode = val);
-                  },
-                  contentPadding: EdgeInsets.zero,
-                  visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-                  activeColor: Colors.blue,
+                child: Material(
+                  color: Colors.transparent,
+                  child: RadioListTile<String>(
+                    title: const Text('COD', style: TextStyle(fontSize: 12)),
+                    value: 'cod',
+                    groupValue: _paymentMode,
+                    onChanged: (val) {
+                      if (val != null) setState(() => _paymentMode = val);
+                    },
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                    activeColor: Colors.blue,
+                  ),
                 ),
               ),
               Expanded(
-                child: RadioListTile<String>(
-                  title: const Text('Pay Online', style: TextStyle(fontSize: 12)),
-                  value: 'online',
-                  groupValue: _paymentMode,
-                  onChanged: (val) {
-                    if (val != null) setState(() => _paymentMode = val);
-                  },
-                  contentPadding: EdgeInsets.zero,
-                  visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-                  activeColor: Colors.blue,
+                child: Material(
+                  color: Colors.transparent,
+                  child: RadioListTile<String>(
+                    title: const Text('Pay Online', style: TextStyle(fontSize: 12)),
+                    value: 'online',
+                    groupValue: _paymentMode,
+                    onChanged: (val) {
+                      if (val != null) setState(() => _paymentMode = val);
+                    },
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                    activeColor: Colors.blue,
+                  ),
                 ),
               ),
             ],

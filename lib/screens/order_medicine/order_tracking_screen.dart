@@ -46,10 +46,10 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
       customerLng ?? 88.3639,
     );
 
-    // Mock Pharmacy Location (slightly offset from customer)
+    // Pharmacy Location (actual from order if available, else slight offset from customer)
     final pharmacyLocation = LatLng(
-      customerLocation.latitude - 0.015,
-      customerLocation.longitude + 0.015,
+      order.shopLat ?? (customerLocation.latitude - 0.015),
+      order.shopLng ?? (customerLocation.longitude + 0.015),
     );
 
     // Determine Map Bounds to fit both points
@@ -340,7 +340,9 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
               ),
 
               // --- 3.5 Quote Approval (If Applicable) ---
-              if ((order.orderStatus == 'awaiting_customer_approval' ||
+              if ((order.orderStatus == 'pending' ||
+                      order.orderStatus == 'searching_for_pharmacy' ||
+                      order.orderStatus == 'awaiting_customer_approval' ||
                       order.orderStatus == 'pending_payment') &&
                   order.quotes.isNotEmpty)
                 ...order.quotes.map(
@@ -459,7 +461,6 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
               // --- 5. Advertisement Banner ---
               Container(
                 margin: const EdgeInsets.all(16),
-                height: 100,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   gradient: const LinearGradient(

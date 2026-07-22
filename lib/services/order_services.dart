@@ -103,6 +103,13 @@ class OrderService {
     );
   }
 
+  Future<Response> completeCheckout(String orderId, Map<String, dynamic> data) async {
+    return await _dio.post(
+      ApiUrl.checkoutOrder(orderId),
+      data: data,
+    );
+  }
+
   Future<Response> cancelOrder(String orderId) async {
     return await _dio.post(
       ApiUrl.cancelOrder(orderId),

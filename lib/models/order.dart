@@ -8,6 +8,8 @@ class QuoteModel {
   final String? shopName;
   final String? shopPhone;
   final String? shopAddress;
+  final double? shopLat;
+  final double? shopLng;
   final List<CartItem> items;
   final double? itemTotal;
   final double? platformFee;
@@ -24,6 +26,8 @@ class QuoteModel {
     this.shopName,
     this.shopPhone,
     this.shopAddress,
+    this.shopLat,
+    this.shopLng,
     this.items = const [],
     this.itemTotal,
     this.platformFee,
@@ -42,6 +46,8 @@ class QuoteModel {
       shopName: map['shop_name']?.toString(),
       shopPhone: map['shop_phone']?.toString(),
       shopAddress: map['shop_address']?.toString(),
+      shopLat: map['shop_lat'] != null ? double.tryParse(map['shop_lat'].toString()) : null,
+      shopLng: map['shop_lng'] != null ? double.tryParse(map['shop_lng'].toString()) : null,
       items: map['items'] != null
           ? List<CartItem>.from(map['items']?.map((x) => CartItem.fromJson(x)))
           : [],
@@ -74,6 +80,8 @@ class OrderModel {
   final String? shopId;
   final String? shopName;
   final String? shopPhone;
+  final double? shopLat;
+  final double? shopLng;
   final String? orderType;
   final String? prescriptionUrl;
   final List<CartItem> items;
@@ -105,6 +113,8 @@ class OrderModel {
     this.shopId,
     this.shopName,
     this.shopPhone,
+    this.shopLat,
+    this.shopLng,
     this.orderType,
     this.prescriptionUrl,
     this.items = const [],
@@ -138,6 +148,8 @@ class OrderModel {
       shopId: map['shop_id']?.toString(),
       shopName: map['shop_name']?.toString(),
       shopPhone: map['shop_phone']?.toString(),
+      shopLat: map['shop_lat'] != null ? double.tryParse(map['shop_lat'].toString()) : null,
+      shopLng: map['shop_lng'] != null ? double.tryParse(map['shop_lng'].toString()) : null,
       orderType: map['order_type']?.toString(),
       prescriptionUrl: map['prescription_url']?.toString(),
       items: map['items'] != null
@@ -150,10 +162,18 @@ class OrderModel {
           : [],
       receiverName: map['receiver_name']?.toString(),
       receiverPhone: map['receiver_phone']?.toString(),
-      deliveryAddress:
-          map['delivery_address'] != null && map['delivery_address'] is Map
-          ? Map<String, dynamic>.from(map['delivery_address'])
-          : null,
+      deliveryAddress: () {
+        if (map['delivery_address'] is Map) {
+          return Map<String, dynamic>.from(map['delivery_address']);
+        } else if (map['delivery_address'] != null) {
+          return {
+            'address': map['delivery_address']?.toString(),
+            'lat': map['delivery_lat']?.toString(),
+            'lng': map['delivery_lng']?.toString(),
+          };
+        }
+        return null;
+      }(),
       itemTotal: map['item_total'] != null
           ? double.tryParse(map['item_total'].toString())
           : null,

@@ -123,7 +123,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
               totalBillAmount: order.totalBillAmount,
               paymentMode: order.paymentMode,
               paymentStatus: order.paymentStatus,
-              orderStatus: order.orderStatus,
+              orderStatus: newQuotes.isNotEmpty ? 'awaiting_customer_approval' : order.orderStatus,
               riderName: order.riderName,
               riderPhone: order.riderPhone,
               vehicleNumber: order.vehicleNumber,
@@ -180,7 +180,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
             totalBillAmount: order.totalBillAmount,
             paymentMode: order.paymentMode,
             paymentStatus: order.paymentStatus,
-            orderStatus: order.orderStatus,
+            orderStatus: 'awaiting_customer_approval',
             riderName: order.riderName,
             riderPhone: order.riderPhone,
             vehicleNumber: order.vehicleNumber,
@@ -280,15 +280,15 @@ class OrderNotifier extends StateNotifier<OrderState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final String addressText = "\${deliveryAddress['addressLine1']}, \${deliveryAddress['addressLine2']}, \${deliveryAddress['city']}, \${deliveryAddress['state']}, \${deliveryAddress['pincode']}";
+      final String addressText = deliveryAddress['address'] ?? "${deliveryAddress['addressLine1']}, ${deliveryAddress['addressLine2']}, ${deliveryAddress['city']}, ${deliveryAddress['state']}, ${deliveryAddress['pincode']}";
       
       final payload = {
         "customer_id": cid,
         "receiver_name": receiverName,
         "receiver_phone": receiverPhone,
         "delivery_address_text": addressText,
-        "delivery_lat": deliveryAddress['latitude'] ?? 0.0,
-        "delivery_lng": deliveryAddress['longitude'] ?? 0.0,
+        "delivery_lat": deliveryAddress['lat'] ?? deliveryAddress['latitude'] ?? 0.0,
+        "delivery_lng": deliveryAddress['lng'] ?? deliveryAddress['longitude'] ?? 0.0,
         "is_emergency": false,
         "instructions": "",
         "items": cartItems.map((e) => e.toMap()).toList(),
@@ -386,15 +386,15 @@ class OrderNotifier extends StateNotifier<OrderState> {
       final prescriptionUrl = uploadResponse.data['prescription_url'];
 
       // 2. Place the order
-      final String addressText = "\${deliveryAddress['addressLine1']}, \${deliveryAddress['addressLine2']}, \${deliveryAddress['city']}, \${deliveryAddress['state']}, \${deliveryAddress['pincode']}";
+      final String addressText = deliveryAddress['address'] ?? "${deliveryAddress['addressLine1']}, ${deliveryAddress['addressLine2']}, ${deliveryAddress['city']}, ${deliveryAddress['state']}, ${deliveryAddress['pincode']}";
       
       final payload = {
         "customer_id": cid,
         "receiver_name": receiverName,
         "receiver_phone": receiverPhone,
         "delivery_address_text": addressText,
-        "delivery_lat": deliveryAddress['latitude'] ?? 0.0,
-        "delivery_lng": deliveryAddress['longitude'] ?? 0.0,
+        "delivery_lat": deliveryAddress['lat'] ?? deliveryAddress['latitude'] ?? 0.0,
+        "delivery_lng": deliveryAddress['lng'] ?? deliveryAddress['longitude'] ?? 0.0,
         "is_emergency": false,
         "instructions": "",
         "order_type": "prescription",
@@ -446,12 +446,51 @@ class OrderNotifier extends StateNotifier<OrderState> {
     return null;
   }
 
+  Future<bool> completeCheckout(String orderId, String paymentMode) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _orderService.completeCheckout(orderId, {
+        'payment_mode': paymentMode,
+      });
+
+      if (response.data['status'] == 'success') {
+        await fetchOrders(refresh: true);
+        state = state.copyWith(isLoading: false);
+        return true;
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to complete checkout');
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   Future<bool> verifyOnlinePayment({
     required String orderId,
     required String razorpayPaymentId,
     required String razorpayOrderId,
     required String razorpaySignature,
   }) async {
-    return false;
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _orderService.completeCheckout(orderId, {
+        'payment_mode': 'online',
+        'razorpay_payment_id': razorpayPaymentId,
+        'razorpay_order_id': razorpayOrderId,
+        'razorpay_signature': razorpaySignature,
+      });
+
+      if (response.data['status'] == 'success') {
+        await fetchOrders(refresh: true);
+        state = state.copyWith(isLoading: false);
+        return true;
+      } else {
+        throw Exception(response.data['message'] ?? 'Payment verification failed');
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
   }
 }

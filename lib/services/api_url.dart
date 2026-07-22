@@ -92,6 +92,7 @@ class ApiUrl {
   static String get placeOrder => "$ordersBase/place";
   static String get uploadPrescription => "$ordersBase/upload-prescription";
   static String acceptBid(String orderId) => "$ordersBase/$orderId/accept-bid";
+  static String checkoutOrder(String orderId) => "$ordersBase/$orderId/checkout";
   static String cancelOrder(String orderId) => "$ordersBase/$orderId/cancel";
 
   // WebSocket Endpoints for Orders
