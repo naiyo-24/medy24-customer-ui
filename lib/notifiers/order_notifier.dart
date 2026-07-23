@@ -517,10 +517,24 @@ class OrderNotifier extends StateNotifier<OrderState> {
 
   void startTracking(String orderId) {
     _orderService.connectTracking(orderId);
+    
+    // Check if we also need to listen for bids (if order is new and still pending/bidding)
+    final index = state.orders.indexWhere((o) => o.orderId == orderId);
+    if (index >= 0) {
+      final orderStatus = state.orders[index].orderStatus;
+      if (orderStatus == 'bidding' || orderStatus == 'pending' || orderStatus == 'searching_for_pharmacy') {
+        _orderService.connectBidding(orderId);
+        state = state.copyWith(activeBiddingOrderId: orderId);
+      }
+    }
   }
 
   void stopTracking() {
     _orderService.disconnectTracking();
+    if (state.activeBiddingOrderId != null) {
+      _orderService.disconnectBidding();
+      state = state.copyWith(activeBiddingOrderId: null);
+    }
   }
 
 }
