@@ -61,6 +61,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     // Active Status mapping
     final isDispatched =
         order.orderStatus == 'packing' ||
+        order.orderStatus == 'finding_driver' ||
         order.orderStatus == 'out_for_delivery' ||
         order.orderStatus == 'delivered';
 

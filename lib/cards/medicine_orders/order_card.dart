@@ -183,6 +183,10 @@ class OrderCard extends StatelessWidget {
         color = Colors.indigo;
         text = 'PACKING';
         break;
+      case 'finding_driver':
+        color = Colors.teal;
+        text = 'ASSIGNING RIDER';
+        break;
       case 'out_for_delivery':
         color = Colors.purple;
         text = 'OUT FOR DELIVERY';
