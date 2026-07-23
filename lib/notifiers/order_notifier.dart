@@ -195,6 +195,12 @@ class OrderNotifier extends StateNotifier<OrderState> {
         }
         break;
 
+      case 'ORDER_UPDATED':
+        final orderData = data['order'];
+        final updatedOrder = OrderModel.fromMap(orderData);
+        _updateSingleOrderInState(updatedOrder);
+        break;
+
       case 'AUCTION_CLOSED':
         // The backend indicates auction closed. 
         _orderService.disconnectBidding();

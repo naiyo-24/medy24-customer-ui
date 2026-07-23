@@ -196,7 +196,7 @@ class OrderModel {
       riderPhone: map['rider_phone']?.toString(),
       vehicleNumber: map['vehicle_number']?.toString(),
       vehicleModel: map['vehicle_model']?.toString(),
-      deliveryOtp: map['delivery_otp']?.toString(),
+      deliveryOtp: (map['delivery_otp'] ?? map['drop_otp'])?.toString(),
       transactionId: map['transaction_id']?.toString(),
       acceptedAt: map['accepted_at'] != null
           ? DateTime.tryParse(map['accepted_at'])
