@@ -82,6 +82,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     final isDispatched =
         order.orderStatus == 'packing' ||
         order.orderStatus == 'finding_driver' ||
+        order.orderStatus == 'driver_assigned' ||
         order.orderStatus == 'out_for_delivery' ||
         order.orderStatus == 'delivered';
 
