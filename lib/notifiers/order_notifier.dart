@@ -499,4 +499,13 @@ class OrderNotifier extends StateNotifier<OrderState> {
       return false;
     }
   }
+
+  void startTracking(String orderId) {
+    _orderService.connectTracking(orderId);
+  }
+
+  void stopTracking() {
+    _orderService.disconnectTracking();
+  }
+
 }

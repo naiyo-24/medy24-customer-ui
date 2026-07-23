@@ -21,6 +21,22 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
   final MapController _mapController = MapController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(orderProvider.notifier).startTracking(widget.orderId);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Only stop tracking if we are actually leaving the tracking state completely
+    // but typically it's safe to disconnect when the screen is disposed.
+    ref.read(orderProvider.notifier).stopTracking();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final orderState = ref.watch(orderProvider);
     final matchingOrders = orderState.orders
