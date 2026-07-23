@@ -358,6 +358,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
 
               // --- 3.5 Quote Approval (If Applicable) ---
               if ((order.orderStatus == 'pending' ||
+                      order.orderStatus == 'bidding' ||
                       order.orderStatus == 'searching_for_pharmacy' ||
                       order.orderStatus == 'awaiting_customer_approval' ||
                       order.orderStatus == 'pending_payment') &&

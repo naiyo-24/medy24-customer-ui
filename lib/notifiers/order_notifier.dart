@@ -217,6 +217,13 @@ class OrderNotifier extends StateNotifier<OrderState> {
     final index = state.orders.indexWhere((o) => o.orderId == order.orderId);
     if (index >= 0) {
       final updatedOrders = List<OrderModel>.from(state.orders);
+      final existingOrder = updatedOrders[index];
+      
+      // Preserve existing quotes if the incoming order has none
+      if (order.quotes.isEmpty && existingOrder.quotes.isNotEmpty) {
+        order.quotes.addAll(existingOrder.quotes);
+      }
+      
       updatedOrders[index] = order;
       state = state.copyWith(orders: updatedOrders);
     } else {
@@ -248,7 +255,15 @@ class OrderNotifier extends StateNotifier<OrderState> {
       }
       
       final ordersList = data['data']['getMyOrderHistory'] as List;
-      final parsedOrders = ordersList.map((e) => OrderModel.fromMap(e)).toList();
+      final parsedOrders = ordersList.map((e) {
+        final parsed = OrderModel.fromMap(e);
+        // Preserve quotes from existing state if present
+        final existingIndex = state.orders.indexWhere((o) => o.orderId == parsed.orderId);
+        if (existingIndex >= 0 && parsed.quotes.isEmpty && state.orders[existingIndex].quotes.isNotEmpty) {
+          parsed.quotes.addAll(state.orders[existingIndex].quotes);
+        }
+        return parsed;
+      }).toList();
       
       final newOrders = refresh
           ? parsedOrders
