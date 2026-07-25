@@ -65,16 +65,6 @@ class CustomBottomNavBar extends StatelessWidget {
                   onTap(2);
                 },
               ),
-              _NavBarItem(
-                icon: Iconsax.hospital_copy,
-                activeIcon: Iconsax.hospital,
-                label: 'Labs',
-                isActive: currentIndex == 3,
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onTap(3);
-                },
-              ),
             ],
           ),
         ),

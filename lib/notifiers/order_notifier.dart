@@ -421,6 +421,8 @@ class OrderNotifier extends StateNotifier<OrderState> {
         "order_type": "prescription",
         "prescription_url": prescriptionUrl,
         "payment_mode": paymentMode,
+        "platform_fee": platformFee,
+        "delivery_fee": deliveryFee,
       };
       
       final response = await _orderService.placeOrder(payload);

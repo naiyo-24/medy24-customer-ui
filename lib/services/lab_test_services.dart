@@ -19,96 +19,91 @@ class LabTestService {
     );
   }
 
-  Future<Response> getAllTests({int page = 1, int limit = 20}) async {
+  static const String _searchLabTestsQuery = """
+    query SearchLabTests(\$query: String!) {
+      searchLabTests(query: \$query, limit: 20) {
+        testId
+        testName
+        category
+        description
+        isProfile
+        numberOfParameters
+        sampleType
+        searchTags
+        fastingRequired
+        fastingHours
+        preTestInfo
+      }
+    }
+  """;
+
+  static const String _findLabsQuery = """
+    query FindLabsForSelectedTests(\$testIds: [String!]!) {
+      findLabsForSelectedTests(testIds: \$testIds) {
+        labId
+        labName
+        rating
+        totalPrice
+        isFullMatch
+        matchCount
+        matchedTests {
+          testId
+          testName
+          price
+        }
+        missingTests {
+          testId
+          testName
+        }
+      }
+    }
+  """;
+
+  Future<Response> searchLabTests(String query) async {
     try {
-      final response = await _dio.get(
-        ApiUrl.getLabTestAll,
-        queryParameters: {'page': page, 'limit': limit},
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _searchLabTestsQuery,
+          'variables': {
+            'query': query,
+          },
+        },
       );
-      return response;
-    } on DioException catch (e) {
-      throw e.message ?? "An error occurred while fetching tests";
+    } catch (e) {
+      rethrow;
     }
   }
 
-  Future<Response> getTestById(String testId) async {
+  Future<Response> findLabsForSelectedTests(List<String> testIds) async {
     try {
-      final response = await _dio.get(ApiUrl.getLabTestById(testId));
-      return response;
-    } on DioException catch (e) {
-      throw e.message ?? "An error occurred while fetching test details";
-    }
-  }
-
-  Future<Response> getTestsByLabId(
-    String labId, {
-    int page = 1,
-    int limit = 20,
-  }) async {
-    try {
-      final response = await _dio.get(
-        ApiUrl.getLabTestsByLabId(labId),
-        queryParameters: {'page': page, 'limit': limit},
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _findLabsQuery,
+          'variables': {
+            'testIds': testIds,
+          },
+        },
       );
-      return response;
-    } on DioException catch (e) {
-      throw e.message ?? "An error occurred while fetching lab's tests";
+    } catch (e) {
+      rethrow;
     }
   }
-
-  // Test Package Methods
-  Future<Response> getPackageById(String packageId) async {
+  
+  Future<Response> bookLabTests(Map<String, dynamic> payload) async {
     try {
-      final response = await _dio.get(ApiUrl.getTestPackageById(packageId));
-      return response;
-    } on DioException catch (e) {
-      throw e.message ?? "An error occurred while fetching package details";
-    }
-  }
-
-  Future<Response> getPackagesByLabId(
-    String labId, {
-    int page = 1,
-    int limit = 20,
-  }) async {
-    try {
-      final response = await _dio.get(
-        ApiUrl.getTestPackagesByLabId(labId),
-        queryParameters: {'page': page, 'limit': limit},
+      // POST /api/rest/lab-bookings/book?customer_id=...
+      final customerId = payload['customer_id'];
+      return await _dio.post(
+        "\${ApiUrl.baseUrl}/api/rest/lab-bookings/book",
+        queryParameters: {
+          'customer_id': customerId
+        },
+        data: payload,
       );
-      return response;
-    } on DioException catch (e) {
-      throw e.message ?? "An error occurred while fetching lab's packages";
-    }
-  }
-
-  // Booking Methods
-  Future<Response> getCustomerBookings(String customerId) async {
-    try {
-      final response = await _dio.get(ApiUrl.getCustomerBookings(customerId));
-      return response;
-    } on DioException catch (e) {
-      throw e.message ?? "An error occurred while fetching customer bookings";
-    }
-  }
-
-  Future<Response> updateBookingStatus(
-    String bookingId,
-    String status, {
-    String? cancellationReason,
-  }) async {
-    try {
-      final formData = FormData.fromMap({
-        if (status.isNotEmpty) 'booking_status': status,
-        'cancellation_reason': ?cancellationReason,
-      });
-      final response = await _dio.put(
-        ApiUrl.updateTestPackageBooking(bookingId),
-        data: formData,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw e.message ?? "An error occurred while updating booking status";
+    } catch (e) {
+      rethrow;
     }
   }
 }

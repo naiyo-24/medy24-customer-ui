@@ -27,17 +27,19 @@ class _AddSavedAddressBottomSheetState extends ConsumerState<AddSavedAddressBott
   }
 
   Future<void> _handleSave() async {
-    if (_address1Controller.text.isEmpty || _streetController.text.isEmpty || _lat == null) {
+    if (_streetController.text.isEmpty || _lat == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all details and select location on map')),
+        const SnackBar(content: Text('Please enter street address and select location on map')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
+    
+    final addressName = _address1Controller.text.trim().isEmpty ? 'Home' : _address1Controller.text;
 
     final success = await ref.read(profileProvider.notifier).addAddress(
-          address1: _address1Controller.text,
+          address1: addressName,
           streetAddress: _streetController.text,
           latitude: _lat!,
           longitude: _lng!,

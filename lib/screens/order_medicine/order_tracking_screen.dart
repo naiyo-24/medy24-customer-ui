@@ -44,7 +44,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
         .toList();
     if (matchingOrders.isNotEmpty) {
       final order = matchingOrders.first;
-      print("Order Tracking UI -> orderStatus: ${order.orderStatus}, quotes length: ${order.quotes.length}");
+      debugPrint("Order Tracking UI -> orderStatus: ${order.orderStatus}, quotes length: ${order.quotes.length}");
     }
     final order = matchingOrders.isNotEmpty ? matchingOrders.first : null;
 

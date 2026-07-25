@@ -9,11 +9,13 @@ import '../screens/order_medicine/my_order_screen.dart';
 import '../screens/order_medicine/order_tracking_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
-import '../screens/lab_tests/lab_test_search_screen.dart';
-import '../screens/lab_tests/lab_selection_screen.dart';
-import '../screens/lab_tests/lab_checkout_screen.dart';
-import '../screens/lab_tests/lab_booking_success_screen.dart';
-import '../models/lab_package.dart';
+import '../screens/patho_lab/patho_lab_list_screen.dart';
+import '../screens/patho_lab/patho_lab_details_screen.dart';
+import '../screens/lab_test/lab_test_list_screen.dart';
+import '../screens/lab_test/lab_test_details_screen.dart';
+import '../screens/lab_test/test_package_list_screen.dart';
+import '../screens/lab_test/test_package_details_screen.dart';
+import '../screens/lab_test/my_test_bookings_screen.dart';
 import '../screens/medicine/medicine_list_screen.dart';
 import '../screens/medicine/medicine_details_screen.dart';
 import '../screens/medicine/medicine_search_screen.dart';
@@ -26,6 +28,7 @@ import '../screens/terms_conditions/terms_conditions_screen.dart';
 import '../screens/profile/update_profile_screen.dart';
 import '../screens/profile/saved_addresses_screen.dart';
 import '../screens/map/map_screen.dart';
+import '../screens/book_test_package/book_test_package_screen.dart';
 import '../screens/payment/checkout_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -37,6 +40,7 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _shellNavigatorMedsKey = GlobalKey<NavigatorState>(debugLabel: 'meds');
 final _shellNavigatorTestsKey = GlobalKey<NavigatorState>(debugLabel: 'tests');
+final _shellNavigatorLabsKey = GlobalKey<NavigatorState>(debugLabel: 'labs');
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
@@ -173,30 +177,21 @@ final appRouter = GoRouter(
           navigatorKey: _shellNavigatorTestsKey,
           routes: [
             GoRoute(
-              path: '/lab-tests',
-              builder: (context, state) => const LabTestSearchScreen(),
+              path: '/lab-test-list',
+              builder: (context, state) => const LabTestListScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _shellNavigatorLabsKey,
+          routes: [
+            GoRoute(
+              path: '/patho-lab-list',
+              builder: (context, state) => const PathoLabListScreen(),
             ),
           ],
         ),
       ],
-    ),
-    GoRoute(
-      path: '/lab-selection',
-      builder: (context, state) => const LabSelectionScreen(),
-    ),
-    GoRoute(
-      path: '/lab-checkout',
-      builder: (context, state) {
-        final lab = state.extra as LabPackage;
-        return LabCheckoutScreen(lab: lab);
-      },
-    ),
-    GoRoute(
-      path: '/lab-booking-success',
-      builder: (context, state) {
-        final labPhone = state.extra as String;
-        return LabBookingSuccessScreen(labPhone: labPhone);
-      },
     ),
     GoRoute(
       path: '/profile',
@@ -205,6 +200,31 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/about-us',
       builder: (context, state) => const AboutUsScreen(),
+    ),
+    GoRoute(
+      path: '/patho-lab-details/:labId',
+      builder: (context, state) {
+        final labId = state.pathParameters['labId']!;
+        return PathoLabDetailsScreen(labId: labId);
+      },
+    ),
+    GoRoute(
+      path: '/lab-test-details/:testId',
+      builder: (context, state) {
+        final testId = state.pathParameters['testId']!;
+        return LabTestDetailsScreen(testId: testId);
+      },
+    ),
+    GoRoute(
+      path: '/test-package-list',
+      builder: (context, state) => const TestPackageListScreen(),
+    ),
+    GoRoute(
+      path: '/test-package-details/:packageId',
+      builder: (context, state) {
+        final packageId = state.pathParameters['packageId']!;
+        return TestPackageDetailsScreen(packageId: packageId);
+      },
     ),
     GoRoute(
       path: '/medicine-details',
@@ -243,10 +263,25 @@ final appRouter = GoRouter(
       builder: (context, state) => const MapPickerScreen(),
     ),
     GoRoute(
+      path: '/book-test-package',
+      builder: (context, state) {
+        final type = state.uri.queryParameters['type'] ?? 'lab_test';
+        final itemId = state.uri.queryParameters['itemId'] ?? '';
+        return BookTestPackageScreen(bookingType: type, itemId: itemId);
+      },
+    ),
+    GoRoute(
       path: '/checkout',
       builder: (context, state) {
         final type = state.uri.queryParameters['type'] ?? 'lab_test';
         return CheckoutScreen(checkoutType: type);
+      },
+    ),
+    GoRoute(
+      path: '/my-test-bookings/:customerId',
+      builder: (context, state) {
+        final customerId = state.pathParameters['customerId']!;
+        return MyTestBookingsScreen(customerId: customerId);
       },
     ),
     GoRoute(

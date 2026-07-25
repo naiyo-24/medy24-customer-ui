@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-import '../../models/test_package_booking.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/book_test_package_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/charges_provider.dart';
-import '../../services/api_url.dart';
 import '../../services/razorpay_payment_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
 import '../../cards/cart/cart_order_pop_up.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
-  final String checkoutType; // 'lab_test' or 'medicine'
-  const CheckoutScreen({super.key, this.checkoutType = 'lab_test'});
+  final String checkoutType; // 'medicine'
+  const CheckoutScreen({super.key, this.checkoutType = 'medicine'});
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -35,140 +31,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-  void _onPaymentSuccess(PaymentSuccessResponse response) async {
-    if (widget.checkoutType == 'lab_test') {
-      ref
-          .read(bookTestPackageProvider.notifier)
-          .setRazorpayPaymentId(response.paymentId ?? '');
-      if (!mounted) return;
-      setState(() => _isPaying = false);
-      _showSuccessAndExit();
-    } else if (widget.checkoutType == 'medicine') {
-      if (_medicineOrderId != null) {
-        final success = await ref
-            .read(orderProvider.notifier)
-            .verifyOnlinePayment(
-              orderId: _medicineOrderId!,
-              razorpayPaymentId: response.paymentId ?? '',
-              razorpayOrderId: response.orderId ?? '',
-              razorpaySignature: response.signature ?? '',
-            );
-        if (!mounted) return;
-        setState(() => _isPaying = false);
-        if (success) {
-          _showSuccessAndExit();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment verification failed')),
-          );
-        }
-      }
-    }
-  }
-
-  void _onPaymentError(PaymentFailureResponse response) {
-    if (!mounted) return;
-    setState(() => _isPaying = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(response.message ?? 'Payment failed. Please try again.'),
-      ),
-    );
-  }
-
   Future<void> _onProceed() async {
-    if (widget.checkoutType == 'medicine') {
-      setState(() => _isPaying = true);
-      final user =
-          ref.read(profileProvider).user ?? ref.read(authProvider).user;
-      await _requestQuotesForMedicine(user);
-      return;
-    }
-
-    try {
-      final _ = ApiUrl.razorpayKeyId;
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Razorpay configuration error: ${e.toString()}'),
-        ),
-      );
-      return;
-    }
-
-    final razorpayReady = await _razorpayService.ensureReady(
-      onSuccess: _onPaymentSuccess,
-      onError: _onPaymentError,
-    );
-
-    if (!razorpayReady) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Razorpay is not loaded. Stop the app completely, then run flutter run.',
-          ),
-          duration: Duration(seconds: 5),
-        ),
-      );
-      return;
-    }
-
     setState(() => _isPaying = true);
     final user = ref.read(profileProvider).user ?? ref.read(authProvider).user;
-    await _payOnlineForLabTest(user);
-  }
-
-  Future<void> _payOnlineForLabTest(dynamic user) async {
-    final bookingState = ref.read(bookTestPackageProvider);
-    final booking = bookingState.confirmedBooking;
-
-    if (booking == null) {
-      setState(() => _isPaying = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No booking found')));
-      return;
-    }
-
-    BookingResponse? response = bookingState.bookingResponse;
-    if (response?.transactionId == null) {
-      response = await ref
-          .read(bookTestPackageProvider.notifier)
-          .placeOnlineBooking(
-            customerId: user?.customerId,
-            savedAddresses: user?.savedAddresses,
-          );
-    }
-
-    if (!mounted) return;
-    final error = ref.read(bookTestPackageProvider).error;
-    if (response == null || response.transactionId == null) {
-      setState(() => _isPaying = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error ?? 'Failed to initiate payment')),
-      );
-      return;
-    }
-
-    final amountPaise = (response.totalAmountToBePaid * 100).round();
-    try {
-      await _razorpayService.openCheckout(
-        orderId: response.transactionId!,
-        amountPaise: amountPaise,
-        contact: booking.patient.phoneNumber,
-        email: user?.email ?? '',
-        name: booking.patient.fullName,
-        description: booking.itemName,
-      );
-    } on MissingPluginException {
-      if (!mounted) return;
-      setState(() => _isPaying = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Razorpay plugin unavailable.')),
-      );
-    }
+    await _requestQuotesForMedicine(user);
   }
 
   Future<void> _requestQuotesForMedicine(dynamic user) async {
@@ -231,21 +97,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   Future<void> _showSuccessAndExit() async {
     String msg = '';
     String trackRoute = '';
-    if (widget.checkoutType == 'lab_test') {
-      final bookingResponse = ref.read(bookTestPackageProvider).bookingResponse;
-      final paymentId = ref.read(bookTestPackageProvider).razorpayPaymentId;
-      msg =
-          'Booking ID: ${bookingResponse?.bookingId ?? '—'}\n'
-          '${paymentId != null ? 'Payment ID: $paymentId\n' : ''}'
-          'Your lab test booking is confirmed.';
-      final user =
-          ref.read(profileProvider).user ?? ref.read(authProvider).user;
-      trackRoute = '/my-test-bookings/${user?.customerId ?? ''}';
-    } else {
       msg = 'Your quote request has been sent to nearby pharmacies.';
-      trackRoute =
-          '/my-medicine-orders'; // We redirect them to orders list where they can see quotes
-    }
+      trackRoute = '/my-medicine-orders'; // We redirect them to orders list where they can see quotes
 
     await showDialog<void>(
       context: context,
@@ -261,45 +114,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.checkoutType == 'lab_test') {
-      return _buildLabTestUI();
-    } else {
-      return _buildMedicineUI();
-    }
-  }
-
-  Widget _buildLabTestUI() {
-    final bookingState = ref.watch(bookTestPackageProvider);
-    final booking = bookingState.confirmedBooking;
-
-    if (booking == null) {
-      return const Scaffold(
-        appBar: CustomAppBar(
-          showBackButton: true,
-          title: 'Checkout',
-          subtitle: 'Review and pay',
-        ),
-        body: Center(child: Text('No booking found')),
-      );
-    }
-
-    final summary = booking.priceSummary;
-    return _buildCheckoutLayout(
-      title: booking.itemName,
-      subtitle: booking.itemSubtitle,
-      patientName: booking.patient.fullName,
-      address: booking.collectionAddress?.displayAddress ?? '',
-      subtotal: summary.subtotal,
-      discount: summary.discount,
-      platformFee: summary.platformFee,
-      taxCharges: summary.taxCharges,
-      totalAmount: summary.totalAmount,
-      isSubmitting: bookingState.isSubmitting,
-      deliveryFee: 0.0,
-      buttonText: 'Pay Online · ₹${summary.totalAmount.toStringAsFixed(0)}',
-      paymentMethodText: 'Pay Online',
-      paymentMethodDesc: 'UPI, Credit Card, Debit Card',
-    );
+    return _buildMedicineUI();
   }
 
   Widget _buildMedicineUI() {

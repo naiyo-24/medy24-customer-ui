@@ -128,7 +128,7 @@ class _QuoteApprovalCardState extends ConsumerState<QuoteApprovalCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.order.orderStatus != 'awaiting_customer_approval' && widget.order.orderStatus != 'pending_payment') return const SizedBox.shrink();
+    if (widget.order.orderStatus != 'awaiting_customer_approval' && widget.order.orderStatus != 'pending_payment' && widget.order.orderStatus != 'bidding') return const SizedBox.shrink();
     if (widget.order.quotes.isEmpty) return const SizedBox.shrink();
 
     return _buildQuoteItem(widget.quote);

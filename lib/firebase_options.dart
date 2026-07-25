@@ -41,13 +41,13 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBVXGNggcsozIhddbXubnMnXP4citMVZwg',
-    appId: '1:111920544193:web:59a71c095ee65e3cff9740',
-    messagingSenderId: '111920544193',
-    projectId: 'medy24-d75cf',
-    authDomain: 'medy24-d75cf.firebaseapp.com',
-    storageBucket: 'medy24-d75cf.firebasestorage.app',
-    measurementId: 'G-DNCK2EKPZE',
+    apiKey: 'AIzaSyCDEr1tND-bbAorSY-6qpVmudh1LKgeMxA',
+    appId: '1:128696037827:web:42aebdec79b3aa00fb4d76',
+    messagingSenderId: '128696037827',
+    projectId: 'medy24-new',
+    authDomain: 'medy24-new.firebaseapp.com',
+    storageBucket: 'medy24-new.firebasestorage.app',
+    measurementId: 'G-RX2RSXWV9W',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -57,32 +57,30 @@ class DefaultFirebaseOptions {
     projectId: 'medy24-new',
     storageBucket: 'medy24-new.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCnFgYnXSK-umK-ABgVu9209Urhsr6fTk8',
-    appId: '1:111920544193:ios:f347bbcfc89526aaff9740',
-    messagingSenderId: '111920544193',
-    projectId: 'medy24-d75cf',
-    storageBucket: 'medy24-d75cf.firebasestorage.app',
+    apiKey: 'AIzaSyBEJSsTu9HqDLwzd76VUDuPaX5Mpony528',
+    appId: '1:128696037827:ios:a5e14d7089b83f3efb4d76',
+    messagingSenderId: '128696037827',
+    projectId: 'medy24-new',
+    storageBucket: 'medy24-new.firebasestorage.app',
     iosBundleId: 'com.example.customerApp',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCnFgYnXSK-umK-ABgVu9209Urhsr6fTk8',
-    appId: '1:111920544193:ios:f347bbcfc89526aaff9740',
-    messagingSenderId: '111920544193',
-    projectId: 'medy24-d75cf',
-    storageBucket: 'medy24-d75cf.firebasestorage.app',
+    apiKey: 'AIzaSyBEJSsTu9HqDLwzd76VUDuPaX5Mpony528',
+    appId: '1:128696037827:ios:a5e14d7089b83f3efb4d76',
+    messagingSenderId: '128696037827',
+    projectId: 'medy24-new',
+    storageBucket: 'medy24-new.firebasestorage.app',
     iosBundleId: 'com.example.customerApp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBVXGNggcsozIhddbXubnMnXP4citMVZwg',
-    appId: '1:111920544193:web:8543f1971391379fff9740',
-    messagingSenderId: '111920544193',
-    projectId: 'medy24-d75cf',
-    authDomain: 'medy24-d75cf.firebaseapp.com',
-    storageBucket: 'medy24-d75cf.firebasestorage.app',
-    measurementId: 'G-PPMSVCJ0B4',
+    apiKey: 'AIzaSyCDEr1tND-bbAorSY-6qpVmudh1LKgeMxA',
+    appId: '1:128696037827:web:012a6d64f559e22ffb4d76',
+    messagingSenderId: '128696037827',
+    projectId: 'medy24-new',
+    authDomain: 'medy24-new.firebaseapp.com',
+    storageBucket: 'medy24-new.firebasestorage.app',
+    measurementId: 'G-Y6LBW6CD5D',
   );
 }
