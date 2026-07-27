@@ -7,6 +7,9 @@ import '../../widgets/app_bar.dart';
 import '../../models/lab_package.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/lab_test_provider.dart';
+import '../../services/razorpay_payment_service.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:flutter/services.dart';
 
 class LabCheckoutScreen extends ConsumerStatefulWidget {
   final LabPackage lab;
@@ -19,6 +22,14 @@ class LabCheckoutScreen extends ConsumerStatefulWidget {
 
 class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
   bool _isBooking = false;
+  String _paymentMode = 'cod';
+  final RazorpayPaymentService _razorpayService = RazorpayPaymentService();
+
+  @override
+  void dispose() {
+    _razorpayService.dispose();
+    super.dispose();
+  }
 
   Future<void> _confirmBooking() async {
     setState(() {
@@ -34,6 +45,7 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
       }
 
       final payload = {
+        "customer_id": customerId,
         "lab_id": widget.lab.labId,
         "patient_name": "Self", // Hardcoded for simplicity as per requirements
         "patient_phone": userState.user?.phoneNumber ?? "Unknown",
@@ -44,20 +56,73 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
           "price": t.price
         }).toList(),
         "total_price": widget.lab.totalPrice,
-        "payment_mode": "cod"
+        "payment_mode": _paymentMode
       };
 
       final service = ref.read(labTestServiceProvider);
       final response = await service.bookLabTests(payload);
       
-      // We pass the lab's phone number to the success screen from the response
       final labPhone = response.data['lab_phone'] ?? "";
+      final bookingId = response.data['booking_id'];
       
-      if (mounted) {
-        // Clear the provider selections so when they come back it's clean
-        ref.read(labTestProvider.notifier).clearSelections();
+      if (_paymentMode == 'online' && bookingId != null) {
+        // Create order in backend
+        final rpResponse = await _razorpayService.createOrder(bookingId, widget.lab.totalPrice);
         
-        context.pushReplacement('/lab-booking-success', extra: labPhone);
+        if (rpResponse.data['status'] != 'success') {
+          throw Exception(rpResponse.data['detail'] ?? 'Failed to initiate razorpay order');
+        }
+        
+        final razorpayReady = await _razorpayService.ensureReady(
+          onSuccess: (PaymentSuccessResponse paymentResponse) async {
+            try {
+              final verifyRes = await _razorpayService.verifyPayment(
+                paymentResponse.orderId ?? '',
+                paymentResponse.paymentId ?? '',
+                paymentResponse.signature ?? '',
+              );
+              
+              if (verifyRes.data['status'] == 'success') {
+                if (!mounted) return;
+                ref.read(labTestProvider.notifier).clearSelections();
+                context.pushReplacement('/lab-booking-success', extra: labPhone);
+              } else {
+                throw Exception("Payment verification failed");
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payment verification failed: \$e')));
+                setState(() => _isBooking = false);
+              }
+            }
+          },
+          onError: (PaymentFailureResponse failureResponse) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failureResponse.message ?? 'Payment failed')));
+              setState(() => _isBooking = false);
+            }
+          },
+        );
+
+        if (!razorpayReady) {
+          throw Exception("Razorpay not loaded");
+        }
+
+        final amountPaise = (widget.lab.totalPrice * 100).round();
+        
+        await _razorpayService.openCheckout(
+          orderId: rpResponse.data['razorpay_order_id'],
+          amountPaise: amountPaise,
+          contact: userState.user?.phoneNumber ?? '',
+          email: userState.user?.email ?? '',
+          name: userState.user?.fullName ?? '',
+          description: 'Lab Test Booking',
+        );
+      } else {
+        if (mounted) {
+          ref.read(labTestProvider.notifier).clearSelections();
+          context.pushReplacement('/lab-booking-success', extra: labPhone);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -138,7 +203,7 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(child: Text(t.testName, style: AppTextStyles.bodyMedium)),
-                            Text("₹\${t.price.toStringAsFixed(0)}", style: AppTextStyles.bodyMedium),
+                            Text("₹${t.price.toStringAsFixed(0)}", style: AppTextStyles.bodyMedium),
                           ],
                         ),
                       )),
@@ -146,8 +211,8 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Total Amount", style: AppTextStyles.bodyMedium),
-                      Text("₹\${widget.lab.totalPrice.toStringAsFixed(0)}", 
+                      Expanded(child: Text("Total Amount", style: AppTextStyles.bodyMedium)),
+                      Text("₹${widget.lab.totalPrice.toStringAsFixed(0)}", 
                         style: AppTextStyles.cardTitle.copyWith(color: AppColors.primary)),
                     ],
                   ),
@@ -159,28 +224,50 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
             // Payment Mode
             Text("Payment Method", style: AppTextStyles.cardTitle),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Iconsax.wallet_money, color: AppColors.primary),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Cash on Collection (COD)", style: AppTextStyles.bodyMedium),
-                      Text("Pay when the sample is collected", style: AppTextStyles.caption),
-                    ],
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _paymentMode == 'cod' ? AppColors.primary : Colors.grey.withAlpha(51)),
+                    ),
+                    child: RadioListTile<String>(
+                      title: Text("COD", style: AppTextStyles.bodyMedium),
+                      subtitle: Text("Pay at collection", style: AppTextStyles.caption),
+                      value: 'cod',
+                      groupValue: _paymentMode,
+                      onChanged: (val) {
+                        if (val != null) setState(() => _paymentMode = val);
+                      },
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      activeColor: AppColors.primary,
+                    ),
                   ),
-                  const Spacer(),
-                  const Icon(Icons.check_circle, color: AppColors.primary),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _paymentMode == 'online' ? AppColors.primary : Colors.grey.withAlpha(51)),
+                    ),
+                    child: RadioListTile<String>(
+                      title: Text("Online", style: AppTextStyles.bodyMedium),
+                      subtitle: Text("Pay instantly via Razorpay", style: AppTextStyles.caption),
+                      value: 'online',
+                      groupValue: _paymentMode,
+                      onChanged: (val) {
+                        if (val != null) setState(() => _paymentMode = val);
+                      },
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      activeColor: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
             ),
             
             const SizedBox(height: 40),

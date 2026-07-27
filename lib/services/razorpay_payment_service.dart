@@ -1,4 +1,6 @@
 import 'package:customer_app/services/api_url.dart';
+import 'package:dio/dio.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:flutter/services.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
@@ -64,6 +66,31 @@ class RazorpayPaymentService {
       },
     };
     _razorpay!.open(options);
+  }
+
+  Future<Response> createOrder(String receiptId, double amount) async {
+    final dio = Dio();
+    dio.interceptors.add(PrettyDioLogger(requestHeader: true, requestBody: true, responseBody: true, error: true, compact: true));
+    return await dio.post(
+      ApiUrl.razorpayCreateOrder,
+      data: {
+        'internal_receipt_id': receiptId,
+        'amount': amount,
+      },
+    );
+  }
+
+  Future<Response> verifyPayment(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature) async {
+    final dio = Dio();
+    dio.interceptors.add(PrettyDioLogger(requestHeader: true, requestBody: true, responseBody: true, error: true, compact: true));
+    return await dio.post(
+      ApiUrl.razorpayVerify,
+      data: {
+        'razorpay_order_id': razorpayOrderId,
+        'razorpay_payment_id': razorpayPaymentId,
+        'razorpay_signature': razorpaySignature,
+      },
+    );
   }
 
   void dispose() {

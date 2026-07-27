@@ -96,7 +96,7 @@ class LabTestService {
       // POST /api/rest/lab-bookings/book?customer_id=...
       final customerId = payload['customer_id'];
       return await _dio.post(
-        "\${ApiUrl.baseUrl}/api/rest/lab-bookings/book",
+        "${ApiUrl.baseUrl}/api/rest/lab-bookings/book",
         queryParameters: {
           'customer_id': customerId
         },

@@ -48,8 +48,9 @@ class _QuoteApprovalCardState extends ConsumerState<QuoteApprovalCard> {
       }
       
       if (updatedOrder != null && _paymentMode == 'online') {
+        final double amountToPay = (widget.quote.itemTotal ?? 0.0) + (widget.order.platformFee ?? 0.0) + (widget.order.taxes ?? 0.0) + (widget.order.deliveryFee ?? 0.0);
         // Initiate Razorpay payment
-        final rpResponse = await ref.read(orderProvider.notifier).initiateOnlinePayment(updatedOrder.orderId!);
+        final rpResponse = await ref.read(orderProvider.notifier).initiateOnlinePayment(updatedOrder.orderId!, amountToPay);
         
         if (rpResponse == null || rpResponse['razorpay_order_id'] == null) {
           if (!mounted) return;

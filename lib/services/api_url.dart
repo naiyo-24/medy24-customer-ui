@@ -109,6 +109,10 @@ class ApiUrl {
   // Platform Fee Endpoints
   static String get platformFee => "$baseUrl/admin/earnings/list";
 
+  // Payment Endpoints
+  static String get razorpayCreateOrder => "$baseUrl/api/payments/razorpay/create-order";
+  static String get razorpayVerify => "$baseUrl/api/payments/razorpay/verify";
+
   /// Get Razorpay Key ID from environment variables
   static String get razorpayKeyId {
     final key = dotenv.env['RAZORPAY_KEY_ID'];

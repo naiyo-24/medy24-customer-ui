@@ -9,6 +9,7 @@ import '../models/order.dart';
 import '../providers/profile_provider.dart';
 import '../providers/cart_provider.dart';
 import '../services/order_services.dart';
+import '../services/razorpay_payment_service.dart';
 import '../models/cart.dart';
 
 class OrderState {
@@ -464,9 +465,21 @@ class OrderNotifier extends StateNotifier<OrderState> {
     }
   }
 
-  Future<Map<String, dynamic>?> initiateOnlinePayment(String orderId) async {
-    state = state.copyWith(isLoading: false, error: "Online payment flow needs to be integrated with REST API");
-    return null;
+  Future<Map<String, dynamic>?> initiateOnlinePayment(String orderId, double amount) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final service = RazorpayPaymentService();
+      final response = await service.createOrder(orderId, amount);
+      if (response.data['status'] == 'success') {
+        state = state.copyWith(isLoading: false);
+        return response.data;
+      } else {
+        throw Exception(response.data['detail'] ?? 'Failed to initiate payment');
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
   }
 
   Future<bool> completeCheckout(String orderId, String paymentMode) async {
@@ -497,14 +510,17 @@ class OrderNotifier extends StateNotifier<OrderState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _orderService.completeCheckout(orderId, {
-        'payment_mode': 'online',
-        'razorpay_payment_id': razorpayPaymentId,
-        'razorpay_order_id': razorpayOrderId,
-        'razorpay_signature': razorpaySignature,
-      });
+      final service = RazorpayPaymentService();
+      final response = await service.verifyPayment(
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature,
+      );
 
       if (response.data['status'] == 'success') {
+        // Now also mark checkout as complete in our system
+        await _orderService.completeCheckout(orderId, {'payment_mode': 'online'});
+        
         await fetchOrders(refresh: true);
         state = state.copyWith(isLoading: false);
         return true;
