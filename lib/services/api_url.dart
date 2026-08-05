@@ -61,6 +61,9 @@ class ApiUrl {
   // GraphQL Endpoint
   static String get graphql => "$baseUrl/graphql";
 
+  // Advertisement Endpoints
+  static String get advertisements => "$baseUrl/advertisements";
+
   // Medicine Inventory Endpoints
   static String get medicineInventory => "$baseUrl/medicines";
   static String get getMedicineAll => "$medicineInventory/get-all";

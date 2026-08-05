@@ -116,7 +116,7 @@ class ProfileHeaderCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '+91 ${user.phoneNumber ?? '00000 00000'}',
+                      user.phoneNumber ?? '+91 00000 00000',
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: Colors.white.withAlpha(200),
                         fontWeight: FontWeight.w600,

@@ -75,7 +75,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      imageQuality: 85,
+    );
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);

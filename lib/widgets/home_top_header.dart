@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_theme.dart';
+import '../services/api_url.dart';
 
 class HomeTopHeader extends StatelessWidget {
   final String userName;
+  final String? profilePhoto;
   final String location;
   final String deliveryTime;
   final int cartCount;
@@ -14,6 +16,7 @@ class HomeTopHeader extends StatelessWidget {
   const HomeTopHeader({
     super.key,
     required this.userName,
+    this.profilePhoto,
     required this.location,
     required this.deliveryTime,
     required this.cartCount,
@@ -115,14 +118,22 @@ class HomeTopHeader extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: AppColors.background,
                     border: Border.all(color: AppColors.divider, width: 1.5),
+                    image: profilePhoto != null
+                        ? DecorationImage(
+                            image: NetworkImage(ApiUrl.imageUrl(profilePhoto)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  child: const Center(
-                    child: Icon(
-                      Iconsax.user,
-                      size: 20,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  child: profilePhoto == null
+                      ? const Center(
+                          child: Icon(
+                            Iconsax.user,
+                            size: 20,
+                            color: AppColors.textPrimary,
+                          ),
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(width: 12),

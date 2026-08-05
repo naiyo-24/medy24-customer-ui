@@ -18,6 +18,7 @@ import '../../cards/medicine/medicine_card.dart';
 import '../../widgets/welcome_popup.dart';
 import '../../providers/order_provider.dart';
 import '../../cards/medicine_orders/order_card.dart';
+import '../../providers/advertisement_provider.dart';
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -65,7 +66,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final saved = user?.savedAddresses as List<dynamic>?;
       if (saved != null && saved.isNotEmpty) {
         final first = saved.first as Map<String, dynamic>?;
-        final addr = first?['address1'] as String?;
+        final addr = first?['address_1'] as String?;
         if (addr != null && addr.isNotEmpty) return addr;
       }
     } catch (_) {}
@@ -97,6 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               bottom: false,
               child: HomeTopHeader(
                 userName: userName,
+                profilePhoto: user?.profilePhoto,
                 location: location,
                 deliveryTime: '30 mins',
                 cartCount: cartCount,
@@ -140,33 +142,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             delegate: SliverChildListDelegate([
               const SizedBox(height: 16),
 
-              // ── Promo Banner Carousel (auto-scrolls every 3s)
+              // ── Promo Banner Carousel (dynamic ads)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: PromoBannerCarousel(
-                  banners: const [
-                    PromoBannerItem(
-                      badge: '🎉 BEST OFFER',
-                      title: 'GET 20% OFF',
-                      subtitle: 'on medicines and essentials',
-                      gradientColors: [Color(0xFF005A6B), Color(0xFF008396), Color(0xFF7C3AED)],
-                      icon: Icons.local_pharmacy_outlined,
-                    ),
-                    PromoBannerItem(
-                      badge: '🧪 LAB SPECIAL',
-                      title: 'FLAT 15% OFF',
-                      subtitle: 'on all lab tests & packages',
-                      gradientColors: [Color(0xFF0F766E), Color(0xFF14B8A6), Color(0xFF0EA5E9)],
-                      icon: Icons.science_outlined,
-                    ),
-                    PromoBannerItem(
-                      badge: '💊 LIMITED TIME',
-                      title: 'UP TO 40% OFF',
-                      subtitle: 'on health packages for family',
-                      gradientColors: [Color(0xFF7C3AED), Color(0xFF9333EA), Color(0xFFEC4899)],
-                      icon: Icons.family_restroom_outlined,
-                    ),
-                  ],
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final adsAsync = ref.watch(advertisementProvider);
+                    return adsAsync.when(
+                      data: (ads) {
+                        if (ads.isEmpty) return const SizedBox.shrink();
+                        return PromoBannerCarousel(banners: ads);
+                      },
+                      loading: () => const SizedBox(
+                        height: 160,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (err, stack) => const SizedBox(
+                        height: 160,
+                        child: Center(child: Icon(Icons.error_outline, color: Colors.red)),
+                      ),
+                    );
+                  },
                 ),
               ),
 

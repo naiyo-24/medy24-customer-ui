@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,9 +55,17 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _authService.getProfile(currentUser!.customerId!);
-      final user = UserModel.fromMap(response.data['user']);
+      final userData = response.data['user'] ?? response.data;
+      final user = UserModel.fromMap(userData);
       // Preserve the token from the current state
       final updatedUser = user.copyWith(token: currentUser.token);
+      
+      // Save updated user to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user', updatedUser.toJson());
+      
+      // Sync AuthNotifier state
+      ref.read(authProvider.notifier).loadUser();
       state = state.copyWith(user: updatedUser, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -84,7 +93,8 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         profilePhoto: profilePhoto,
       );
 
-      final user = UserModel.fromMap(response.data['user']);
+      final userData = response.data['user'] ?? response.data;
+      final user = UserModel.fromMap(userData);
       // Preserve the token from the current state
       final updatedUser = user.copyWith(token: currentUser.token);
       state = state.copyWith(user: updatedUser, isLoading: false);
@@ -97,6 +107,12 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
 
       // Sync AuthNotifier state
       ref.read(authProvider.notifier).loadUser();
+
+      // Clear the image cache so the UI immediately fetches the new profile photo
+      if (profilePhoto != null) {
+        PaintingBinding.instance.imageCache.clear();
+        PaintingBinding.instance.imageCache.clearLiveImages();
+      }
 
       return true;
     } catch (e) {

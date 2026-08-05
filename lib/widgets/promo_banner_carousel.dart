@@ -1,26 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../models/advertisement.dart';
+import '../services/api_url.dart';
 import '../theme/app_theme.dart';
 
-class PromoBannerItem {
-  final String title;
-  final String subtitle;
-  final String badge;
-  final List<Color> gradientColors;
-  final IconData? icon;
-
-  const PromoBannerItem({
-    required this.title,
-    required this.subtitle,
-    required this.badge,
-    required this.gradientColors,
-    this.icon,
-  });
-}
-
 class PromoBannerCarousel extends StatefulWidget {
-  final List<PromoBannerItem> banners;
+  final List<AdvertisementModel> banners;
 
   const PromoBannerCarousel({super.key, required this.banners});
 
@@ -41,7 +28,8 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
   }
 
   void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    if (widget.banners.isEmpty) return;
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (_currentPage < widget.banners.length - 1) {
         _currentPage++;
       } else {
@@ -51,7 +39,7 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOutCubic,
+          curve: Curves.fastOutSlowIn,
         );
       }
     });
@@ -66,34 +54,12 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.banners.isEmpty) return const SizedBox.shrink();
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Offers & Deals',
-              style: AppTextStyles.cardTitle.copyWith(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              'View All',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.primaryAccent,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        )
-            .animate()
-            .fadeIn(duration: 400.ms, delay: 100.ms),
-        const SizedBox(height: 14),
         SizedBox(
-          height: 150,
+          height: 160,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -101,13 +67,13 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
             },
             itemCount: widget.banners.length,
             itemBuilder: (context, index) {
-              return _PromoBannerCard(banner: widget.banners[index]);
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _PromoBannerCard(banner: widget.banners[index]),
+              );
             },
           ),
-        )
-            .animate()
-            .fadeIn(duration: 500.ms, delay: 200.ms)
-            .slideY(begin: 0.1, end: 0),
+        ).animate().fadeIn(duration: const Duration(milliseconds: 600)).slideY(begin: 0.1, end: 0),
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -133,137 +99,48 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
 }
 
 class _PromoBannerCard extends StatelessWidget {
-  final PromoBannerItem banner;
+  final AdvertisementModel banner;
 
   const _PromoBannerCard({required this.banner});
 
+  Future<void> _launchUrl() async {
+    if (banner.targetUrl == null || banner.targetUrl!.isEmpty) return;
+    final url = Uri.parse(banner.targetUrl!);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: banner.gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: _launchUrl,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(15),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: banner.gradientColors.last.withAlpha(60),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Decorative elements
-          Positioned(
-            top: -15,
-            right: -15,
-            child: Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withAlpha(15),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Image.network(
+            ApiUrl.imageUrl(banner.imageUrl),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: AppColors.background,
+              child: const Center(
+                child: Icon(Icons.broken_image_rounded, color: AppColors.textTertiary),
               ),
             ),
           ),
-          Positioned(
-            bottom: -20,
-            right: 40,
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withAlpha(10),
-              ),
-            ),
-          ),
-
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(30),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Text(
-                          banner.badge,
-                          style: const TextStyle(
-                            fontFamily: 'Lexend',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        banner.title,
-                        style: const TextStyle(
-                          fontFamily: 'Fraunces',
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          height: 1.1,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        banner.subtitle,
-                        style: const TextStyle(
-                          fontFamily: 'Lexend',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(25),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          banner.icon ?? Icons.local_pharmacy_outlined,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

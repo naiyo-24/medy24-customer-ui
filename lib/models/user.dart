@@ -64,13 +64,13 @@ class UserModel {
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       customerId: map['customer_id'] ?? map['customerId'],
-      phoneNumber: map['phone_number'] ?? map['phoneNumber'],
+      phoneNumber: map['phone_number'] ?? map['phoneNumber'] ?? map['phone'],
       fullName: map['full_name'] ?? map['fullName'] ?? map['name'],
       email: map['email'],
       alternativePhoneNo:
           map['alternative_phone_no'] ?? map['alternativePhoneNo'],
       savedAddresses: map['saved_addresses'] ?? map['savedAddresses'],
-      profilePhoto: map['profile_photo'] ?? map['profilePhoto'],
+      profilePhoto: map['profile_photo'] ?? map['profilePhoto'] ?? map['profile_picture'],
       status: map['status'],
       token: map['token'] ?? map['backend_token'],
     );
