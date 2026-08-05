@@ -26,7 +26,7 @@ class HomeTopHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12), // Slightly increased top padding
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0), // Reduced bottom padding
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

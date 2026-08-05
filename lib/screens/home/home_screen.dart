@@ -8,11 +8,9 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/home_top_header.dart';
 import '../../widgets/home_search_input.dart';
-import '../../widgets/home_category_tabs.dart';
 import '../../widgets/promo_banner_carousel.dart';
 import '../../widgets/home_service_grid.dart';
 import '../../widgets/home_order_via_section.dart';
-import '../../widgets/health_concern_grid.dart';
 import '../../widgets/footer_card.dart';
 import '../../widgets/category_content_sliver.dart';
 import '../../providers/medicine_provider.dart';
@@ -109,17 +107,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           
-          // ── Sticky Search + Tabs
+          // ── Sticky Search
           SliverAppBar(
             pinned: true,
             floating: false,
+            primary: false,
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,
             elevation: 0,
             scrolledUnderElevation: 2,
             shadowColor: Colors.black.withAlpha(20),
             automaticallyImplyLeading: false,
-            toolbarHeight: 132, // Accommodates Search(60) + Tabs(72)
+            toolbarHeight: 65, // Accommodates Search
             flexibleSpace: FlexibleSpaceBar(
               background: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -127,52 +126,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Search Bar
                   HomeSearchInput(
                     onTap: () => context.push('/medicine-search'),
-                  ),
-
-                  // Category Tabs
-                  HomeCategoryTabs(
-                    selectedIndex: _selectedTabIndex,
-                    onTabSelected: (i) {
-                      setState(() => _selectedTabIndex = i);
-                      if (i == 0) {
-                        ref.read(medicineProvider.notifier).clearSearch();
-                      } else {
-                        final labels = ['All', 'Skin Care', 'Summer', 'Woman', 'Men', 'Baby', 'Nutrition'];
-                        ref.read(medicineProvider.notifier).searchMedicines(category: labels[i]);
-                      }
-                    },
-                    tabs: const [
-                      HomeCategoryTab(
-                        label: 'All',
-                        icon: Icons.grid_view_rounded,
-                      ),
-                      HomeCategoryTab(
-                        label: 'Skin Care',
-                        icon: Icons.face_retouching_natural,
-                        badge: 'HOT',
-                        badgeColor: Color(0xFFEF4444),
-                      ),
-                      HomeCategoryTab(
-                        label: 'Summer',
-                        icon: Icons.wb_sunny_outlined,
-                      ),
-                      HomeCategoryTab(
-                        label: 'Woman',
-                        icon: Icons.female,
-                      ),
-                      HomeCategoryTab(
-                        label: 'Men',
-                        icon: Icons.male,
-                      ),
-                      HomeCategoryTab(
-                        label: 'Baby',
-                        icon: Icons.child_care,
-                      ),
-                      HomeCategoryTab(
-                        label: 'Nutrition',
-                        icon: Icons.spa_outlined,
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -231,7 +184,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     onTap: () => context.push('/medicine-list'),
                   ),
                   HomeServiceGridItem(
-                    title: 'Lab Tests\nAt Home',
+                    title: 'Lab Tests &\nPackages',
                     subtitle: 'Free Home Pickup',
                     offerText: 'Flat 15% off',
                     offerColor: AppColors.success,
@@ -239,12 +192,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     onTap: () => context.push('/lab-tests'),
                   ),
                   HomeServiceGridItem(
-                    title: 'Test\nPackages',
-                    subtitle: 'For you & family',
-                    offerText: 'Up to 40% off',
+                    title: 'My\nOrders',
+                    subtitle: 'Track your items',
+                    offerText: 'View past orders',
                     offerColor: AppColors.purple,
                     imagePath: 'assets/logo/patho_lab.png',
-                    onTap: () => context.push('/lab-tests'),
+                    onTap: () => context.push('/my-medicine-orders'),
                   ),
                   HomeServiceGridItem(
                     title: 'Upload\nPrescription',
@@ -345,51 +298,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onCallTap: () {},
               ),
 
-              const SizedBox(height: 28),
 
-              // ── Health Concern Grid
-              HealthConcernGrid(
-                items: [
-                  HealthConcernItem(
-                    title: 'Full Body\nCheckups',
-                    bgColor: const Color(0xFFDCFCE7),
-                    imagePath: 'assets/logo/book_lab_test.png',
-                    onTap: () => context.push('/lab-tests'),
-                  ),
-                  HealthConcernItem(
-                    title: 'Diabetes',
-                    bgColor: const Color(0xFFDBEAFE),
-                    imagePath: 'assets/logo/book_lab_test.png',
-                    onTap: () => context.push('/lab-tests'),
-                  ),
-                  HealthConcernItem(
-                    title: 'Fever &\nInfection',
-                    bgColor: const Color(0xFFFEF3C7),
-                    imagePath: 'assets/logo/book_lab_test.png',
-                    onTap: () => context.push('/lab-tests'),
-                  ),
-                  HealthConcernItem(
-                    title: 'Vitamins',
-                    bgColor: const Color(0xFFFEF9C3),
-                    imagePath: 'assets/logo/order_medicine.png',
-                    onTap: () => context.push('/medicine-list'),
-                  ),
-                  HealthConcernItem(
-                    title: 'Women\nCare',
-                    bgColor: const Color(0xFFFCE7F3),
-                    imagePath: 'assets/logo/order_medicine.png',
-                    onTap: () => context.push('/medicine-list'),
-                  ),
-                  HealthConcernItem(
-                    title: 'Thyroid',
-                    bgColor: const Color(0xFFEDE9FE),
-                    imagePath: 'assets/logo/book_lab_test.png',
-                    onTap: () => context.push('/lab-tests'),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 28),
 
               // ── Recent Section
               Consumer(

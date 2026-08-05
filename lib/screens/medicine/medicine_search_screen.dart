@@ -6,6 +6,7 @@ import '../../providers/medicine_provider.dart';
 import '../../cards/medicine/medicine_search_card.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
+import 'dart:async';
 
 class MedicineSearchScreen extends ConsumerStatefulWidget {
   const MedicineSearchScreen({super.key});
@@ -18,6 +19,7 @@ class MedicineSearchScreen extends ConsumerStatefulWidget {
 class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -27,6 +29,7 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -96,8 +99,13 @@ class _MedicineSearchScreenState extends ConsumerState<MedicineSearchScreen> {
                   ),
                 ),
                 onChanged: (value) {
-                  ref.read(medicineProvider.notifier).searchMedicines(searchTerm: value);
-                  setState(() {});
+                  if (_debounce?.isActive ?? false) _debounce!.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 500), () {
+                    if (mounted) {
+                      ref.read(medicineProvider.notifier).searchMedicines(searchTerm: value);
+                      setState(() {});
+                    }
+                  });
                 },
               ),
             ),

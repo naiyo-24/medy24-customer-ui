@@ -11,7 +11,7 @@ class LabBookingSuccessScreen extends StatelessWidget {
 
   Future<void> _callLab() async {
     if (labPhone.isEmpty) return;
-    final Uri url = Uri.parse('tel:\$labPhone');
+    final Uri url = Uri.parse('tel:$labPhone');
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     }
@@ -50,7 +50,7 @@ class LabBookingSuccessScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 
                 Text(
-                  "Your lab test booking has been sent to the lab. They have been notified instantly.",
+                  "Your lab test booking has been confirmed by the lab! They will contact you shortly.",
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary, height: 1.5),
                 ),

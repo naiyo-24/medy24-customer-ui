@@ -106,4 +106,22 @@ class LabTestService {
       rethrow;
     }
   }
+
+  Future<Response> getCustomerLabBookings(String customerId) async {
+    try {
+      return await _dio.get(
+        "${ApiUrl.baseUrl}/api/rest/lab-bookings/customer/$customerId",
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> getLabBookingDetails(String bookingId) async {
+    try {
+      return await _dio.get("${ApiUrl.baseUrl}/api/rest/lab-bookings/$bookingId");
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

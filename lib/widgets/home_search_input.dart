@@ -18,7 +18,7 @@ class _HomeSearchInputState extends State<HomeSearchInput> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
@@ -61,36 +61,7 @@ class _HomeSearchInputState extends State<HomeSearchInput> {
                 color: AppColors.textTertiary,
                 size: 22,
               ),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Rx (Prescription) Icon
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: const Icon(
-                        Icons.receipt_long_outlined,
-                        size: 20,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  // Camera Icon
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.all(8),
-                      child: const Icon(
-                        Icons.photo_camera_outlined,
-                        size: 20,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+
               hintText: 'Search medicines & lab tests...',
               hintStyle: TextStyle(
                 fontFamily: 'Lexend',

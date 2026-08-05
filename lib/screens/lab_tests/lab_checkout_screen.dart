@@ -47,7 +47,7 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
       final payload = {
         "customer_id": customerId,
         "lab_id": widget.lab.labId,
-        "patient_name": "Self", // Hardcoded for simplicity as per requirements
+        "patient_name": userState.user?.fullName?.isNotEmpty == true ? userState.user!.fullName : "Self",
         "patient_phone": userState.user?.phoneNumber ?? "Unknown",
         "is_home_collection": true,
         "booked_tests": widget.lab.matchedTests.map((t) => {
@@ -85,7 +85,7 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
               if (verifyRes.data['status'] == 'success') {
                 if (!mounted) return;
                 ref.read(labTestProvider.notifier).clearSelections();
-                context.pushReplacement('/lab-booking-success', extra: labPhone);
+                context.pushReplacement('/lab-booking-waiting/$bookingId', extra: labPhone);
               } else {
                 throw Exception("Payment verification failed");
               }
@@ -121,13 +121,13 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
       } else {
         if (mounted) {
           ref.read(labTestProvider.notifier).clearSelections();
-          context.pushReplacement('/lab-booking-success', extra: labPhone);
+          context.pushReplacement('/lab-booking-waiting/$bookingId', extra: labPhone);
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error confirming booking: \$e")),
+          SnackBar(content: Text("Error confirming booking: $e")),
         );
       }
     } finally {

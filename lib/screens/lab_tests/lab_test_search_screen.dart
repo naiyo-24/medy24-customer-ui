@@ -131,30 +131,34 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                                   ),
                               ],
                             ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              title: Text(test.testName, style: AppTextStyles.cardTitle.copyWith(fontSize: 16)),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                                child: Text(
-                                  "${test.category} • ${test.sampleType}",
-                                  style: AppTextStyles.cardSubtitle,
+                            child: Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                title: Text(test.testName, style: AppTextStyles.cardTitle.copyWith(fontSize: 16)),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    "${test.category} • ${test.sampleType}",
+                                    style: AppTextStyles.cardSubtitle,
+                                  ),
                                 ),
-                              ),
-                              trailing: Checkbox(
-                                value: isSelected,
-                                activeColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
+                                trailing: Checkbox(
+                                  value: isSelected,
+                                  activeColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  onChanged: (val) {
+                                    notifier.toggleTestSelection(test.testId);
+                                  },
                                 ),
-                                onChanged: (val) {
+                                onTap: () {
                                   notifier.toggleTestSelection(test.testId);
                                 },
                               ),
-                              onTap: () {
-                                notifier.toggleTestSelection(test.testId);
-                              },
                             ),
                           );
                         },

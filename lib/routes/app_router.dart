@@ -13,6 +13,8 @@ import '../screens/lab_tests/lab_test_search_screen.dart';
 import '../screens/lab_tests/lab_selection_screen.dart';
 import '../screens/lab_tests/lab_checkout_screen.dart';
 import '../screens/lab_tests/lab_booking_success_screen.dart';
+import '../screens/lab_tests/lab_booking_waiting_screen.dart';
+import '../screens/lab_tests/my_lab_bookings_screen.dart';
 import '../models/lab_package.dart';
 import '../screens/medicine/medicine_list_screen.dart';
 import '../screens/medicine/medicine_details_screen.dart';
@@ -192,6 +194,14 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/lab-booking-waiting/:bookingId',
+      builder: (context, state) {
+        final bookingId = state.pathParameters['bookingId']!;
+        final labPhone = state.extra as String? ?? "";
+        return LabBookingWaitingScreen(bookingId: bookingId, labPhone: labPhone);
+      },
+    ),
+    GoRoute(
       path: '/lab-booking-success',
       builder: (context, state) {
         final labPhone = state.extra as String;
@@ -252,6 +262,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/my-medicine-orders',
       builder: (context, state) => const MyOrderScreen(),
+    ),
+    GoRoute(
+      path: '/my-test-bookings/:customerId',
+      builder: (context, state) {
+        final customerId = state.pathParameters['customerId']!;
+        return MyLabBookingsScreen(customerId: customerId);
+      },
     ),
     GoRoute(
       path: '/order-tracking/:orderId',

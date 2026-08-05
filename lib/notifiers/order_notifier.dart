@@ -335,7 +335,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
         final index = state.orders.indexWhere((o) => o.orderId == orderId);
         if (index >= 0) {
           // Clear cart on success
-          ref.read(cartProvider.notifier).clearCartLocal();
+          await ref.read(cartProvider.notifier).clearCart();
           return state.orders[index];
         }
       } else {
