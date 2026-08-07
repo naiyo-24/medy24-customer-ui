@@ -81,7 +81,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         border: Border.all(color: AppColors.divider),
                       ),
                       child: Image.asset(
-                        'assets/logo/logo.png',
+                        'assets/logo/medy24logo.png',
                         fit: BoxFit.contain,
                       ),
                     ),

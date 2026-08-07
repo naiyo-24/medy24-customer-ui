@@ -62,7 +62,7 @@ class _HomeSearchInputState extends State<HomeSearchInput> {
                 size: 22,
               ),
 
-              hintText: 'Search medicines & lab tests...',
+              hintText: 'Search medicines, brands or lab tests...',
               hintStyle: TextStyle(
                 fontFamily: 'Lexend',
                 fontSize: 13,

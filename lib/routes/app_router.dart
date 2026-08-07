@@ -1,3 +1,4 @@
+import 'package:customer_app/screens/order_medicine/order_tracking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -5,8 +6,9 @@ import '../screens/auth/splash_screen.dart';
 // import '../screens/auth/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
+import '../screens/auth/otp_screen.dart';
+import '../screens/auth/profile_creation_screen.dart';
 import '../screens/order_medicine/my_order_screen.dart';
-import '../screens/order_medicine/order_tracking_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
 import '../screens/lab_tests/lab_test_search_screen.dart';
@@ -39,6 +41,8 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _shellNavigatorMedsKey = GlobalKey<NavigatorState>(debugLabel: 'meds');
 final _shellNavigatorTestsKey = GlobalKey<NavigatorState>(debugLabel: 'tests');
+final _shellNavigatorCartKey = GlobalKey<NavigatorState>(debugLabel: 'cart');
+final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
@@ -47,6 +51,22 @@ final appRouter = GoRouter(
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     // GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(
+      path: '/otp',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        if (extra == null) return const LoginScreen();
+        return OtpScreen(
+          verificationId: extra['verificationId'] as String,
+          phoneNumber: extra['phoneNumber'] as String,
+          isNewUser: extra['isNewUser'] as bool? ?? false,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/profile-creation',
+      builder: (context, state) => const ProfileCreationScreen(),
+    ),
     GoRoute(
       path: '/signup/:phone',
       builder: (context, state) {
@@ -180,6 +200,24 @@ final appRouter = GoRouter(
             ),
           ],
         ),
+        StatefulShellBranch(
+          navigatorKey: _shellNavigatorCartKey,
+          routes: [
+            GoRoute(
+              path: '/cart',
+              builder: (context, state) => const CartScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _shellNavigatorProfileKey,
+          routes: [
+            GoRoute(
+              path: '/profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+          ],
+        ),
       ],
     ),
     GoRoute(
@@ -208,10 +246,7 @@ final appRouter = GoRouter(
         return LabBookingSuccessScreen(labPhone: labPhone);
       },
     ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
-    ),
+
     GoRoute(
       path: '/about-us',
       builder: (context, state) => const AboutUsScreen(),
@@ -277,6 +312,5 @@ final appRouter = GoRouter(
         return OrderTrackingScreen(orderId: orderId);
       },
     ),
-    GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
   ],
 );

@@ -121,7 +121,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 children: [
                   // Premium 3D Logo Reveal
                   Image.asset(
-                        'assets/logo/logo.png',
+                        'assets/logo/medy24logo.png',
                         width: 240,
                         fit: BoxFit.contain,
                       )

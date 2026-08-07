@@ -145,6 +145,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> demoLogin(String phoneNumber) async {
+    final demoUser = UserModel(
+      customerId: 'demo_user_123',
+      phoneNumber: phoneNumber,
+      fullName: 'Demo User',
+      token: 'demo_token_xyz',
+    );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', demoUser.toJson());
+    state = state.copyWith(user: demoUser, isLoading: false);
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user');

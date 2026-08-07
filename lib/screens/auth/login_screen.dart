@@ -1,14 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:pinput/pinput.dart';
 import 'package:go_router/go_router.dart';
-import '../../cards/auth/contact_bottomsheet.dart';
 import '../../notifiers/auth_notifier.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -18,45 +16,23 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final PageController _pageController = PageController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
-  String? _verificationId;
   bool _isSendingOtp = false;
-
-  void _nextPage() {
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _previousPage() {
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
-  }
 
   Future<void> _handleSendOtp() async {
     if (_phoneController.text.length != 10) return;
 
     setState(() => _isSendingOtp = true);
-    final exists = await ref
+    await ref
         .read(authProvider.notifier)
         .checkPhone(_phoneController.text);
 
-    if (exists) {
-      await _sendFirebaseOtp();
-    } else {
-      setState(() => _isSendingOtp = false);
-      if (mounted) {
-        context.push('/signup/${_phoneController.text}');
-      }
-    }
+    // Temporarily force `true` so the Profile Creation screen always shows for testing!
+    // (If the API says `exists` is true, the app normally skips profile creation)
+    await _sendFirebaseOtp(true);
   }
 
-  Future<void> _sendFirebaseOtp() async {
+  Future<void> _sendFirebaseOtp(bool isNewUser) async {
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: '+91${_phoneController.text}',
@@ -74,15 +50,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         codeSent: (String verificationId, int? resendToken) {
           if (mounted) {
             setState(() {
-              _verificationId = verificationId;
               _isSendingOtp = false;
             });
-            _nextPage();
+            context.push('/otp', extra: {
+              'verificationId': verificationId,
+              'phoneNumber': _phoneController.text,
+              'isNewUser': isNewUser,
+            });
           }
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           if (mounted) {
-            _verificationId = verificationId;
           }
         },
       );
@@ -96,50 +74,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _handleVerifyOtp() async {
-    if (_otpController.text.length != 6 || _verificationId == null) return;
-
-    try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: _verificationId!,
-        smsCode: _otpController.text,
-      );
-
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
-      final idToken = await userCredential.user?.getIdToken();
-
-      if (idToken != null) {
-        final success = await ref
-            .read(authProvider.notifier)
-            .verifyOtp(token: idToken, phoneNumber: _phoneController.text);
-        if (success && mounted) {
-          context.go('/home');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login Failed: ${e.toString()}')),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authProvider, (previous, next) {
-      if (next.user != null) {
-        context.go('/home');
-      }
-    });
+
 
     final authState = ref.watch(authProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        image: DecorationImage(
+          image: const AssetImage('assets/logo/loginback.png'),
+          fit: BoxFit.cover,
+          opacity: 0.4,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.screenPadding,
@@ -149,14 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               const SizedBox(height: 20),
               Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _buildPhoneSlide(authState),
-                    _buildOtpSlide(authState),
-                  ],
-                ),
+                child: _buildPhoneSlide(authState),
               ),
               if (authState.isLoading || _isSendingOtp)
                 const Center(
@@ -169,241 +115,161 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildPhoneSlide(AuthState authState) {
     return SingleChildScrollView(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'STEP 1 OF 2',
-          style: AppTextStyles.tagline.copyWith(fontSize: 12),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Your wellness journey\nstarts here',
-          style: AppTextStyles.header.copyWith(height: 1.1, letterSpacing: -1),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Join Medy24 today. Your health and convenience are just a phone number away.',
-          style: AppTextStyles.description,
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Row(
-                children: [
-                  Image.asset(
-                    'assets/logo/india.png',
-                    width: 24,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Iconsax.call),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text('+91', style: AppTextStyles.description),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                style: AppTextStyles.description.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Enter phone number',
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 22),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: (authState.isLoading || _isSendingOtp)
-                ? null
-                : _handleSendOtp,
-            child: const Text('Send OTP'),
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 40),
+          Image.asset(
+            'assets/logo/medy24logo.png',
+            height: 160,
           ),
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: RichText(
-            textAlign: TextAlign.center,
+          const SizedBox(height: 24),
+          RichText(
             text: TextSpan(
-              style: AppTextStyles.caption,
-              children: [
-                const TextSpan(text: 'By signing in, you agree to our\n'),
+              style: AppTextStyles.header.copyWith(
+                fontSize: 24,
+                color: Colors.black,
+              ),
+              children: const [
+                TextSpan(text: 'Welcome to '),
                 TextSpan(
-                  text: 'terms and conditions',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => context.go('/terms-conditions'),
-                ),
-                const TextSpan(text: ' and '),
-                TextSpan(
-                  text: 'privacy policies',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    decoration: TextDecoration.underline,
-                  ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => context.go('/privacy-policy'),
+                  text: 'Medy24',
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-      ],
-      ),
-    );
-  }
-
-  Widget _buildOtpSlide(AuthState authState) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: _previousPage,
-          child: Row(
-            children: [
-              const Icon(
-                Iconsax.arrow_left_2,
-                size: 22,
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Go back',
-                style: AppTextStyles.tagline.copyWith(color: AppColors.primary),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text('FINAL STEP', style: AppTextStyles.tagline.copyWith(fontSize: 12)),
-        const SizedBox(height: 12),
-        Text(
-          'Secure\nVerification',
-          style: AppTextStyles.header.copyWith(height: 1.1, letterSpacing: -1),
-        ),
-        const SizedBox(height: 12),
-        RichText(
-          text: TextSpan(
+          const SizedBox(height: 8),
+          const Text(
+            'Your trusted partner for medicines\ndelivered fast & safely.',
+            textAlign: TextAlign.center,
             style: AppTextStyles.description,
-            children: [
-              const TextSpan(text: 'We\'ve sent a unique code to '),
-              TextSpan(
-                text: '+91 ${_phoneController.text}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const TextSpan(text: '. Enter it below to continue.'),
-            ],
           ),
-        ),
-        const SizedBox(height: 12),
-        Pinput(
-          length: 6,
-          controller: _otpController,
-          defaultPinTheme: PinTheme(
-            width: 64,
-            height: 84,
-            textStyle: AppTextStyles.header.copyWith(fontSize: 24),
+          const SizedBox(height: 24),
+          Image.asset(
+            'assets/logo/order_medicine.png',
+            height: 200,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Login or Sign up',
+            style: AppTextStyles.header.copyWith(fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Enter your mobile number to continue',
+            style: AppTextStyles.description,
+          ),
+          const SizedBox(height: 16),
+          Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.divider),
-            ),
-          ),
-          focusedPinTheme: PinTheme(
-            width: 64,
-            height: 84,
-            textStyle: AppTextStyles.header.copyWith(fontSize: 24),
-            decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primary, width: 2),
             ),
-          ),
-        ),
-        const SizedBox(height: 32),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: (authState.isLoading || _isSendingOtp)
-                ? null
-                : _handleVerifyOtp,
-            child: const Text('Verify and Login'),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: AppTextStyles.caption,
+            child: Row(
               children: [
-                const TextSpan(text: "Didn't receive the otp? "),
-                TextSpan(
-                  text: 'Resend',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Image.asset('assets/logo/india.png', width: 24, height: 24),
+                      const SizedBox(width: 8),
+                      const Text('+91',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500)),
+                    ],
                   ),
-                  recognizer: TapGestureRecognizer()..onTap = () {},
                 ),
-                const TextSpan(text: ' and '),
-                TextSpan(
-                  text: 'Contact Support',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
+                Container(width: 1, height: 24, color: AppColors.divider),
+                Expanded(
+                  child: TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter mobile number',
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      fillColor: Colors.transparent,
+                      filled: true,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      suffixIcon: Icon(Icons.phone, color: Colors.grey),
+                    ),
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      _showContactBottomSheet(context);
-                    },
                 ),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 20),
-      ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: (authState.isLoading || _isSendingOtp)
+                  ? null
+                  : _handleSendOtp,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Continue',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.verified_user_outlined,
+                  color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              RichText(
+                text: TextSpan(
+                  style: AppTextStyles.caption.copyWith(color: Colors.grey),
+                  children: [
+                    const TextSpan(text: 'By continuing, you agree to our\n'),
+                    TextSpan(
+                      text: 'Terms',
+                      style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => context.push('/terms-conditions'),
+                    ),
+                    const TextSpan(text: ' & '),
+                    TextSpan(
+                      text: 'Privacy Policy',
+                      style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => context.push('/privacy-policy'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+        ].animate(interval: 50.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOut),
       ),
     );
   }
 
-  void _showContactBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => const ContactBottomSheet(),
-    );
-  }
+
 }

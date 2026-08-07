@@ -120,7 +120,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                         ],
                       ),
                       child: Image.asset(
-                        'assets/logo/logo.png',
+                        'assets/logo/medy24logo.png',
                         width: 120,
                         height: 120,
                       ),

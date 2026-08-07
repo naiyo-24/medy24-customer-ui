@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -23,7 +22,6 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final RazorpayPaymentService _razorpayService = RazorpayPaymentService();
   bool _isPaying = false;
-  String? _medicineOrderId;
 
   @override
   void dispose() {
@@ -88,7 +86,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
 
-    _medicineOrderId = order.orderId;
     if (!mounted) return;
     setState(() => _isPaying = false);
     _showSuccessAndExit();

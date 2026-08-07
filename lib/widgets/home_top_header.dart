@@ -27,42 +27,54 @@ class HomeTopHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Extract first name for the greeting
+    final firstName = userName.split(' ').first;
+
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0), // Reduced bottom padding
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left Side: Welcome, Delivery Time, Location
+          // Left Side: Greetings and Location
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Welcome Back text
-                Text(
-                  'Welcome back, $userName 👋',
-                  style: const TextStyle(
+                // "Good Morning," text
+                const Text(
+                  'Good Morning,',
+                  style: TextStyle(
                     fontFamily: 'Lexend',
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
-
-                // Delivery Time (Bold & Eye-Catchy)
+                // Name & Emoji
                 Text(
-                  'Delivery in $deliveryTime',
+                  '$firstName 👋',
                   style: const TextStyle(
                     fontFamily: 'Lexend',
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900, // Extra Bold
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
+                // "What are you looking for today?"
+                const Text(
+                  'What are you looking for today?',
+                  style: TextStyle(
+                    fontFamily: 'Lexend',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
 
                 // Location Subtitle
                 GestureDetector(
@@ -71,8 +83,8 @@ class HomeTopHeader extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Iconsax.location,
-                        size: 14,
+                        Iconsax.location_copy,
+                        size: 16,
                         color: AppColors.primaryAccent,
                       ),
                       const SizedBox(width: 4),
@@ -82,8 +94,8 @@ class HomeTopHeader extends StatelessWidget {
                           style: const TextStyle(
                             fontFamily: 'Lexend',
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -93,7 +105,7 @@ class HomeTopHeader extends StatelessWidget {
                       const Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 16,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textPrimary,
                       ),
                     ],
                   ),
@@ -112,15 +124,14 @@ class HomeTopHeader extends StatelessWidget {
               GestureDetector(
                 onTap: onProfileTap,
                 child: Container(
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.background,
-                    border: Border.all(color: AppColors.divider, width: 1.5),
+                    color: const Color(0xFFF2F4F7), // Light greyish background
                     image: profilePhoto != null
                         ? DecorationImage(
-                            image: NetworkImage(ApiUrl.imageUrl(profilePhoto)),
+                            image: NetworkImage(ApiUrl.imageUrl(profilePhoto!)),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -128,7 +139,7 @@ class HomeTopHeader extends StatelessWidget {
                   child: profilePhoto == null
                       ? const Center(
                           child: Icon(
-                            Iconsax.user,
+                            Icons.person,
                             size: 20,
                             color: AppColors.textPrimary,
                           ),
@@ -145,12 +156,11 @@ class HomeTopHeader extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.background,
-                        border: Border.all(color: AppColors.divider, width: 1.5),
+                        color: Color(0xFFF2F4F7), // Light greyish background
                       ),
                       child: const Center(
                         child: Icon(
@@ -162,14 +172,14 @@ class HomeTopHeader extends StatelessWidget {
                     ),
                     if (cartCount > 0)
                       Positioned(
-                        top: -4,
-                        right: -4,
+                        top: 0,
+                        right: 0,
                         child: Container(
-                          width: 20,
-                          height: 20,
+                          width: 18,
+                          height: 18,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.error,
+                            color: AppColors.primaryAccent,
                             border: Border.all(color: Colors.white, width: 1.5),
                           ),
                           child: Center(
@@ -177,7 +187,7 @@ class HomeTopHeader extends StatelessWidget {
                               cartCount > 9 ? '9+' : '$cartCount',
                               style: const TextStyle(
                                 fontFamily: 'Lexend',
-                                fontSize: 10,
+                                fontSize: 9,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                               ),

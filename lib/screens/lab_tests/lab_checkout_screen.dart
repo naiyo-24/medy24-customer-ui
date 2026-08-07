@@ -9,7 +9,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/lab_test_provider.dart';
 import '../../services/razorpay_payment_service.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'package:flutter/services.dart';
 
 class LabCheckoutScreen extends ConsumerStatefulWidget {
   final LabPackage lab;
@@ -237,7 +236,9 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
                       title: Text("COD", style: AppTextStyles.bodyMedium),
                       subtitle: Text("Pay at collection", style: AppTextStyles.caption),
                       value: 'cod',
+                      // ignore: deprecated_member_use
                       groupValue: _paymentMode,
+                      // ignore: deprecated_member_use
                       onChanged: (val) {
                         if (val != null) setState(() => _paymentMode = val);
                       },
@@ -258,7 +259,9 @@ class _LabCheckoutScreenState extends ConsumerState<LabCheckoutScreen> {
                       title: Text("Online", style: AppTextStyles.bodyMedium),
                       subtitle: Text("Pay instantly via Razorpay", style: AppTextStyles.caption),
                       value: 'online',
+                      // ignore: deprecated_member_use
                       groupValue: _paymentMode,
+                      // ignore: deprecated_member_use
                       onChanged: (val) {
                         if (val != null) setState(() => _paymentMode = val);
                       },

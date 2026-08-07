@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -128,18 +129,44 @@ class _PromoBannerCard extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
-          child: Image.network(
-            ApiUrl.imageUrl(banner.imageUrl),
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: AppColors.background,
-              child: const Center(
-                child: Icon(Icons.broken_image_rounded, color: AppColors.textTertiary),
-              ),
-            ),
-          ),
+          child: banner.imageUrl.startsWith('file://')
+              ? Image.file(
+                  File(banner.imageUrl.replaceFirst('file://', '')),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: AppColors.background,
+                    child: const Center(
+                      child: Icon(Icons.broken_image_rounded, color: AppColors.textTertiary),
+                    ),
+                  ),
+                )
+              : banner.imageUrl.startsWith('assets/')
+                  ? Image.asset(
+                      banner.imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: AppColors.background,
+                        child: const Center(
+                          child: Icon(Icons.broken_image_rounded, color: AppColors.textTertiary),
+                        ),
+                      ),
+                    )
+                  : Image.network(
+                      ApiUrl.imageUrl(banner.imageUrl),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: AppColors.background,
+                        child: const Center(
+                          child: Icon(Icons.broken_image_rounded, color: AppColors.textTertiary),
+                        ),
+                      ),
+                    ),
         ),
       ),
     );

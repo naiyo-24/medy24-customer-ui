@@ -6,6 +6,7 @@ class HomeServiceGridItem {
   final String subtitle;
   final String offerText;
   final Color offerColor;
+  final Color bgColor;
   final String imagePath;
   final VoidCallback onTap;
 
@@ -14,12 +15,12 @@ class HomeServiceGridItem {
     required this.subtitle,
     required this.offerText,
     required this.offerColor,
+    required this.bgColor,
     required this.imagePath,
     required this.onTap,
   });
 }
 
-/// 2×2 grid of service cards like Apollo Pharmacy home screen.
 class HomeServiceGrid extends StatelessWidget {
   final List<HomeServiceGridItem> items;
 
@@ -27,32 +28,31 @@ class HomeServiceGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure we have at most 4 items for 2×2 layout
     final displayItems = items.take(4).toList();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           Row(
             children: [
               if (displayItems.isNotEmpty)
                 Expanded(child: _ServiceCard(item: displayItems[0])),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               if (displayItems.length > 1)
                 Expanded(child: _ServiceCard(item: displayItems[1]))
               else
                 const Expanded(child: SizedBox()),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               if (displayItems.length > 2)
                 Expanded(child: _ServiceCard(item: displayItems[2]))
               else
                 const Expanded(child: SizedBox()),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               if (displayItems.length > 3)
                 Expanded(child: _ServiceCard(item: displayItems[3]))
               else
@@ -90,88 +90,90 @@ class _ServiceCardState extends State<_ServiceCard> {
         scale: _pressed ? 0.96 : 1.0,
         duration: const Duration(milliseconds: 120),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          height: 140, // Fixed height for consistency
+          padding: const EdgeInsets.only(left: 12, top: 12, bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.divider),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(8),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            color: widget.item.bgColor,
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
-              // Title with arrow
-              Row(
+              // Content
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      widget.item.title,
-                      style: const TextStyle(
-                        fontFamily: 'Lexend',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                        height: 1.2,
+                  Text(
+                    widget.item.title,
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.item.subtitle,
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (widget.item.offerText.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: widget.item.offerColor.withAlpha(30),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        widget.item.offerText,
+                        style: TextStyle(
+                          fontFamily: 'Lexend',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: widget.item.offerColor,
+                        ),
                       ),
                     ),
-                  ),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    size: 18,
-                    color: AppColors.textTertiary,
-                  ),
                 ],
               ),
-
-              const SizedBox(height: 4),
-
-              // Offer text
-              Text(
-                widget.item.offerText,
-                style: TextStyle(
-                  fontFamily: 'Lexend',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: widget.item.offerColor,
-                  height: 1.3,
-                ),
-              ),
-
-              const SizedBox(height: 4),
-
-              // Subtitle
-              Text(
-                widget.item.subtitle,
-                style: const TextStyle(
-                  fontFamily: 'Lexend',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Image
-              Align(
-                alignment: Alignment.bottomRight,
-                child: SizedBox(
-                  height: 72,
-                  child: Image.asset(
-                    widget.item.imagePath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Icon(
-                      Icons.medical_services_outlined,
-                      size: 40,
-                      color: widget.item.offerColor.withAlpha(150),
+              
+              // Arrow Icon (Top Right)
+              Positioned(
+                top: 0,
+                right: 12,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: AppColors.primaryAccent,
                     ),
                   ),
+                ),
+              ),
+
+              // Image (Bottom Right)
+              Positioned(
+                bottom: 0,
+                right: 8,
+                child: Image.asset(
+                  widget.item.imagePath,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const SizedBox(width: 60, height: 60),
                 ),
               ),
             ],

@@ -18,7 +18,10 @@ import '../../cards/medicine/medicine_card.dart';
 import '../../widgets/welcome_popup.dart';
 import '../../providers/order_provider.dart';
 import '../../cards/medicine_orders/order_card.dart';
-import '../../providers/advertisement_provider.dart';
+import '../../models/advertisement.dart';
+import '../../widgets/home_category_icons.dart';
+import '../../widgets/home_popular_categories.dart';
+import '../../widgets/home_secondary_banner.dart';
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -27,7 +30,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _selectedTabIndex = 0;
+  final int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -120,7 +123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             scrolledUnderElevation: 2,
             shadowColor: Colors.black.withAlpha(20),
             automaticallyImplyLeading: false,
-            toolbarHeight: 65, // Accommodates Search
+            toolbarHeight: 75, // Accommodates Search
             flexibleSpace: FlexibleSpaceBar(
               background: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -145,25 +148,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // ── Promo Banner Carousel (dynamic ads)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    final adsAsync = ref.watch(advertisementProvider);
-                    return adsAsync.when(
-                      data: (ads) {
-                        if (ads.isEmpty) return const SizedBox.shrink();
-                        return PromoBannerCarousel(banners: ads);
-                      },
-                      loading: () => const SizedBox(
-                        height: 160,
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                      error: (err, stack) => const SizedBox(
-                        height: 160,
-                        child: Center(child: Icon(Icons.error_outline, color: Colors.red)),
-                      ),
-                    );
-                  },
+                child: PromoBannerCarousel(
+                  banners: [
+                    AdvertisementModel(
+                      id: 'demo1',
+                      title: 'Demo Ad 1',
+                      imageUrl: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=800&auto=format&fit=crop',
+                      isActive: true,
+                      createdAt: DateTime.now(),
+                    ),
+                    AdvertisementModel(
+                      id: 'demo2',
+                      title: 'Demo Ad 2',
+                      imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800&auto=format&fit=crop',
+                      isActive: true,
+                      createdAt: DateTime.now(),
+                    ),
+                    AdvertisementModel(
+                      id: 'demo3',
+                      title: 'Demo Ad 3',
+                      imageUrl: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?q=80&w=800&auto=format&fit=crop',
+                      isActive: true,
+                      createdAt: DateTime.now(),
+                    ),
+                  ],
                 ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // ── Main Category Icons
+              HomeCategoryIcons(
+                onCategoryTap: (index) {
+                  if (index == 0) {
+                    context.push('/medicine-list');
+                  } else if (index == 1) {
+                    context.push('/lab-tests');
+                  } else if (index == 3) {
+                    context.push('/order-with-prescription');
+                  }
+                },
               ),
 
               const SizedBox(height: 20),
@@ -173,39 +197,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 items: [
                   HomeServiceGridItem(
                     title: 'Order\nMedicines',
-                    subtitle: 'Free Delivery',
-                    offerText: '20% off with MEDY20',
+                    subtitle: 'Genuine medicines\nat best prices',
+                    offerText: '20% OFF',
                     offerColor: AppColors.primaryAccent,
+                    bgColor: const Color(0xFFE5FAFA), // Light teal
                     imagePath: 'assets/logo/order_medicine.png',
                     onTap: () => context.push('/medicine-list'),
                   ),
                   HomeServiceGridItem(
                     title: 'Lab Tests &\nPackages',
-                    subtitle: 'Free Home Pickup',
-                    offerText: 'Flat 15% off',
-                    offerColor: AppColors.success,
+                    subtitle: 'Accurate reports\nat your doorstep',
+                    offerText: 'Upto 15% OFF',
+                    offerColor: const Color(0xFF9B51E0), // Purple
+                    bgColor: const Color(0xFFF4F0FA), // Light purple
                     imagePath: 'assets/logo/book_lab_test.png',
                     onTap: () => context.push('/lab-tests'),
                   ),
                   HomeServiceGridItem(
                     title: 'My\nOrders',
-                    subtitle: 'Track your items',
-                    offerText: 'View past orders',
-                    offerColor: AppColors.purple,
+                    subtitle: 'Track, reorder and\nview order history',
+                    offerText: '',
+                    offerColor: Colors.transparent,
+                    bgColor: const Color(0xFFFFF6ED), // Light orange
                     imagePath: 'assets/logo/patho_lab.png',
                     onTap: () => context.push('/my-medicine-orders'),
                   ),
                   HomeServiceGridItem(
                     title: 'Upload\nPrescription',
-                    subtitle: 'We do the rest',
-                    offerText: 'Quick & Easy',
-                    offerColor: AppColors.warning,
+                    subtitle: 'Upload Rx and let our\npharmacist review',
+                    offerText: '',
+                    offerColor: Colors.transparent,
+                    bgColor: const Color(0xFFEFF5FE), // Light blue
                     imagePath: 'assets/logo/order_with_prescription.png',
                     onTap: () =>
                         context.push('/order-with-prescription'),
                   ),
                 ],
               ),
+
+              const SizedBox(height: 24),
+
+              // ── Popular Categories
+              const HomePopularCategories(),
+
+              const SizedBox(height: 24),
+
+              // ── Secondary Banner
+              const HomeSecondaryBanner(),
 
               const SizedBox(height: 24),
 

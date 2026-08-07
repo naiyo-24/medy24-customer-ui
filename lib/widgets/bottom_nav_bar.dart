@@ -65,6 +65,27 @@ class CustomBottomNavBar extends StatelessWidget {
                   onTap(2);
                 },
               ),
+              _NavBarItem(
+                icon: Iconsax.shopping_cart,
+                activeIcon: Iconsax.shopping_cart,
+                label: 'Cart',
+                isActive: currentIndex == 3,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onTap(3);
+                },
+                // Add a badge if you want by wrapping the icon in a Badge widget in _NavBarItem
+              ),
+              _NavBarItem(
+                icon: Iconsax.user,
+                activeIcon: Iconsax.user,
+                label: 'Profile',
+                isActive: currentIndex == 4,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onTap(4);
+                },
+              ),
             ],
           ),
         ),
