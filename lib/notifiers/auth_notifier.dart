@@ -157,6 +157,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(user: demoUser, isLoading: false);
   }
 
+  Future<bool> updateProfile({
+    String? fullName,
+    File? profilePhoto,
+  }) async {
+    final user = state.user;
+    if (user == null || user.customerId == null) return false;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.updateProfile(
+        customerId: user.customerId!,
+        fullName: fullName,
+        profilePhoto: profilePhoto,
+      );
+
+      final updatedUser = user.copyWith(
+        fullName: fullName,
+        profilePhoto: profilePhoto?.path,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user', updatedUser.toJson());
+
+      state = state.copyWith(user: updatedUser, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user');

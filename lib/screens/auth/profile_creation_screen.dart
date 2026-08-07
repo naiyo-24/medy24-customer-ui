@@ -4,15 +4,17 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/auth_provider.dart';
 
-class ProfileCreationScreen extends StatefulWidget {
+class ProfileCreationScreen extends ConsumerStatefulWidget {
   const ProfileCreationScreen({super.key});
 
   @override
-  State<ProfileCreationScreen> createState() => _ProfileCreationScreenState();
+  ConsumerState<ProfileCreationScreen> createState() => _ProfileCreationScreenState();
 }
 
-class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
+class _ProfileCreationScreenState extends ConsumerState<ProfileCreationScreen> {
   final TextEditingController _nameController = TextEditingController();
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
@@ -38,15 +40,27 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
     }
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your full name')),
       );
       return;
     }
-    // Handle profile creation logic here (e.g. updating Firestore with the new name)
-    context.go('/home');
+    
+    final success = await ref.read(authProvider.notifier).updateProfile(
+      fullName: _nameController.text.trim(),
+      profilePhoto: _profileImage,
+    );
+
+    if (success && mounted) {
+      context.go('/home');
+    } else if (mounted) {
+      final error = ref.read(authProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Failed to update profile')),
+      );
+    }
   }
 
   @override
@@ -178,18 +192,24 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: _handleSave,
+                            onPressed: ref.watch(authProvider).isLoading ? null : _handleSave,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
                               ),
                             ),
-                            child: const Text('Save & Continue',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold)),
+                            child: ref.watch(authProvider).isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Text('Save & Continue',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold)),
                           ),
                         ),
                         const SizedBox(height: 40),

@@ -23,13 +23,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (_phoneController.text.length != 10) return;
 
     setState(() => _isSendingOtp = true);
-    await ref
+    final exists = await ref
         .read(authProvider.notifier)
         .checkPhone(_phoneController.text);
 
-    // Temporarily force `true` so the Profile Creation screen always shows for testing!
-    // (If the API says `exists` is true, the app normally skips profile creation)
-    await _sendFirebaseOtp(true);
+    await _sendFirebaseOtp(!exists);
   }
 
   Future<void> _sendFirebaseOtp(bool isNewUser) async {
