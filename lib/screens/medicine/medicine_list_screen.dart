@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/medicine_provider.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/order_with_prescription_card.dart';
-import '../../widgets/app_bar.dart';
-import '../../cards/medicine/medicine_card.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/home_top_header.dart';
+import '../../widgets/home_search_input.dart';
+import '../../widgets/promo_banner_carousel.dart';
+import '../../models/advertisement.dart';
+import '../../widgets/section_header.dart';
+import '../../widgets/medicine_categories_row.dart';
+import '../../widgets/medicine_horizontal_list.dart';
+import '../../widgets/popular_brands_row.dart';
+import '../../cards/medicine/medicine_card.dart';
 
 class MedicineListScreen extends ConsumerStatefulWidget {
   const MedicineListScreen({super.key});
@@ -41,112 +47,175 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
     }
   }
 
+  String _getLocation(dynamic user) {
+    try {
+      final saved = user?.savedAddresses as List<dynamic>?;
+      if (saved != null && saved.isNotEmpty) {
+        final first = saved.first as Map<String, dynamic>?;
+        final addr = first?['address_1'] as String?;
+        if (addr != null && addr.isNotEmpty) return addr;
+      }
+    } catch (_) {}
+    return 'Kolkata 700086';
+  }
+
   @override
   Widget build(BuildContext context) {
     final medicineState = ref.watch(medicineProvider);
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+    final location = _getLocation(user);
+    final userName = user?.fullName ?? user?.phoneNumber ?? 'Guest';
+    final cartState = ref.watch(cartProvider);
+    final cartCount = cartState.items.length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        title: 'Medicines',
-        subtitle: 'Order from your nearest pharmacy',
-        showBackButton: false,
-        actions: [
-          IconButton(
-            onPressed: () => context.push('/medicine-search'),
-            icon: const Icon(Iconsax.search_normal_1),
-          ),
-          IconButton(
-            onPressed: () => _showFilterBottomSheet(context),
-            icon: const Icon(Iconsax.filter_edit),
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                onPressed: () => context.push('/cart'),
-                icon: const Icon(Iconsax.shopping_cart),
-              ),
-              Consumer(
-                builder: (context, ref, child) {
-                  final cartItemCount = ref.watch(cartProvider).items.length;
-                  if (cartItemCount == 0) return const SizedBox.shrink();
-                  return Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '$cartItemCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: () =>
             ref.read(medicineProvider.notifier).fetchAllMedicines(),
         child: CustomScrollView(
           controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           slivers: [
+            // ── Top Header
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  16,
-                  AppSpacing.screenPadding,
-                  8,
-                ),
-                child: OrderWithPrescriptionCard(
-                  onTap: () => context.push('/order-with-prescription'),
+              child: SafeArea(
+                bottom: false,
+                child: HomeTopHeader(
+                  userName: userName,
+                  profilePhoto: user?.profilePhoto,
+                  location: location,
+                  deliveryTime: '30 mins',
+                  cartCount: cartCount,
+                  onLocationTap: () => context.push('/map-picker'),
+                  onCartTap: () => context.push('/cart'),
+                  onProfileTap: () => context.push('/profile'),
                 ),
               ),
             ),
-            if (medicineState.isLoading && medicineState.medicines.isEmpty)
-              const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (medicineState.error != null)
-              SliverFillRemaining(
-                child: Center(child: Text(medicineState.error!)),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.62,
-                    crossAxisSpacing: AppSpacing.elementGap,
-                    mainAxisSpacing: AppSpacing.elementGap,
-                  ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final medicine = medicineState.medicines[index];
-                    return MedicineCard(
-                      medicine: medicine,
-                      onTap: () {
-                        ref
-                            .read(medicineProvider.notifier)
-                            .selectMedicine(medicine);
-                        context.push('/medicine-details');
-                      },
-                    );
-                  }, childCount: medicineState.medicines.length),
+            
+            // ── Search Input
+            SliverAppBar(
+              pinned: true,
+              floating: false,
+              primary: false,
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.white,
+              elevation: 0,
+              scrolledUnderElevation: 2,
+              shadowColor: Colors.black.withAlpha(20),
+              automaticallyImplyLeading: false,
+              toolbarHeight: 75,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    HomeSearchInput(
+                      onTap: () => context.push('/medicine-search'),
+                    ),
+                  ],
                 ),
               ),
+            ),
+
+            // ── Body Content
+            SliverList(
+              delegate: SliverChildListDelegate([
+                const SizedBox(height: 16),
+
+                // Promo Banner
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: PromoBannerCarousel(
+                    banners: [
+                      AdvertisementModel(
+                        id: 'demo1',
+                        title: 'Flat 20% OFF',
+                        imageUrl: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=800&auto=format&fit=crop',
+                        isActive: true,
+                        createdAt: DateTime.now(),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Browse Categories
+                SectionHeader(
+                  title: 'Browse Categories',
+                  onSeeAllTap: () {},
+                ),
+                MedicineCategoriesRow(
+                  onCategoryTap: (category) {
+                    // Filter logic or navigation
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Top Deals on Medicines
+                SectionHeader(
+                  title: 'Top Deals on Medicines',
+                  onSeeAllTap: () {},
+                ),
+                if (medicineState.isLoading && medicineState.medicines.isEmpty)
+                  const Center(child: CircularProgressIndicator())
+                else if (medicineState.medicines.isNotEmpty)
+                  MedicineHorizontalList(medicines: medicineState.medicines.take(5).toList()),
+                
+                const SizedBox(height: 16),
+
+                // Popular Brands
+                SectionHeader(
+                  title: 'Popular Brands',
+                  onSeeAllTap: () {},
+                ),
+                PopularBrandsRow(
+                  onBrandTap: (brand) {},
+                ),
+                const SizedBox(height: 16),
+
+                // Frequently Ordered Header
+                SectionHeader(
+                  title: 'Frequently Ordered',
+                  onSeeAllTap: () {},
+                ),
+              ]),
+            ),
+
+            // Frequently Ordered Vertical List
+            if (medicineState.medicines.length > 5)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final medicine = medicineState.medicines[index + 5];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: SizedBox(
+                          height: 140, // Height bound for the MedicineCard if it's meant to be square-ish
+                          child: MedicineCard(
+                            medicine: medicine,
+                            onTap: () {
+                              ref
+                                  .read(medicineProvider.notifier)
+                                  .selectMedicine(medicine);
+                              context.push('/medicine-details');
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: medicineState.medicines.length - 5,
+                  ),
+                ),
+              )
+            else if (!medicineState.isLoading && medicineState.medicines.isEmpty)
+              const SliverFillRemaining(
+                child: Center(child: Text('No medicines found')),
+              ),
+
             if (medicineState.isFetchingMore)
               const SliverToBoxAdapter(
                 child: Padding(
@@ -155,174 +224,9 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 ),
               )
             else
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showFilterBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        final currentRange = ref
-            .read(medicineProvider)
-            .listPriceRange
-            ?.firstOrNull;
-        String initialSelection = 'All';
-        if (currentRange == '0-100') {
-          initialSelection = 'Under 100';
-        } else if (currentRange == '100-500') {
-          initialSelection = '100-500';
-        } else if (currentRange == '500-1000') {
-          initialSelection = '500-1000';
-        } else if (currentRange == '1000-5000') {
-          initialSelection = '1000-5000';
-        } else if (currentRange == '5000+') {
-          initialSelection = 'Above 5000';
-        }
-
-        return _FilterBottomSheet(
-          initialSelection: initialSelection,
-          onApply: (priceRangeLabel) {
-            context.pop();
-            if (priceRangeLabel == null || priceRangeLabel == 'All') {
-              ref
-                  .read(medicineProvider.notifier)
-                  .fetchAllMedicines(clearFilter: true);
-            } else {
-              List<String> range = [];
-              if (priceRangeLabel == 'Under 100') {
-                range = ['0-100'];
-              } else if (priceRangeLabel == '100-500') {
-                range = ['100-500'];
-              } else if (priceRangeLabel == '500-1000') {
-                range = ['500-1000'];
-              } else if (priceRangeLabel == '1000-5000') {
-                range = ['1000-5000'];
-              } else if (priceRangeLabel == 'Above 5000') {
-                range = ['5000+'];
-              }
-
-              ref
-                  .read(medicineProvider.notifier)
-                  .fetchAllMedicines(priceRange: range);
-            }
-          },
-        );
-      },
-    );
-  }
-}
-
-class _FilterBottomSheet extends StatefulWidget {
-  final String initialSelection;
-  final Function(String?) onApply;
-
-  const _FilterBottomSheet({
-    required this.initialSelection,
-    required this.onApply,
-  });
-
-  @override
-  State<_FilterBottomSheet> createState() => _FilterBottomSheetState();
-}
-
-class _FilterBottomSheetState extends State<_FilterBottomSheet> {
-  late String _selectedRange;
-
-  final List<String> _priceRanges = [
-    'All',
-    'Under 100',
-    '100-500',
-    '500-1000',
-    '1000-5000',
-    'Above 5000',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedRange = widget.initialSelection;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Filter by Price',
-                style: AppTextStyles.header.copyWith(fontSize: 20),
-              ),
-              IconButton(
-                onPressed: () => context.pop(),
-                icon: const Icon(
-                  Iconsax.close_circle,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 12,
-            children: _priceRanges.map((range) {
-              final isSelected = _selectedRange == range;
-              return ChoiceChip(
-                label: Text(range),
-                selected: isSelected,
-                selectedColor: AppColors.primary,
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-                backgroundColor: AppColors.surface,
-                onSelected: (selected) {
-                  setState(() {
-                    _selectedRange = range;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
-              onPressed: () => widget.onApply(_selectedRange),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Apply Filter',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
       ),
     );
   }

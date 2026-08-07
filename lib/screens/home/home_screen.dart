@@ -184,7 +184,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     context.push('/medicine-list');
                   } else if (index == 1) {
                     context.push('/lab-tests');
-                  } else if (index == 3) {
+                  } else if (index == 2) {
                     context.push('/order-with-prescription');
                   }
                 },

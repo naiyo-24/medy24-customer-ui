@@ -11,9 +11,7 @@ class HomeCategoryIcons extends StatelessWidget {
     final categories = [
       {'title': 'Medicines', 'icon': Icons.medication, 'color': Colors.blue},
       {'title': 'Lab Tests', 'icon': Icons.science, 'color': Colors.indigo},
-      {'title': 'Doctor\nConsultation', 'icon': Icons.person, 'color': Colors.teal},
       {'title': 'Upload\nPrescription', 'icon': Icons.camera_alt, 'color': Colors.blueGrey},
-      {'title': 'Wellness', 'icon': Icons.favorite, 'color': Colors.redAccent},
     ];
 
     return Padding(

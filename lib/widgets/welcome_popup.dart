@@ -35,7 +35,7 @@ class WelcomePopup extends StatelessWidget {
                 },
                 blendMode: BlendMode.dstIn,
                 child: Image.asset(
-                  'assets/logo/welcome.jpeg',
+                  'assets/logo/welcome.png',
                   width: double.infinity,
                   height: 200, // Banner height
                   fit: BoxFit.cover,

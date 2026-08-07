@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/lab_test_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/cart_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/app_bar.dart';
+import '../../widgets/home_top_header.dart';
+import '../../widgets/home_search_input.dart';
+import '../../widgets/promo_banner_carousel.dart';
+import '../../models/advertisement.dart';
+import '../../widgets/section_header.dart';
+import '../../widgets/lab_test_categories_row.dart';
+import '../../widgets/health_packages_horizontal_list.dart';
+import '../../widgets/why_choose_us_row.dart';
+import '../../widgets/top_health_tests_list.dart';
 
 class LabTestSearchScreen extends ConsumerStatefulWidget {
   const LabTestSearchScreen({super.key});
@@ -14,170 +22,149 @@ class LabTestSearchScreen extends ConsumerStatefulWidget {
 }
 
 class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  String _getLocation(dynamic user) {
+    try {
+      final saved = user?.savedAddresses as List<dynamic>?;
+      if (saved != null && saved.isNotEmpty) {
+        final first = saved.first as Map<String, dynamic>?;
+        final addr = first?['address_1'] as String?;
+        if (addr != null && addr.isNotEmpty) return addr;
+      }
+    } catch (_) {}
+    return 'Kolkata 700086';
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(labTestProvider);
-    final notifier = ref.read(labTestProvider.notifier);
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+    final location = _getLocation(user);
+    final userName = user?.fullName ?? user?.phoneNumber ?? 'Guest';
+    final cartState = ref.watch(cartProvider);
+    final cartCount = cartState.items.length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
-        title: 'Book Lab Tests',
-        subtitle: 'Search blood tests, MRI, etc.',
-        showBackButton: false,
-      ),
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(5),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // ── Top Header
+          SliverToBoxAdapter(
+            child: SafeArea(
+              bottom: false,
+              child: HomeTopHeader(
+                userName: userName,
+                profilePhoto: user?.profilePhoto,
+                location: location,
+                deliveryTime: '30 mins',
+                cartCount: cartCount,
+                onLocationTap: () => context.push('/map-picker'),
+                onCartTap: () => context.push('/cart'),
+                onProfileTap: () => context.push('/profile'),
+              ),
+            ),
+          ),
+          
+          // ── Search Input
+          SliverAppBar(
+            pinned: true,
+            floating: false,
+            primary: false,
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.white,
+            elevation: 0,
+            scrolledUnderElevation: 2,
+            shadowColor: Colors.black.withAlpha(20),
+            automaticallyImplyLeading: false,
+            toolbarHeight: 75,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  HomeSearchInput(
+                    onTap: () => context.push('/medicine-search'),
                   ),
                 ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search blood tests, MRI, etc.',
-                  hintStyle: AppTextStyles.cardSubtitle,
-                  prefixIcon: const Icon(
-                    Iconsax.search_normal_1,
-                    color: AppColors.primary,
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            notifier.searchTests("");
-                            setState(() {});
-                          },
-                          icon: const Icon(
-                            Iconsax.close_circle,
-                            color: AppColors.textSecondary,
-                          ),
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 15,
-                  ),
-                ),
-                onChanged: (value) {
-                  notifier.searchTests(value);
-                  setState(() {});
-                },
               ),
             ),
           ),
 
-          // Results
-          Expanded(
-            child: state.isLoadingSearch
-                ? const Center(child: CircularProgressIndicator())
-                : state.searchResults.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Iconsax.search_status, size: 64, color: AppColors.divider),
-                            const SizedBox(height: 16),
-                            Text("No tests found", style: AppTextStyles.cardSubtitle),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(
-                            bottom: 100), // padding for FAB
-                        itemCount: state.searchResults.length,
-                        itemBuilder: (context, index) {
-                          final test = state.searchResults[index];
-                          final isSelected = state.selectedTestIds.contains(test.testId);
+          // ── Body Content
+          SliverList(
+            delegate: SliverChildListDelegate([
+              const SizedBox(height: 16),
 
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primary.withAlpha(26) : Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                if (!isSelected)
-                                  BoxShadow(
-                                    color: Colors.black.withAlpha(5),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                              ],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(16),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                title: Text(test.testName, style: AppTextStyles.cardTitle.copyWith(fontSize: 16)),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 4.0),
-                                  child: Text(
-                                    "${test.category} • ${test.sampleType}",
-                                    style: AppTextStyles.cardSubtitle,
-                                  ),
-                                ),
-                                trailing: Checkbox(
-                                  value: isSelected,
-                                  activeColor: AppColors.primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  onChanged: (val) {
-                                    notifier.toggleTestSelection(test.testId);
-                                  },
-                                ),
-                                onTap: () {
-                                  notifier.toggleTestSelection(test.testId);
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+              // Promo Banner
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: PromoBannerCarousel(
+                  banners: [
+                    AdvertisementModel(
+                      id: 'demo_lab',
+                      title: 'Up to 15% OFF on Lab Tests',
+                      imageUrl: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=800&auto=format&fit=crop',
+                      isActive: true,
+                      createdAt: DateTime.now(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Popular Test Categories
+              SectionHeader(
+                title: 'Popular Test Categories',
+                onSeeAllTap: () {},
+              ),
+              LabTestCategoriesRow(
+                onCategoryTap: (category) {
+                  // Navigate or filter
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Health Packages For You
+              SectionHeader(
+                title: 'Health Packages For You',
+                onSeeAllTap: () {},
+              ),
+              HealthPackagesHorizontalList(
+                onBookTap: (package) {},
+              ),
+              const SizedBox(height: 16),
+
+              // Why Choose Us
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Text(
+                  'Why Choose Medy24 Lab Tests?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              const WhyChooseUsRow(),
+              const SizedBox(height: 16),
+
+              // Top Health Tests Header
+              SectionHeader(
+                title: 'Top Health Tests',
+                onSeeAllTap: () {},
+              ),
+              
+              // Vertical List of Health Tests
+              TopHealthTestsList(
+                onAddTap: (testName) {},
+              ),
+
+              const SizedBox(height: 40),
+            ]),
           ),
         ],
       ),
-      floatingActionButton: state.selectedTestIds.isNotEmpty
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                notifier.findLabs();
-                context.push('/lab-selection');
-              },
-              backgroundColor: AppColors.primary,
-              icon: const Icon(Iconsax.magic_star, color: Colors.white),
-              label: Text("Find Labs (${state.selectedTestIds.length}) ➔", style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
