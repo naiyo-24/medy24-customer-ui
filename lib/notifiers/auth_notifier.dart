@@ -77,6 +77,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final exists = response.data['exists'] as bool;
       state = state.copyWith(isLoading: false, isUserExists: exists);
       return exists;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        // Backend returns 404 when phone number doesn't exist
+        state = state.copyWith(isLoading: false, isUserExists: false);
+        return false;
+      }
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
@@ -118,7 +126,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final customerId = response.data['user_id'];
       
       // Create a basic user model since the new endpoint only returns tokens and ID
-      final authenticatedUser = UserModel(
+      UserModel authenticatedUser = UserModel(
         customerId: customerId,
         phoneNumber: phoneNumber,
         fullName: fullName ?? 'Customer',
@@ -127,6 +135,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
         profilePhoto: profilePhoto?.path,
         token: backendToken,
       );
+
+      // Fetch the full profile so the Home Screen doesn't say 'Customer'
+      try {
+        final profileResponse = await _authService.getProfile(customerId);
+        if (profileResponse.data != null) {
+          final p = profileResponse.data;
+          authenticatedUser = authenticatedUser.copyWith(
+            fullName: p['name'] ?? authenticatedUser.fullName,
+            email: p['email'] ?? authenticatedUser.email,
+            profilePhoto: p['profile_picture'] ?? authenticatedUser.profilePhoto,
+          );
+        }
+      } catch (_) {
+        // Ignore profile fetch errors during login
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user', authenticatedUser.toJson());
@@ -188,7 +211,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> deleteAccount() async {
+    final user = state.user;
+    if (user == null || user.customerId == null || user.token == null) return false;
+    
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.deleteCustomer(user.customerId!, user.token!);
+      await logout();
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   Future<void> logout() async {
+    final user = state.user;
+    if (user != null && user.token != null && user.customerId != null) {
+      try {
+        await _authService.logout(user.customerId!, user.token!);
+      } catch (e) {
+        // Ignore backend errors so the user can still log out locally
+      }
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user');
     state = AuthState();

@@ -23,9 +23,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (_phoneController.text.length != 10) return;
 
     setState(() => _isSendingOtp = true);
+    final fullPhoneNumber = '+91${_phoneController.text}';
     final exists = await ref
         .read(authProvider.notifier)
-        .checkPhone(_phoneController.text);
+        .checkPhone(fullPhoneNumber);
+
+    if (ref.read(authProvider).error != null) {
+      setState(() => _isSendingOtp = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to connect to server. Please try again later.')),
+        );
+      }
+      return;
+    }
 
     await _sendFirebaseOtp(!exists);
   }

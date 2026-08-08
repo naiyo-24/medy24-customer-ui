@@ -12,7 +12,10 @@ import '../../widgets/section_header.dart';
 import '../../widgets/lab_test_categories_row.dart';
 import '../../widgets/health_packages_horizontal_list.dart';
 import '../../widgets/why_choose_us_row.dart';
+import '../../widgets/top_health_tests_horizontal_list.dart';
 import '../../widgets/top_health_tests_list.dart';
+import '../../widgets/top_health_tests_grid.dart';
+import '../../providers/lab_test_provider.dart';
 
 class LabTestSearchScreen extends ConsumerStatefulWidget {
   const LabTestSearchScreen({super.key});
@@ -43,6 +46,7 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
     final userName = user?.fullName ?? user?.phoneNumber ?? 'Guest';
     final cartState = ref.watch(cartProvider);
     final cartCount = cartState.items.length;
+    final labTestState = ref.watch(labTestProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -83,7 +87,10 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   HomeSearchInput(
-                    onTap: () => context.push('/medicine-search'),
+                    readOnly: true,
+                    onTap: () {
+                      context.push('/lab-test-active-search');
+                    },
                   ),
                 ],
               ),
@@ -149,22 +156,74 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
               const WhyChooseUsRow(),
               const SizedBox(height: 16),
 
-              // Top Health Tests Header
-              SectionHeader(
-                title: 'Top Health Tests',
-                onSeeAllTap: () {},
-              ),
-              
-              // Vertical List of Health Tests
-              TopHealthTestsList(
-                onAddTap: (testName) {},
-              ),
+              // Mixed Layout Health Tests
+              if (labTestState.isLoadingSearch)
+                const Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else ...[
+                // Featured Tests
+                SectionHeader(
+                  title: 'Featured Tests',
+                  onSeeAllTap: () {},
+                ),
+                TopHealthTestsHorizontalList(
+                  tests: labTestState.searchResults.take(4).toList(),
+                  selectedTestIds: labTestState.selectedTestIds,
+                  onAddTap: (testId) {
+                    ref.read(labTestProvider.notifier).toggleTestSelection(testId);
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Popular Tests
+                SectionHeader(
+                  title: 'Popular Tests',
+                  onSeeAllTap: () {},
+                ),
+                TopHealthTestsList(
+                  tests: labTestState.searchResults.skip(4).take(4).toList(),
+                  selectedTestIds: labTestState.selectedTestIds,
+                  onAddTap: (testId) {
+                    ref.read(labTestProvider.notifier).toggleTestSelection(testId);
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Essential Tests
+                SectionHeader(
+                  title: 'Essential Tests',
+                  onSeeAllTap: () {},
+                ),
+                TopHealthTestsGrid(
+                  tests: labTestState.searchResults.skip(8).toList(),
+                  selectedTestIds: labTestState.selectedTestIds,
+                  onAddTap: (testId) {
+                    ref.read(labTestProvider.notifier).toggleTestSelection(testId);
+                  },
+                ),
+              ],
 
               const SizedBox(height: 40),
             ]),
           ),
         ],
       ),
+      floatingActionButton: labTestState.selectedTestIds.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                ref.read(labTestProvider.notifier).findLabs();
+                context.push('/lab-selection');
+              },
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.search, color: Colors.white),
+              label: Text(
+                'Find Labs (${labTestState.selectedTestIds.length})',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            )
+          : null,
     );
   }
 }

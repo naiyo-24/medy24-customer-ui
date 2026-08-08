@@ -4,7 +4,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/profile_provider.dart';
-import '../../providers/auth_provider.dart';
 
 class ProfileOptionsCard extends ConsumerWidget {
   const ProfileOptionsCard({super.key});
@@ -57,7 +56,7 @@ class ProfileOptionsCard extends ConsumerWidget {
                   title: 'My Cart',
                   subtitle: 'View items in your basket',
                   color: AppColors.primary,
-                  onTap: () {},
+                  onTap: () => context.push('/cart'),
                 ),
                 _buildDivider(),
                 _buildOption(
@@ -114,21 +113,8 @@ class ProfileOptionsCard extends ConsumerWidget {
                   title: 'Settings',
                   subtitle: 'Manage app settings',
                   color: AppColors.primary,
-                  onTap: () => context.push('/settings'),
-                ),
-                _buildDivider(),
-                _buildOption(
-                  icon: Iconsax.logout,
-                  title: 'Log Out',
-                  subtitle: 'Sign out of your account',
-                  color: Colors.red,
                   isLast: true,
-                  onTap: () async {
-                    await ref.read(authProvider.notifier).logout();
-                    if (context.mounted) {
-                      context.go('/login');
-                    }
-                  },
+                  onTap: () => context.push('/settings'),
                 ),
               ],
             ),

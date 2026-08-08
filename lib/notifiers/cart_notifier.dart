@@ -44,7 +44,9 @@ class CartState {
 
     for (var item in items) {
       double mrp = item.medicine.mrp ?? 0.0;
-      double finalPrice = item.medicine.finalPrice ?? mrp;
+      double finalPrice = (item.medicine.finalPrice != null && item.medicine.finalPrice! > 0)
+          ? item.medicine.finalPrice!
+          : mrp;
 
       itemAmount += mrp * item.quantity;
       itemDiscount += (mrp - finalPrice) * item.quantity;
@@ -53,12 +55,13 @@ class CartState {
     double subTotalBeforeOrderDiscount = itemAmount - itemDiscount;
     double orderValueDiscount = 0.0;
 
-    if (subTotalBeforeOrderDiscount >= 500 &&
-        subTotalBeforeOrderDiscount < 1000) {
-      orderValueDiscount = subTotalBeforeOrderDiscount * 0.03;
-    } else if (subTotalBeforeOrderDiscount >= 1000) {
-      orderValueDiscount = subTotalBeforeOrderDiscount * 0.05;
-    }
+    // Disabled because backend does not support order-level discounts and fails validation (500 error)
+    // if (subTotalBeforeOrderDiscount >= 500 &&
+    //     subTotalBeforeOrderDiscount < 1000) {
+    //   orderValueDiscount = subTotalBeforeOrderDiscount * 0.03;
+    // } else if (subTotalBeforeOrderDiscount >= 1000) {
+    //   orderValueDiscount = subTotalBeforeOrderDiscount * 0.05;
+    // }
 
     double subTotal = subTotalBeforeOrderDiscount - orderValueDiscount;
 
@@ -69,7 +72,7 @@ class CartState {
 
     double totalToPay = items.isEmpty
         ? 0.0
-        : subTotal + platformCharges + deliveryFees + taxes + deliveryTip;
+        : subTotal + platformCharges + deliveryFees + taxes;
 
     return CartSummary(
       totalItemAmount: itemAmount,
@@ -146,7 +149,15 @@ class CartNotifier extends StateNotifier<CartState> {
       newQuantity = state.items[existingIndex].quantity + quantity;
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    // Optimistic UI update
+    final newItems = List<CartItem>.from(state.items);
+    if (existingIndex >= 0) {
+      newItems[existingIndex] = newItems[existingIndex].copyWith(quantity: newQuantity);
+    } else {
+      newItems.add(CartItem(medicine: medicine, quantity: newQuantity));
+    }
+    state = state.copyWith(items: newItems, isLoading: true, error: null);
+
     try {
       final response = await ref
           .read(cartServiceProvider)
@@ -165,7 +176,15 @@ class CartNotifier extends StateNotifier<CartState> {
       return removeItem(medicineId);
     }
 
-    state = state.copyWith(isLoading: true, error: null);
+    // Optimistic UI Update
+    final index = state.items.indexWhere((item) => item.medicine.medicineId == medicineId);
+    if (index != -1) {
+      final newItems = List<CartItem>.from(state.items);
+      newItems[index] = newItems[index].copyWith(quantity: newQuantity);
+      state = state.copyWith(items: newItems, isLoading: true, error: null);
+    } else {
+      state = state.copyWith(isLoading: true, error: null);
+    }
     try {
       final response = await ref
           .read(cartServiceProvider)
@@ -180,7 +199,10 @@ class CartNotifier extends StateNotifier<CartState> {
     final cid = _customerId;
     if (cid == null) return;
 
-    state = state.copyWith(isLoading: true, error: null);
+    // Optimistic UI Update
+    final newItems = state.items.where((item) => item.medicine.medicineId != medicineId).toList();
+    state = state.copyWith(items: newItems, isLoading: true, error: null);
+
     try {
       final response = await ref
           .read(cartServiceProvider)

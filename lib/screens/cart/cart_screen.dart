@@ -38,6 +38,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final chargesState = ref.watch(chargesProvider);
     final bool isCartEmpty = cartState.items.isEmpty;
 
+    final profileState = ref.watch(profileProvider);
+    final savedAddresses = profileState.user?.savedAddresses ?? [];
+    
+    // Automatically use the first saved address if none is selected
+    final displayAddress = cartState.selectedAddress ?? (savedAddresses.isNotEmpty ? savedAddresses.first : null);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
@@ -95,6 +101,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
+                          useRootNavigator: false,
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.vertical(
                               top: Radius.circular(24),
@@ -143,13 +150,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Delivering to ${cartState.selectedAddress?['address_type']?.toString().toUpperCase() ?? 'ADDRESS'}',
+                                    'Delivering to ${displayAddress?['address_type']?.toString().toUpperCase() ?? 'ADDRESS'}',
                                     style: AppTextStyles.bodyMedium.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
-                                    cartState.selectedAddress?['address_1'] ??
+                                    displayAddress?['address_1'] ??
                                         'Select a delivery address',
                                     style: AppTextStyles.caption,
                                     maxLines: 1,
@@ -186,7 +193,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           ),
                         ),
                         onPressed: () async {
-                          if (cartState.selectedAddress == null) {
+                          if (displayAddress == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Please select an address first'),
@@ -194,6 +201,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               ),
                             );
                             return;
+                          }
+                          
+                          // If they haven't explicitly selected one but we defaulted to it,
+                          // update the state so the backend receives it properly on checkout
+                          if (cartState.selectedAddress == null) {
+                            ref.read(cartProvider.notifier).selectAddress(displayAddress);
                           }
 
                           // Handle COD flow
@@ -216,7 +229,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               .read(orderProvider.notifier)
                               .placeOrderFromCart(
                                 cartItems: cartState.items,
-                                itemTotal: summary.totalItemAmount,
+                                itemTotal: summary.totalItemAmount - summary.totalDiscount - summary.orderValueDiscount,
                                 totalBillAmount: summary.totalAmountToBePaid,
                                 platformFee: summary.platformCharges,
                                 deliveryFee: summary.deliveryFees,

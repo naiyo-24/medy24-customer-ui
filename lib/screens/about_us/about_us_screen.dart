@@ -4,12 +4,6 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../providers/about_us_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
-import '../../cards/about_us/company_header_card.dart';
-import '../../cards/about_us/company_description_card.dart';
-import '../../cards/about_us/mission_vision_card.dart';
-import '../../cards/about_us/director_message_card.dart';
-import '../../cards/about_us/partner_card.dart';
-import '../../cards/about_us/contact_card.dart';
 
 class AboutUsScreen extends ConsumerWidget {
   const AboutUsScreen({super.key});
@@ -81,12 +75,10 @@ class AboutUsScreen extends ConsumerWidget {
       );
     }
 
-    final data = aboutUsState.aboutUsList.first;
-
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: () => ref.read(aboutUsProvider.notifier).fetchAboutUs(),
-      child: SingleChildScrollView(
+      child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
@@ -94,22 +86,35 @@ class AboutUsScreen extends ConsumerWidget {
           horizontal: AppSpacing.screenPadding,
           vertical: AppSpacing.screenPadding,
         ),
-        child: Column(
-          children: [
-            CompanyHeaderCard(aboutUs: data),
-            const SizedBox(height: 20),
-            CompanyDescriptionCard(aboutUs: data),
-            const SizedBox(height: 20),
-            MissionVisionCard(aboutUs: data),
-            const SizedBox(height: 20),
-            DirectorMessageCard(aboutUs: data),
-            const SizedBox(height: 20),
-            PartnerCard(aboutUs: data),
-            const SizedBox(height: 20),
-            ContactCard(aboutUs: data),
-            const SizedBox(height: 40),
-          ],
-        ),
+        itemCount: aboutUsState.aboutUsList.length,
+        itemBuilder: (context, index) {
+          final data = aboutUsState.aboutUsList[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.title,
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  data.content,
+                  style: AppTextStyles.description,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

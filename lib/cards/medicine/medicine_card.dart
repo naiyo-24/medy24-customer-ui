@@ -5,7 +5,6 @@ import '../../models/medicine.dart';
 import '../../theme/app_theme.dart';
 
 import '../../providers/cart_provider.dart';
-import '../../services/cart_animation_service.dart';
 
 class MedicineCard extends ConsumerStatefulWidget {
   final MedicineModel medicine;
@@ -185,7 +184,9 @@ class _MedicineCardState extends ConsumerState<MedicineCard> {
                                     ),
                                   ),
                                   InkWell(
-                                    onTap: () => ref.read(cartProvider.notifier).updateQuantity(widget.medicine.medicineId!, cartItem.quantity + 1),
+                                    onTap: () {
+                                      ref.read(cartProvider.notifier).updateQuantity(widget.medicine.medicineId!, cartItem.quantity + 1);
+                                    },
                                     borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
                                     child: const Padding(
                                       padding: EdgeInsets.all(6.0),
@@ -197,7 +198,6 @@ class _MedicineCardState extends ConsumerState<MedicineCard> {
                             )
                           : GestureDetector(
                               onTap: isOutOfStock ? null : () {
-                                CartAnimationService.triggerAnimation(_imageKey);
                                 ref.read(cartProvider.notifier).addItem(widget.medicine);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(

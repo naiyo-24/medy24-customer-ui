@@ -304,6 +304,17 @@ class OrderNotifier extends StateNotifier<OrderState> {
     try {
       final String addressText = deliveryAddress['address'] ?? "${deliveryAddress['addressLine1']}, ${deliveryAddress['addressLine2']}, ${deliveryAddress['city']}, ${deliveryAddress['state']}, ${deliveryAddress['pincode']}";
       
+      double computedItemTotal = 0.0;
+      final itemsPayload = cartItems.map((e) {
+        final map = e.toMap();
+        double price = (e.medicine.finalPrice != null && e.medicine.finalPrice! > 0)
+            ? e.medicine.finalPrice!
+            : (e.medicine.mrp ?? 0.0);
+        map['price_per_unit'] = price;
+        computedItemTotal += (price * e.quantity);
+        return map;
+      }).toList();
+
       final payload = {
         "customer_id": cid,
         "receiver_name": receiverName,
@@ -313,12 +324,12 @@ class OrderNotifier extends StateNotifier<OrderState> {
         "delivery_lng": deliveryAddress['lng'] ?? deliveryAddress['longitude'] ?? 0.0,
         "is_emergency": false,
         "instructions": "",
-        "items": cartItems.map((e) => e.toMap()).toList(),
-        "item_total": itemTotal,
+        "items": itemsPayload,
+        "item_total": double.parse(computedItemTotal.toStringAsFixed(2)),
         "platform_fee": platformFee,
         "delivery_fee": deliveryFee,
-        "taxes": taxes,
-        "total_bill_amount": totalBillAmount,
+        "taxes": double.parse(taxes.toStringAsFixed(2)),
+        "total_bill_amount": double.parse((computedItemTotal + platformFee + deliveryFee + taxes).toStringAsFixed(2)),
         "payment_mode": paymentMode,
         "order_type": "cart",
       };
@@ -341,6 +352,18 @@ class OrderNotifier extends StateNotifier<OrderState> {
       } else {
         throw Exception(response.data['message'] ?? 'Failed to place order');
       }
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('=== DIO EXCEPTION IN PLACE ORDER ===');
+      }
+      if (kDebugMode) {
+        print(e.response?.data);
+      }
+      if (kDebugMode) {
+        print('====================================');
+      }
+      final errMsg = e.response?.data != null ? e.response!.data.toString() : e.message;
+      state = state.copyWith(isLoading: false, error: 'Server Error: $errMsg');
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

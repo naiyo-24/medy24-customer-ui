@@ -59,7 +59,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         .read(orderProvider.notifier)
         .placeOrderFromCart(
           cartItems: cartState.items,
-          itemTotal: summary.totalItemAmount,
+          itemTotal: summary.totalItemAmount - summary.totalDiscount - summary.orderValueDiscount,
           totalBillAmount: summary.totalAmountToBePaid,
           platformFee: summary.platformCharges,
           deliveryFee: summary.deliveryFees,

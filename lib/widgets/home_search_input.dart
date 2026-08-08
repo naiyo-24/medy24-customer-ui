@@ -5,8 +5,14 @@ import '../theme/app_theme.dart';
 class HomeSearchInput extends StatefulWidget {
   final VoidCallback? onTap;
   final Function(String)? onChanged;
+  final bool readOnly;
 
-  const HomeSearchInput({super.key, this.onTap, this.onChanged});
+  const HomeSearchInput({
+    super.key, 
+    this.onTap, 
+    this.onChanged,
+    this.readOnly = false,
+  });
 
   @override
   State<HomeSearchInput> createState() => _HomeSearchInputState();
@@ -39,6 +45,7 @@ class _HomeSearchInputState extends State<HomeSearchInput> {
         child: Focus(
           onFocusChange: (v) => setState(() => _isFocused = v),
           child: TextField(
+            readOnly: widget.readOnly,
             onTap: widget.onTap,
             onChanged: widget.onChanged,
             style: const TextStyle(

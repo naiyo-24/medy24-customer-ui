@@ -13,7 +13,7 @@ import '../../widgets/section_header.dart';
 import '../../widgets/medicine_categories_row.dart';
 import '../../widgets/medicine_horizontal_list.dart';
 import '../../widgets/popular_brands_row.dart';
-import '../../cards/medicine/medicine_card.dart';
+import '../../cards/medicine/medicine_design_variants.dart';
 
 class MedicineListScreen extends ConsumerStatefulWidget {
   const MedicineListScreen({super.key});
@@ -176,41 +176,20 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 const SizedBox(height: 16),
 
                 // Frequently Ordered Header
-                SectionHeader(
-                  title: 'Frequently Ordered',
-                  onSeeAllTap: () {},
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Frequently Ordered',
+                    style: AppTextStyles.subHeader.copyWith(fontSize: 20),
+                  ),
                 ),
+                const SizedBox(height: 12),
               ]),
             ),
 
-            // Frequently Ordered Vertical List
+            // Mixed Design Layout (Changes every 10 items)
             if (medicineState.medicines.length > 5)
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final medicine = medicineState.medicines[index + 5];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: SizedBox(
-                          height: 140, // Height bound for the MedicineCard if it's meant to be square-ish
-                          child: MedicineCard(
-                            medicine: medicine,
-                            onTap: () {
-                              ref
-                                  .read(medicineProvider.notifier)
-                                  .selectMedicine(medicine);
-                              context.push('/medicine-details');
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                    childCount: medicineState.medicines.length - 5,
-                  ),
-                ),
-              )
+              ..._buildDynamicMedicineList(medicineState.medicines.skip(5).toList())
             else if (!medicineState.isLoading && medicineState.medicines.isEmpty)
               const SliverFillRemaining(
                 child: Center(child: Text('No medicines found')),
@@ -229,5 +208,132 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildDynamicMedicineList(List<dynamic> medicines) {
+    final List<Widget> slivers = [];
+    const int chunkSize = 10;
+    
+    const List<String> sectionHeadings = [
+      'Trending Now',
+      'Daily Essentials',
+      'Popular in Your Area',
+      'Best Discounts',
+      'Top Rated Medicines',
+      'New Arrivals',
+      'Recommended for You',
+      'Winter Care',
+      'Immunity Boosters',
+    ];
+    
+    for (int i = 0; i < medicines.length; i += chunkSize) {
+      final chunk = medicines.skip(i).take(chunkSize).toList();
+      final chunkIndex = i ~/ chunkSize;
+      final designType = (chunkIndex % 6) + 1; // Cycles from 1 to 6
+      final headingText = sectionHeadings[chunkIndex % sectionHeadings.length];
+      
+      // Add a heading for this chunk's design
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  headingText,
+                  style: AppTextStyles.subHeader.copyWith(fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      slivers.add(
+        _buildSliverForChunk(chunk, designType),
+      );
+    }
+    
+    return slivers;
+  }
+
+  Widget _buildSliverForChunk(List<dynamic> chunk, int designType) {
+    if (designType == 2) {
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        sliver: SliverGrid(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => MedicineDesign2(
+              medicine: chunk[index],
+              onTap: () {
+                ref.read(medicineProvider.notifier).selectMedicine(chunk[index]);
+                context.push('/medicine-details');
+              },
+            ),
+            childCount: chunk.length,
+          ),
+        ),
+      );
+    } else if (designType == 5) {
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        sliver: SliverGrid(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 0.6,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => MedicineDesign5(
+              medicine: chunk[index],
+              onTap: () {
+                ref.read(medicineProvider.notifier).selectMedicine(chunk[index]);
+                context.push('/medicine-details');
+              },
+            ),
+            childCount: chunk.length,
+          ),
+        ),
+      );
+    } else {
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final med = chunk[index];
+              void onTap() {
+                ref.read(medicineProvider.notifier).selectMedicine(med);
+                context.push('/medicine-details');
+              }
+
+              if (designType == 1) return MedicineDesign1(medicine: med, onTap: onTap);
+              if (designType == 3) return MedicineDesign3(medicine: med, onTap: onTap);
+              if (designType == 4) return MedicineDesign4(medicine: med, onTap: onTap);
+              if (designType == 6) return MedicineDesign6(medicine: med, onTap: onTap);
+              
+              return const SizedBox();
+            },
+            childCount: chunk.length,
+          ),
+        ),
+      );
+    }
   }
 }

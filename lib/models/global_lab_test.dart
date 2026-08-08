@@ -8,7 +8,7 @@ class GlobalLabTest {
   final String sampleType;
   final String searchTags;
   final bool fastingRequired;
-  final int fastingHours;
+  final String fastingHours;
   final String preTestInfo;
 
   GlobalLabTest({
@@ -36,7 +36,7 @@ class GlobalLabTest {
       sampleType: json['sampleType'] ?? '',
       searchTags: json['searchTags'] ?? '',
       fastingRequired: json['fastingRequired'] ?? false,
-      fastingHours: json['fastingHours'] ?? 0,
+      fastingHours: json['fastingHours']?.toString() ?? '',
       preTestInfo: json['preTestInfo'] ?? '',
     );
   }

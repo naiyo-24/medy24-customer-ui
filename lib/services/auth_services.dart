@@ -66,6 +66,36 @@ class AuthService {
     }
   }
 
+  Future<Response> logout(String customerId, String token) async {
+    try {
+      return await _dio.post(
+        ApiUrl.customerLogout(customerId),
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> deleteCustomer(String customerId, String token) async {
+    try {
+      return await _dio.delete(
+        ApiUrl.deleteCustomer(customerId),
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Response> getProfile(String customerId) async {
     try {
       return await _dio.get(ApiUrl.getProfile(customerId));

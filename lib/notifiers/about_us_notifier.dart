@@ -38,8 +38,16 @@ class AboutUsNotifier extends StateNotifier<AboutUsState> {
     try {
       final response = await _services.getAllAboutUs();
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'];
-        final list = data.map((e) => AboutUsModel.fromJson(e)).toList();
+        final dynamic responseData = response.data;
+        List<dynamic> dataList = [];
+        
+        if (responseData is List) {
+          dataList = responseData;
+        } else if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+          dataList = responseData['data'] as List<dynamic>;
+        }
+        
+        final list = dataList.map((e) => AboutUsModel.fromJson(e)).toList();
         state = state.copyWith(isLoading: false, aboutUsList: list);
       } else {
         state = state.copyWith(

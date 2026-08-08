@@ -12,11 +12,14 @@ import '../screens/order_medicine/my_order_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
 import '../screens/lab_tests/lab_test_search_screen.dart';
+import '../screens/lab_tests/lab_test_active_search_screen.dart';
 import '../screens/lab_tests/lab_selection_screen.dart';
+import '../screens/lab_tests/lab_details_screen.dart';
 import '../screens/lab_tests/lab_checkout_screen.dart';
 import '../screens/lab_tests/lab_booking_success_screen.dart';
 import '../screens/lab_tests/lab_booking_waiting_screen.dart';
 import '../screens/lab_tests/my_lab_bookings_screen.dart';
+import '../screens/lab_tests/lab_test_details_screen.dart';
 import '../models/lab_package.dart';
 import '../screens/medicine/medicine_list_screen.dart';
 import '../screens/medicine/medicine_details_screen.dart';
@@ -25,6 +28,7 @@ import '../screens/home/home_screen.dart';
 // import '../screens/medicine/skin_care_screen.dart';
 import '../screens/order_medicine/order_with_prescription_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/support/report_problem_screen.dart';
 import '../screens/privacy_policy/privacy_policy_screen.dart';
 import '../screens/terms_conditions/terms_conditions_screen.dart';
 import '../screens/profile/update_profile_screen.dart';
@@ -34,8 +38,6 @@ import '../screens/payment/checkout_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/floating_cart_pill.dart';
-import '../services/cart_animation_service.dart';
-import 'package:add_to_cart_animation/add_to_cart_animation.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -80,7 +82,7 @@ final appRouter = GoRouter(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
             if (didPop) return;
-
+            
             if (navigationShell.currentIndex != 0) {
               navigationShell.goBranch(0);
               return;
@@ -140,34 +142,20 @@ final appRouter = GoRouter(
               SystemNavigator.pop();
             }
           },
-          child: AddToCartAnimation(
-            cartKey: CartAnimationService.cartKey,
-            createAddToCartAnimation: (runAddToCartAnimation) {
-              CartAnimationService.runAddToCartAnimation =
-                  runAddToCartAnimation;
-            },
-            jumpAnimation: const JumpAnimationOptions(
-              curve: Curves.ease,
-              duration: Duration(milliseconds: 100),
-            ),
-            dragAnimation: const DragToCartAnimationOptions(
-              rotation: true,
-              curve: Curves.easeIn,
-              duration: Duration(milliseconds: 800),
-            ),
-            child: Scaffold(
-              body: Stack(
-                children: [navigationShell, const FloatingCartPill()],
-              ),
-              bottomNavigationBar: CustomBottomNavBar(
-                currentIndex: navigationShell.currentIndex,
-                onTap: (index) {
-                  navigationShell.goBranch(
-                    index,
-                    initialLocation: index == navigationShell.currentIndex,
-                  );
-                },
-              ),
+          child: Scaffold(
+            body: navigationShell,
+            floatingActionButton: navigationShell.currentIndex == 3
+                ? null
+                : const FloatingCartPill(),
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+            bottomNavigationBar: CustomBottomNavBar(
+              currentIndex: navigationShell.currentIndex,
+              onTap: (index) {
+                navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                );
+              },
             ),
           ),
         );
@@ -225,6 +213,13 @@ final appRouter = GoRouter(
       builder: (context, state) => const LabSelectionScreen(),
     ),
     GoRoute(
+      path: '/lab-details',
+      builder: (context, state) {
+        final lab = state.extra as LabPackage;
+        return LabDetailsScreen(lab: lab);
+      },
+    ),
+    GoRoute(
       path: '/lab-checkout',
       builder: (context, state) {
         final lab = state.extra as LabPackage;
@@ -252,12 +247,20 @@ final appRouter = GoRouter(
       builder: (context, state) => const AboutUsScreen(),
     ),
     GoRoute(
+      path: '/report-problem',
+      builder: (context, state) => const ReportProblemScreen(),
+    ),
+    GoRoute(
       path: '/medicine-details',
       builder: (context, state) => const MedicineDetailsScreen(),
     ),
     GoRoute(
       path: '/medicine-search',
       builder: (context, state) => const MedicineSearchScreen(),
+    ),
+    GoRoute(
+      path: '/lab-test-active-search',
+      builder: (context, state) => const LabTestActiveSearchScreen(),
     ),
     GoRoute(
       path: '/settings',
@@ -293,6 +296,10 @@ final appRouter = GoRouter(
         final type = state.uri.queryParameters['type'] ?? 'lab_test';
         return CheckoutScreen(checkoutType: type);
       },
+    ),
+    GoRoute(
+      path: '/lab-test-details',
+      builder: (context, state) => const LabTestDetailsScreen(),
     ),
     GoRoute(
       path: '/my-medicine-orders',

@@ -37,7 +37,9 @@ class CartItem {
     return {
       'medicine_id': medicine.medicineId,
       'medicine_name': medicine.medicineName,
-      'price_per_unit': medicine.finalPrice ?? medicine.mrp,
+      'price_per_unit': (medicine.finalPrice != null && medicine.finalPrice! > 0)
+          ? medicine.finalPrice
+          : medicine.mrp,
       'pack_size': medicine.medicineQuantity,
       'medicine_photo': medicine.medicinePhoto,
       'quantity': quantity,

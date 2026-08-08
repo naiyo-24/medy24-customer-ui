@@ -7,7 +7,7 @@ class ApiUrl {
     return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
   // About Us Endpoints
-  static String get aboutUs => "$baseUrl/about-us";
+  static String get aboutUs => "$baseUrl/api/rest/about-us";
   static String get getAboutUsAll => "$aboutUs/get-all";
   static String getAboutUsById(int id) => "$aboutUs/get-by/$id";
 
@@ -53,8 +53,10 @@ class ApiUrl {
   static String get checkPhone => "$baseUrl/api/auth/customer/check-phone";
   static String get sendOtp => "$customers/send-otp";
   static String get customerLogin => "$baseUrl/api/auth/customer/login";
+  static String customerLogout(String id) => "$customers/logout/$id";
   static String getProfile(String id) => "$customers/get-profile/$id";
   static String updateProfile(String id) => "$customers/profile/$id";
+  static String deleteCustomer(String id) => "$customers/profile/$id";
   static String addAddress(String id) => "$customers/add-addresses/$id";
   static String deleteAddress(String customerId, int addressId) =>
       "$customers/delete-address/$customerId/$addressId";

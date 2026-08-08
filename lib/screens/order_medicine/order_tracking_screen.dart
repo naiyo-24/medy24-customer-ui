@@ -524,7 +524,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                     Padding(
                       padding: const EdgeInsets.only(right: 16.0),
                       child: ElevatedButton(
-                        onPressed: () => context.push('/lab-test-list'),
+                        onPressed: () => context.go('/lab-tests'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.primary,

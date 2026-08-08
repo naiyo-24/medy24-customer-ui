@@ -53,9 +53,13 @@ class _LabPackageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        context.push('/lab-details', extra: lab);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -208,6 +212,7 @@ class _LabPackageCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

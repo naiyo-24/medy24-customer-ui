@@ -5,6 +5,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/app_theme.dart';
 import '../profile/add_saved_address_bottomsheet.dart';
+import 'package:go_router/go_router.dart';
 
 class CartAddressCard extends ConsumerWidget {
   const CartAddressCard({super.key});
@@ -16,6 +17,9 @@ class CartAddressCard extends ConsumerWidget {
 
     final profileState = ref.watch(profileProvider);
     final addresses = profileState.user?.savedAddresses ?? [];
+    
+    // Automatically use the first saved address if none is selected
+    final displayAddress = cartState.selectedAddress ?? (addresses.isNotEmpty ? addresses.first : null);
 
     if (addresses.isEmpty) {
       return Container(
@@ -52,6 +56,7 @@ class CartAddressCard extends ConsumerWidget {
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
+                    useRootNavigator: false,
                     backgroundColor: Colors.transparent,
                     builder: (context) => const AddSavedAddressBottomSheet(),
                   );
@@ -87,10 +92,11 @@ class CartAddressCard extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           ...addresses.map((address) {
-            final isSelected = cartState.selectedAddress == address;
+            final isSelected = displayAddress == address;
             return InkWell(
               onTap: () {
                 ref.read(cartProvider.notifier).selectAddress(address);
+                context.pop();
               },
               child: Container(
                 padding: const EdgeInsets.all(12),
@@ -149,7 +155,7 @@ class CartAddressCard extends ConsumerWidget {
               ),
               onPressed: () {
                 // Close the current address selection sheet first
-                Navigator.of(context).pop();
+                context.pop();
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
