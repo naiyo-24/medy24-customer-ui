@@ -140,4 +140,12 @@ class LabTestService {
       rethrow;
     }
   }
+
+  Future<Response> getLabProfile(String labId) async {
+    try {
+      return await _dio.get("${ApiUrl.baseUrl}/api/auth/lab/get-by/$labId");
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

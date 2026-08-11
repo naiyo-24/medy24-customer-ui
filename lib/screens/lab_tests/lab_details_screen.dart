@@ -28,70 +28,95 @@ class LabDetailsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Lab Header Info
-            Container(
-              width: double.infinity,
-              color: Colors.white,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ref.watch(labProfileProvider(lab.labId)).when(
+              data: (profile) {
+                return Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          lab.labName,
-                          style: AppTextStyles.header.copyWith(fontSize: 22),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              lab.labName,
+                              style: AppTextStyles.header.copyWith(fontSize: 22),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withAlpha(26),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.star, color: Colors.amber, size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  lab.rating.toStringAsFixed(1),
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(26),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
+                      const SizedBox(height: 12),
+                      if (profile != null) ...[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 16),
-                            const SizedBox(width: 4),
-                            Text(
-                              lab.rating.toStringAsFixed(1),
-                              style: AppTextStyles.caption.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
+                            const Icon(Iconsax.location, size: 16, color: AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                profile.address.isEmpty ? 'Address not available' : profile.address,
+                                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Placeholder for address
-                  Row(
-                    children: [
-                      const Icon(Iconsax.location, size: 16, color: AppColors.textSecondary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Sector V, Salt Lake, Kolkata, West Bengal 700091',
-                          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                        if (profile.nablAccreditationNumber.isNotEmpty || profile.isoAccreditationNumber.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              if (profile.nablAccreditationNumber.isNotEmpty)
+                                _buildBadge('NABL Certified', AppColors.success),
+                              if (profile.isoAccreditationNumber.isNotEmpty)
+                                _buildBadge('ISO 9001:2015', Colors.blue),
+                            ],
+                          ),
+                        ]
+                      ] else ...[
+                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Iconsax.location, size: 16, color: AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Address not available',
+                                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  // Certifications placeholder
-                  Row(
-                    children: [
-                      _buildBadge('NABL Certified', AppColors.success),
-                      const SizedBox(width: 8),
-                      _buildBadge('ISO 9001:2015', Colors.blue),
-                    ],
-                  ),
-                ],
-              ),
+                );
+              },
+              loading: () => const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
+              error: (err, stack) => const SizedBox(),
             ),
             const SizedBox(height: 12),
 
@@ -106,7 +131,7 @@ class LabDetailsScreen extends ConsumerWidget {
                   Text("About this Lab", style: AppTextStyles.subHeader),
                   const SizedBox(height: 8),
                   Text(
-                    "This laboratory is equipped with state-of-the-art technology and certified professionals to provide accurate and timely results for all your diagnostic needs.",
+                    "${lab.labName} is equipped with state-of-the-art technology and certified professionals to provide accurate and timely results for all your diagnostic needs.",
                     style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary, height: 1.5),
                   ),
                 ],
@@ -255,13 +280,52 @@ class LabDetailsScreen extends ConsumerWidget {
                                       height: 1.2,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 4),
                                   Text(
                                     t.category,
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textSecondary,
                                     ),
+                                  ),
+                                  const Spacer(),
+                                  if (t.discountPercent > 0)
+                                    Text(
+                                      "₹${t.mrp.toStringAsFixed(0)}",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade500,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "₹${t.finalPrice.toStringAsFixed(0)}",
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      if (t.discountPercent > 0)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.success.withAlpha(20),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            "${t.discountPercent.toStringAsFixed(0)}% OFF",
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.success,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ],
                               ),

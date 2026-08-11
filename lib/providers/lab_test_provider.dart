@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter/foundation.dart';
 import '../models/global_lab_test.dart';
+import '../models/lab_inventory_item.dart';
 import '../models/lab_package.dart';
+import '../models/lab_profile.dart';
 import '../services/lab_test_services.dart';
 
 class LabTestState {
@@ -131,9 +133,9 @@ final labTestProvider = StateNotifierProvider<LabTestNotifier, LabTestState>((re
   return LabTestNotifier(service);
 });
 
-final labTestsByLabIdProvider = FutureProvider.family<List<GlobalLabTest>, String>((ref, labId) async {
+final labTestsByLabIdProvider = FutureProvider.autoDispose.family<List<LabInventoryItem>, String>((ref, labId) async {
   final service = ref.watch(labTestServiceProvider);
-  List<GlobalLabTest> allTests = [];
+  List<LabInventoryItem> allTests = [];
 
   try {
     final testsResponse = await service.getLabTestsByLabId(labId);
@@ -146,13 +148,15 @@ final labTestsByLabIdProvider = FutureProvider.family<List<GlobalLabTest>, Strin
       }
       
       if (list != null) {
-        allTests.addAll(list.map((json) => GlobalLabTest.fromJson(json)).toList());
+        allTests.addAll(list.map((json) => LabInventoryItem.fromJson(Map<String, dynamic>.from(json as Map))).toList());
       }
     }
   } catch (e) {
     debugPrint("Error fetching lab tests: $e");
   }
 
+  // Comment out packages fetching since API doesn't exist
+  /*
   try {
     final packagesResponse = await service.getTestPackagesByLabId(labId);
     if (packagesResponse.data != null) {
@@ -165,15 +169,27 @@ final labTestsByLabIdProvider = FutureProvider.family<List<GlobalLabTest>, Strin
       
       if (list != null) {
         allTests.addAll(list.map((json) {
-          // You might need to adjust JSON parsing if packages have a slightly different schema
-          // but assuming they map reasonably well to GlobalLabTest:
-          return GlobalLabTest.fromJson(json);
+          return LabInventoryItem.fromJson(json);
         }).toList());
       }
     }
   } catch (e) {
     debugPrint("Error fetching lab packages: $e");
   }
+  */
 
   return allTests;
+});
+
+final labProfileProvider = FutureProvider.autoDispose.family<LabProfile?, String>((ref, labId) async {
+  final service = ref.watch(labTestServiceProvider);
+  try {
+    final response = await service.getLabProfile(labId);
+    if (response.data != null) {
+      return LabProfile.fromJson(response.data);
+    }
+  } catch (e) {
+    debugPrint("Error fetching lab profile: $e");
+  }
+  return null;
 });
