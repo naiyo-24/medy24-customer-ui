@@ -132,4 +132,12 @@ class LabTestService {
       rethrow;
     }
   }
+
+  Future<Response> getTestPackagesByLabId(String labId) async {
+    try {
+      return await _dio.get(ApiUrl.getTestPackagesByLabId(labId));
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

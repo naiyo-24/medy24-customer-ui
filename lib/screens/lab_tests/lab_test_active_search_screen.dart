@@ -6,6 +6,7 @@ import '../../providers/lab_test_provider.dart';
 import '../../widgets/top_health_tests_list.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
+import '../../widgets/health_packages_horizontal_list.dart';
 import 'dart:async';
 
 class LabTestActiveSearchScreen extends ConsumerStatefulWidget {
@@ -151,15 +152,44 @@ class _LabTestActiveSearchScreenState extends ConsumerState<LabTestActiveSearchS
   }
 
   Widget _buildEmptyState(String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Iconsax.search_status, size: 64, color: AppColors.divider),
-          const SizedBox(height: 16),
-          Text(message, style: AppTextStyles.cardSubtitle),
+    return Column(
+      children: [
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Iconsax.search_status, size: 64, color: AppColors.divider),
+                const SizedBox(height: 16),
+                Text(message, style: AppTextStyles.cardSubtitle),
+              ],
+            ),
+          ),
+        ),
+        if (message == 'Start typing to search') ...[
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Popular Health Packages',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ),
+          HealthPackagesHorizontalList(
+            onBookTap: (test) {
+              ref.read(labTestProvider.notifier).selectTestAndFindLabs(test);
+              context.push('/lab-test-details');
+            },
+          ),
+          const SizedBox(height: 24),
         ],
-      ),
+      ],
     );
   }
 }

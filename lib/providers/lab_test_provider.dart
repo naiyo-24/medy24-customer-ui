@@ -133,10 +133,47 @@ final labTestProvider = StateNotifierProvider<LabTestNotifier, LabTestState>((re
 
 final labTestsByLabIdProvider = FutureProvider.family<List<GlobalLabTest>, String>((ref, labId) async {
   final service = ref.watch(labTestServiceProvider);
-  final response = await service.getLabTestsByLabId(labId);
-  if (response.data != null && response.data['data'] != null) {
-    final list = response.data['data'] as List;
-    return list.map((json) => GlobalLabTest.fromJson(json)).toList();
+  List<GlobalLabTest> allTests = [];
+
+  try {
+    final testsResponse = await service.getLabTestsByLabId(labId);
+    if (testsResponse.data != null) {
+      List? list;
+      if (testsResponse.data is List) {
+        list = testsResponse.data as List;
+      } else if (testsResponse.data is Map && testsResponse.data['data'] != null) {
+        list = testsResponse.data['data'] as List;
+      }
+      
+      if (list != null) {
+        allTests.addAll(list.map((json) => GlobalLabTest.fromJson(json)).toList());
+      }
+    }
+  } catch (e) {
+    debugPrint("Error fetching lab tests: $e");
   }
-  return [];
+
+  try {
+    final packagesResponse = await service.getTestPackagesByLabId(labId);
+    if (packagesResponse.data != null) {
+      List? list;
+      if (packagesResponse.data is List) {
+        list = packagesResponse.data as List;
+      } else if (packagesResponse.data is Map && packagesResponse.data['data'] != null) {
+        list = packagesResponse.data['data'] as List;
+      }
+      
+      if (list != null) {
+        allTests.addAll(list.map((json) {
+          // You might need to adjust JSON parsing if packages have a slightly different schema
+          // but assuming they map reasonably well to GlobalLabTest:
+          return GlobalLabTest.fromJson(json);
+        }).toList());
+      }
+    }
+  } catch (e) {
+    debugPrint("Error fetching lab packages: $e");
+  }
+
+  return allTests;
 });

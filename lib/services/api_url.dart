@@ -25,14 +25,13 @@ class ApiUrl {
   static String getPathoLabById(String id) => "$pathoLab/get-by/$id";
 
   // Lab Test Inventory Endpoints
-  static String get labTestInventory => "$baseUrl/lab-test-inventory";
-  static String get getLabTestAll => "$labTestInventory/get-all";
+  static String get labTestInventory => "$baseUrl/api/rest/lab-inventory";
+  static String get getLabTestAll => "$labTestInventory/global";
   static String getLabTestById(String id) => "$labTestInventory/get-by/$id";
-  static String getLabTestsByLabId(String labId) =>
-      "$labTestInventory/get-by-lab/$labId";
+  static String getLabTestsByLabId(String labId) => "$labTestInventory/$labId";
 
   // Test Package Endpoints
-  static String get testPackage => "$baseUrl/test-packages";
+  static String get testPackage => "$baseUrl/api/rest/test-packages";
   static String get getTestPackageAll =>
       "$testPackage/get-all"; // Assuming it exists or will be needed
   static String getTestPackageById(String id) => "$testPackage/get-by/$id";
