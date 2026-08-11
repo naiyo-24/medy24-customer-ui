@@ -1,17 +1,20 @@
+import 'package:customer_app/providers/lab_test_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/lab_package.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
+import '../../widgets/section_header.dart';
 
-class LabDetailsScreen extends StatelessWidget {
+class LabDetailsScreen extends ConsumerWidget {
   final LabPackage lab;
 
   const LabDetailsScreen({super.key, required this.lab});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
@@ -183,6 +186,96 @@ class LabDetailsScreen extends StatelessWidget {
                 ),
               ),
             ],
+            
+            const SizedBox(height: 24),
+            SectionHeader(
+              title: 'All Lab Packages & Tests',
+              onSeeAllTap: () {},
+            ),
+            ref.watch(labTestsByLabIdProvider(lab.labId)).when(
+              data: (tests) {
+                if (tests.isEmpty) return const Padding(padding: EdgeInsets.all(16), child: Text("No packages available"));
+                return SizedBox(
+                  height: 220,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    itemCount: tests.length,
+                    itemBuilder: (context, index) {
+                      final t = tests[index];
+                      // Attempt to fetch price if present, fallback to empty string
+                      // Since GlobalLabTest doesn't have price, we'll just show the test name
+                      return Container(
+                        width: 150,
+                        margin: const EdgeInsets.only(right: 12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey.withAlpha(20)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 80,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(20),
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Iconsax.health,
+                                  size: 40,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    t.testName,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    t.category,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
+              error: (err, stack) => Center(child: Padding(padding: const EdgeInsets.all(16), child: Text("Error loading packages", style: AppTextStyles.bodyMedium))),
+            ),
           ],
         ),
       ),

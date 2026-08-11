@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../models/global_lab_test.dart';
 
 class HealthPackagesHorizontalList extends StatelessWidget {
-  final Function(String) onBookTap;
+  final Function(GlobalLabTest) onBookTap;
 
   const HealthPackagesHorizontalList({
     super.key,
@@ -13,10 +14,9 @@ class HealthPackagesHorizontalList extends StatelessWidget {
   Widget build(BuildContext context) {
     final packages = [
       {
-        'name': 'Smart Full Body\nCheckup',
-        'tests': '80+ Tests',
-        'price': '₹999',
-        'originalPrice': '₹1,399',
+        'id': 'TEST-PKG-0001',
+        'name': 'Medy Essential Full Body Checkup',
+        'tests': '45+ Tests',
         'badge': 'Most Booked',
         'badgeColor': Colors.tealAccent.shade700,
         'imageBgColor': const Color(0xFFE5FAFA),
@@ -24,10 +24,9 @@ class HealthPackagesHorizontalList extends StatelessWidget {
         'iconColor': Colors.teal,
       },
       {
-        'name': 'Heart Care\nPackage',
-        'tests': '50+ Tests',
-        'price': '₹799',
-        'originalPrice': '₹1,199',
+        'id': 'TEST-PKG-0002',
+        'name': 'Medy Advanced Heart Care',
+        'tests': '18+ Tests',
         'badge': 'Popular',
         'badgeColor': Colors.blueAccent,
         'imageBgColor': const Color(0xFFE3F2FD),
@@ -35,26 +34,24 @@ class HealthPackagesHorizontalList extends StatelessWidget {
         'iconColor': Colors.redAccent,
       },
       {
-        'name': 'Liver Function\nPackage',
-        'tests': '30+ Tests',
-        'price': '₹599',
-        'originalPrice': '₹899',
-        'badge': 'Best Value',
-        'badgeColor': Colors.orangeAccent,
-        'imageBgColor': const Color(0xFFFFF3E0),
-        'icon': Icons.healing,
-        'iconColor': Colors.deepOrange,
-      },
-      {
-        'name': 'Diabetes\nCheckup',
-        'tests': '40+ Tests',
-        'price': '₹699',
-        'originalPrice': '₹899',
+        'id': 'TEST-PKG-0004',
+        'name': 'Medy Diabetic Care & Monitoring',
+        'tests': '12+ Tests',
         'badge': 'Essential',
         'badgeColor': Colors.purpleAccent,
         'imageBgColor': const Color(0xFFF3E5F5),
         'icon': Icons.water_drop,
         'iconColor': Colors.blue,
+      },
+      {
+        'id': 'TEST-PKG-0003',
+        'name': 'Medy Women\'s Comprehensive Health',
+        'tests': '32+ Tests',
+        'badge': 'Best Value',
+        'badgeColor': Colors.pinkAccent,
+        'imageBgColor': const Color(0xFFFCE4EC),
+        'icon': Icons.woman,
+        'iconColor': Colors.pink,
       },
     ];
 
@@ -67,7 +64,23 @@ class HealthPackagesHorizontalList extends StatelessWidget {
         itemCount: packages.length,
         itemBuilder: (context, index) {
           final pkg = packages[index];
-          return Container(
+          final testObj = GlobalLabTest(
+            testId: pkg['id'] as String,
+            testName: pkg['name'] as String,
+            category: 'Medy Global Packages',
+            description: '',
+            isProfile: true,
+            numberOfParameters: int.parse((pkg['tests'] as String).split('+')[0]),
+            sampleType: 'Blood',
+            searchTags: '',
+            fastingRequired: true,
+            fastingHours: '10-12 hours',
+            preTestInfo: '',
+          );
+
+          return GestureDetector(
+            onTap: () => onBookTap(testObj),
+            child: Container(
             width: 150,
             margin: const EdgeInsets.only(right: 12.0),
             decoration: BoxDecoration(
@@ -149,27 +162,13 @@ class HealthPackagesHorizontalList extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            pkg['price'] as String,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            pkg['originalPrice'] as String,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              decoration: TextDecoration.lineThrough,
-                              color: AppColors.textTertiary,
-                            ),
-                          ),
-                        ],
+                      const Text(
+                        'Prices vary',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textTertiary,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       const Text(
@@ -184,7 +183,7 @@ class HealthPackagesHorizontalList extends StatelessWidget {
                         width: double.infinity,
                         height: 32,
                         child: ElevatedButton(
-                          onPressed: () => onBookTap(pkg['name'] as String),
+                          onPressed: () => onBookTap(testObj),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             elevation: 0,
@@ -207,6 +206,7 @@ class HealthPackagesHorizontalList extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
             ),
           );
         },

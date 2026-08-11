@@ -122,7 +122,7 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
               // Popular Test Categories
               SectionHeader(
                 title: 'Popular Test Categories',
-                onSeeAllTap: () {},
+                onSeeAllTap: () => context.push('/lab-test-active-search'),
               ),
               LabTestCategoriesRow(
                 onCategoryTap: (category) {
@@ -134,10 +134,13 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
               // Health Packages For You
               SectionHeader(
                 title: 'Health Packages For You',
-                onSeeAllTap: () {},
+                onSeeAllTap: () => context.push('/lab-test-active-search'),
               ),
               HealthPackagesHorizontalList(
-                onBookTap: (package) {},
+                onBookTap: (test) {
+                  ref.read(labTestProvider.notifier).selectTestAndFindLabs(test);
+                  context.push('/lab-test-details');
+                },
               ),
               const SizedBox(height: 16),
 
@@ -166,7 +169,7 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                 // Featured Tests
                 SectionHeader(
                   title: 'Featured Tests',
-                  onSeeAllTap: () {},
+                  onSeeAllTap: () => context.push('/lab-test-active-search'),
                 ),
                 TopHealthTestsHorizontalList(
                   tests: labTestState.searchResults.take(4).toList(),
@@ -180,7 +183,7 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                 // Popular Tests
                 SectionHeader(
                   title: 'Popular Tests',
-                  onSeeAllTap: () {},
+                  onSeeAllTap: () => context.push('/lab-test-active-search'),
                 ),
                 TopHealthTestsList(
                   tests: labTestState.searchResults.skip(4).take(4).toList(),
@@ -194,7 +197,7 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                 // Essential Tests
                 SectionHeader(
                   title: 'Essential Tests',
-                  onSeeAllTap: () {},
+                  onSeeAllTap: () => context.push('/lab-test-active-search'),
                 ),
                 TopHealthTestsGrid(
                   tests: labTestState.searchResults.skip(8).toList(),

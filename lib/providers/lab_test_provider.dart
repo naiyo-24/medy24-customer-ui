@@ -130,3 +130,13 @@ final labTestProvider = StateNotifierProvider<LabTestNotifier, LabTestState>((re
   final service = ref.watch(labTestServiceProvider);
   return LabTestNotifier(service);
 });
+
+final labTestsByLabIdProvider = FutureProvider.family<List<GlobalLabTest>, String>((ref, labId) async {
+  final service = ref.watch(labTestServiceProvider);
+  final response = await service.getLabTestsByLabId(labId);
+  if (response.data != null && response.data['data'] != null) {
+    final list = response.data['data'] as List;
+    return list.map((json) => GlobalLabTest.fromJson(json)).toList();
+  }
+  return [];
+});
