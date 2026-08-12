@@ -48,10 +48,14 @@ class ApiUrl {
       "$testPackageBooking/update/$bookingId";
 
   // Customer Auth Endpoints
+  static String get authCustomers => "$baseUrl/api/auth/customer";
+  static String get checkPhone => "$authCustomers/check-phone";
+  static String get sendOtp => "$authCustomers/send-otp";
+  static String get verifyOtp => "$authCustomers/verify-otp";
+  static String get customerLogin => "$authCustomers/login";
+  
+  // Customer Profile Endpoints
   static String get customers => "$baseUrl/customers";
-  static String get checkPhone => "$baseUrl/api/auth/customer/check-phone";
-  static String get sendOtp => "$customers/send-otp";
-  static String get customerLogin => "$baseUrl/api/auth/customer/login";
   static String customerLogout(String id) => "$customers/logout/$id";
   static String getProfile(String id) => "$customers/get-profile/$id";
   static String updateProfile(String id) => "$customers/profile/$id";

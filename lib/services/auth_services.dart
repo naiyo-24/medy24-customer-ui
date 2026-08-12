@@ -35,7 +35,7 @@ class AuthService {
     try {
       return await _dio.post(
         ApiUrl.sendOtp,
-        data: {'phone_number': phoneNumber},
+        data: {'phone': phoneNumber},
       );
     } catch (e) {
       rethrow;
@@ -52,14 +52,12 @@ class AuthService {
     File? profilePhoto,
   }) async {
     try {
-      // The new backend endpoint only expects the Firebase token in the Authorization header
       return await _dio.post(
-        ApiUrl.customerLogin,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
+        ApiUrl.verifyOtp,
+        data: {
+          'phone': phoneNumber,
+          'otp': token,
+        },
       );
     } catch (e) {
       rethrow;

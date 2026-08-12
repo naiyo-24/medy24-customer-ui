@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../notifiers/auth_notifier.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -38,9 +37,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    await _sendFirebaseOtp(!exists);
+    await _sendApiXtOtp(isNewUser: !exists);
+    // await _sendFirebaseOtp(!exists);
   }
 
+  Future<void> _sendApiXtOtp({required bool isNewUser}) async {
+    try {
+      // Call our backend to send OTP via APITxT
+      await ref.read(authProvider.notifier).sendOtp('+91${_phoneController.text}');
+      
+      if (mounted) {
+        setState(() => _isSendingOtp = false);
+        // The API successfully sent the OTP, navigate to OTP screen
+        context.push('/otp', extra: {
+          'verificationId': 'apitxt_session', // Dummy id since we manage it in backend
+          'phoneNumber': _phoneController.text,
+          'isNewUser': isNewUser,
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSendingOtp = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send OTP: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  /*
   Future<void> _sendFirebaseOtp(bool isNewUser) async {
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
@@ -82,6 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     }
   }
+  */
 
 
   @override

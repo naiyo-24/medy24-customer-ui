@@ -5,7 +5,6 @@ import 'package:pinput/pinput.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
@@ -89,6 +88,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     }
 
     try {
+      /*
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: widget.verificationId,
         smsCode: _otpController.text,
@@ -100,9 +100,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       final idToken = await userCredential.user?.getIdToken();
 
       if (idToken != null) {
+      */
+        // Use our APITxT OTP verification endpoint instead of Firebase
         final success = await ref
             .read(authProvider.notifier)
-            .verifyOtp(token: idToken, phoneNumber: widget.phoneNumber);
+            .verifyOtp(token: _otpController.text, phoneNumber: '+91${widget.phoneNumber}');
+            
         if (success && mounted) {
           if (widget.isNewUser) {
             context.go('/profile-creation');
@@ -115,7 +118,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             SnackBar(content: Text(errorMsg)),
           );
         }
+      /*
       }
+      */
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

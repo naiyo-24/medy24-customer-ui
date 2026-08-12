@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pinput/pinput.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 
@@ -34,6 +33,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     debugPrint('SIGNUP: Attempting to send OTP for +91${widget.phoneNumber}');
     if (!mounted) return;
     setState(() => _isSendingOtp = true);
+    
+    try {
+      await ref.read(authProvider.notifier).sendOtp('+91${widget.phoneNumber}');
+      
+      if (mounted) {
+        setState(() {
+          _verificationId = 'apitxt_session';
+          _isSendingOtp = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSendingOtp = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send OTP: ${e.toString()}')),
+        );
+      }
+    }
+
+    /*
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: '+91${widget.phoneNumber}',
@@ -71,6 +90,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
+    */
   }
 
   Future<void> _pickImage() async {
@@ -108,6 +128,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
 
     try {
+      /*
       // 1. Create credential
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: _verificationId!,
@@ -121,9 +142,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       final idToken = await userCredential.user?.getIdToken();
 
       if (idToken != null) {
+      */
         // 3. Call backend signup
         final success = await ref.read(authProvider.notifier).verifyOtp(
-              token: idToken,
+              token: _otpController.text, // pass OTP directly
               phoneNumber: '+91${widget.phoneNumber}',
               fullName: _nameController.text,
               profilePhoto: _profileImage,
@@ -132,7 +154,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         if (success && mounted) {
           context.go('/home');
         }
+      /*
       }
+      */
     } catch (e) {
       ScaffoldMessenger.of(
         // ignore: use_build_context_synchronously
