@@ -29,6 +29,32 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
+        bool? shouldRequest = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Location Permission Needed'),
+              content: const Text(
+                  'Medy24 collects location data to enable picking your delivery address and finding nearby healthcare services on the map.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Deny', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Allow'),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (shouldRequest != true) {
+          throw 'Location permissions are denied by user';
+        }
+
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           throw 'Location permissions are denied';

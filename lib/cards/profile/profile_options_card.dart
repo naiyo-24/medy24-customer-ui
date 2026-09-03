@@ -98,15 +98,7 @@ class ProfileOptionsCard extends ConsumerWidget {
                   color: AppColors.primary,
                   onTap: () => context.push('/about-us'),
                 ),
-                _buildDivider(),
-                _buildOption(
-                  icon: Iconsax.notification,
-                  title: 'Notifications',
-                  subtitle: 'Health tips and order updates',
-                  color: AppColors.primary,
-                  isLast: true,
-                  onTap: () {},
-                ),
+
                 _buildDivider(),
                 _buildOption(
                   icon: Iconsax.setting,

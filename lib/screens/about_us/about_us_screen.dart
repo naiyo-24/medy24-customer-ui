@@ -78,7 +78,7 @@ class AboutUsScreen extends ConsumerWidget {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: () => ref.read(aboutUsProvider.notifier).fetchAboutUs(),
-      child: ListView.builder(
+      child: ListView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
@@ -86,35 +86,80 @@ class AboutUsScreen extends ConsumerWidget {
           horizontal: AppSpacing.screenPadding,
           vertical: AppSpacing.screenPadding,
         ),
-        itemCount: aboutUsState.aboutUsList.length,
-        itemBuilder: (context, index) {
-          final data = aboutUsState.aboutUsList[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.all(20),
+        children: [
+          // Header Section
+          Container(
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
               border: Border.all(color: AppColors.divider),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.title,
-                  style: AppTextStyles.cardTitle.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  data.content,
-                  style: AppTextStyles.description,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withAlpha(10),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-          );
-        },
+            child: Column(
+              children: [
+                Image.asset(
+                  'assets/logo/image.png',
+                  height: 100,
+                  width: 100,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'naiyo 24',
+                  style: AppTextStyles.header.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your Trusted Healthcare Partner',
+                  style: AppTextStyles.cardSubtitle.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // About Us Content Sections
+          ...aboutUsState.aboutUsList.map((data) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data.title,
+                    style: AppTextStyles.cardTitle.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    data.content,
+                    style: AppTextStyles.description,
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

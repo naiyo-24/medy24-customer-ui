@@ -112,6 +112,7 @@ flutter:
   assets:
     - .env
     - assets/logo/
+    - assets/logo/image.png
 
   fonts:
     - family: Lexend

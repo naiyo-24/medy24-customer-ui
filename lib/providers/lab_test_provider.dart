@@ -5,6 +5,7 @@ import '../models/global_lab_test.dart';
 import '../models/lab_inventory_item.dart';
 import '../models/lab_package.dart';
 import '../models/lab_profile.dart';
+import '../models/featured_package.dart';
 import '../services/lab_test_services.dart';
 
 class LabTestState {
@@ -18,6 +19,8 @@ class LabTestState {
   final List<LabPackage> labsForSelectedTest;
   final bool isLoadingLabsForTest;
   final List<String> popularCategories;
+  final List<FeaturedPackage> featuredPackages;
+  final bool isLoadingFeaturedPackages;
 
   LabTestState({
     this.selectedTestIds = const {},
@@ -29,6 +32,8 @@ class LabTestState {
     this.labsForSelectedTest = const [],
     this.isLoadingLabsForTest = false,
     this.popularCategories = const [],
+    this.featuredPackages = const [],
+    this.isLoadingFeaturedPackages = false,
   });
 
   LabTestState copyWith({
@@ -41,6 +46,8 @@ class LabTestState {
     List<LabPackage>? labsForSelectedTest,
     bool? isLoadingLabsForTest,
     List<String>? popularCategories,
+    List<FeaturedPackage>? featuredPackages,
+    bool? isLoadingFeaturedPackages,
   }) {
     return LabTestState(
       selectedTestIds: selectedTestIds ?? this.selectedTestIds,
@@ -52,6 +59,8 @@ class LabTestState {
       labsForSelectedTest: labsForSelectedTest ?? this.labsForSelectedTest,
       isLoadingLabsForTest: isLoadingLabsForTest ?? this.isLoadingLabsForTest,
       popularCategories: popularCategories ?? this.popularCategories,
+      featuredPackages: featuredPackages ?? this.featuredPackages,
+      isLoadingFeaturedPackages: isLoadingFeaturedPackages ?? this.isLoadingFeaturedPackages,
     );
   }
 }
@@ -63,6 +72,25 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
     // Fetch initial popular tests
     searchTests("");
     fetchPopularCategories();
+    fetchFeaturedPackages();
+  }
+
+  Future<void> fetchFeaturedPackages() async {
+    state = state.copyWith(isLoadingFeaturedPackages: true);
+    try {
+      final response = await _service.getFeaturedPackages(limit: 5);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = response.data['data'] ?? {};
+        final List<dynamic> data = responseData['getFeaturedPackages'] ?? [];
+        final packages = data.map((json) => FeaturedPackage.fromJson(json)).toList();
+        state = state.copyWith(featuredPackages: packages, isLoadingFeaturedPackages: false);
+      } else {
+        state = state.copyWith(isLoadingFeaturedPackages: false);
+      }
+    } catch (e) {
+      debugPrint('Error fetching featured packages: $e');
+      state = state.copyWith(isLoadingFeaturedPackages: false);
+    }
   }
 
   Future<void> fetchPopularCategories() async {

@@ -19,6 +19,18 @@ class LabTestService {
     );
   }
 
+  static const String _getFeaturedPackagesQuery = """
+    query GetFeaturedPackages(\$limit: Int!) {
+      getFeaturedPackages(limit: \$limit) {
+        testId
+        testName
+        numberOfParameters
+        startingPrice
+        category
+      }
+    }
+  """;
+
   static const String _searchLabTestsQuery = """
     query SearchLabTests(\$query: String!) {
       searchLabTests(query: \$query, limit: 20) {
@@ -89,6 +101,22 @@ class LabTestService {
           'query': _searchLabTestsQuery,
           'variables': {
             'query': query,
+          },
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> getFeaturedPackages({int limit = 5}) async {
+    try {
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _getFeaturedPackagesQuery,
+          'variables': {
+            'limit': limit,
           },
         },
       );

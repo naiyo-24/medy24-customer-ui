@@ -140,6 +140,7 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                 onSeeAllTap: () => context.push('/lab-test-active-search'),
               ),
               HealthPackagesHorizontalList(
+                packages: labTestState.featuredPackages,
                 onBookTap: (test) {
                   ref.read(labTestProvider.notifier).selectTestAndFindLabs(test);
                   context.push('/lab-test-details');

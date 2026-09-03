@@ -20,8 +20,6 @@ import '../../providers/order_provider.dart';
 import '../../cards/medicine_orders/order_card.dart';
 import '../../models/advertisement.dart';
 import '../../widgets/home_category_icons.dart';
-import '../../widgets/home_popular_categories.dart';
-import '../../widgets/home_secondary_banner.dart';
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -235,17 +233,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
 
-              const SizedBox(height: 24),
 
-              // ── Popular Categories
-              const HomePopularCategories(),
-
-              const SizedBox(height: 24),
-
-              // ── Secondary Banner
-              const HomeSecondaryBanner(),
-
-              const SizedBox(height: 24),
 
               // ── Featured Medicines Header
               Padding(

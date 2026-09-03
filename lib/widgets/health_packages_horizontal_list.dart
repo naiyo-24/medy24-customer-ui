@@ -1,59 +1,23 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../models/featured_package.dart';
 import '../models/global_lab_test.dart';
 
 class HealthPackagesHorizontalList extends StatelessWidget {
+  final List<FeaturedPackage> packages;
   final Function(GlobalLabTest) onBookTap;
 
   const HealthPackagesHorizontalList({
     super.key,
+    required this.packages,
     required this.onBookTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final packages = [
-      {
-        'id': 'TEST-PKG-0001',
-        'name': 'Medy Essential Full Body Checkup',
-        'tests': '45+ Tests',
-        'badge': 'Most Booked',
-        'badgeColor': Colors.tealAccent.shade700,
-        'imageBgColor': const Color(0xFFE5FAFA),
-        'icon': Icons.family_restroom,
-        'iconColor': Colors.teal,
-      },
-      {
-        'id': 'TEST-PKG-0002',
-        'name': 'Medy Advanced Heart Care',
-        'tests': '18+ Tests',
-        'badge': 'Popular',
-        'badgeColor': Colors.blueAccent,
-        'imageBgColor': const Color(0xFFE3F2FD),
-        'icon': Icons.monitor_heart,
-        'iconColor': Colors.redAccent,
-      },
-      {
-        'id': 'TEST-PKG-0004',
-        'name': 'Medy Diabetic Care & Monitoring',
-        'tests': '12+ Tests',
-        'badge': 'Essential',
-        'badgeColor': Colors.purpleAccent,
-        'imageBgColor': const Color(0xFFF3E5F5),
-        'icon': Icons.water_drop,
-        'iconColor': Colors.blue,
-      },
-      {
-        'id': 'TEST-PKG-0003',
-        'name': 'Medy Women\'s Comprehensive Health',
-        'tests': '32+ Tests',
-        'badge': 'Best Value',
-        'badgeColor': Colors.pinkAccent,
-        'imageBgColor': const Color(0xFFFCE4EC),
-        'icon': Icons.woman,
-        'iconColor': Colors.pink,
-      },
-    ];
+    if (packages.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return SizedBox(
       height: 290,
@@ -64,13 +28,23 @@ class HealthPackagesHorizontalList extends StatelessWidget {
         itemCount: packages.length,
         itemBuilder: (context, index) {
           final pkg = packages[index];
+          
+          // Generate a dynamic UI mapping based on index
+          final badgeColors = [Colors.tealAccent.shade700, Colors.blueAccent, Colors.purpleAccent, Colors.pinkAccent];
+          final bgColors = [const Color(0xFFE5FAFA), const Color(0xFFE3F2FD), const Color(0xFFF3E5F5), const Color(0xFFFCE4EC)];
+          final iconColors = [Colors.teal, Colors.redAccent, Colors.blue, Colors.pink];
+          final icons = [Icons.family_restroom, Icons.monitor_heart, Icons.water_drop, Icons.woman];
+          final badges = ['Most Booked', 'Popular', 'Essential', 'Best Value'];
+          
+          final colorIdx = index % badgeColors.length;
+
           final testObj = GlobalLabTest(
-            testId: pkg['id'] as String,
-            testName: pkg['name'] as String,
-            category: 'Medy Global Packages',
+            testId: pkg.testId,
+            testName: pkg.testName,
+            category: pkg.category,
             description: '',
             isProfile: true,
-            numberOfParameters: int.parse((pkg['tests'] as String).split('+')[0]),
+            numberOfParameters: pkg.numberOfParameters,
             sampleType: 'Blood',
             searchTags: '',
             fastingRequired: true,
@@ -103,16 +77,16 @@ class HealthPackagesHorizontalList extends StatelessWidget {
                   height: 100,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: pkg['imageBgColor'] as Color,
+                    color: bgColors[colorIdx],
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   ),
                   child: Stack(
                     children: [
                       Center(
                         child: Icon(
-                          pkg['icon'] as IconData,
+                          icons[colorIdx],
                           size: 48,
-                          color: pkg['iconColor'] as Color,
+                          color: iconColors[colorIdx],
                         ),
                       ),
                       Positioned(
@@ -121,11 +95,11 @@ class HealthPackagesHorizontalList extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: pkg['badgeColor'] as Color,
+                            color: badgeColors[colorIdx],
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            pkg['badge'] as String,
+                            badges[colorIdx],
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 9,
@@ -143,7 +117,7 @@ class HealthPackagesHorizontalList extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        pkg['name'] as String,
+                        pkg.testName,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -155,16 +129,16 @@ class HealthPackagesHorizontalList extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        pkg['tests'] as String,
+                        '${pkg.numberOfParameters}+ Tests',
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textTertiary,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Prices vary',
-                        style: TextStyle(
+                      Text(
+                        'Starts at ₹${pkg.startingPrice.toStringAsFixed(0)}',
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textTertiary,

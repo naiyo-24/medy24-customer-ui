@@ -10,7 +10,6 @@ import '../../widgets/home_search_input.dart';
 import '../../widgets/promo_banner_carousel.dart';
 import '../../models/advertisement.dart';
 import '../../widgets/section_header.dart';
-import '../../widgets/medicine_categories_row.dart';
 import '../../widgets/medicine_horizontal_list.dart';
 import '../../widgets/popular_brands_row.dart';
 import '../../cards/medicine/medicine_design_variants.dart';
@@ -144,7 +143,8 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Browse Categories
+                // Browse Categories (Commented out as categories are not available on backend)
+                /*
                 SectionHeader(
                   title: 'Browse Categories',
                   onSeeAllTap: () {},
@@ -155,6 +155,7 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+                */
 
                 // Top Deals on Medicines
                 SectionHeader(

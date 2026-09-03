@@ -152,6 +152,7 @@ class _LabTestActiveSearchScreenState extends ConsumerState<LabTestActiveSearchS
   }
 
   Widget _buildEmptyState(String message) {
+    final labTestState = ref.watch(labTestProvider);
     return Column(
       children: [
         Expanded(
@@ -182,6 +183,7 @@ class _LabTestActiveSearchScreenState extends ConsumerState<LabTestActiveSearchS
             ),
           ),
           HealthPackagesHorizontalList(
+            packages: labTestState.featuredPackages,
             onBookTap: (test) {
               ref.read(labTestProvider.notifier).selectTestAndFindLabs(test);
               context.push('/lab-test-details');

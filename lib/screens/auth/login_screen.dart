@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../notifiers/auth_notifier.dart';
@@ -226,8 +227,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
+                    maxLength: 10,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
                     decoration: const InputDecoration(
                       hintText: 'Enter mobile number',
+                      counterText: '',
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
