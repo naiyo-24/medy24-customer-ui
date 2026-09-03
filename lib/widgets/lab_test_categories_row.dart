@@ -2,23 +2,25 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class LabTestCategoriesRow extends StatelessWidget {
+  final List<String> categories;
   final Function(String) onCategoryTap;
 
   const LabTestCategoriesRow({
     super.key,
+    required this.categories,
     required this.onCategoryTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      {'title': 'Full Body\nCheckup', 'icon': Icons.bloodtype, 'color': Colors.red},
-      {'title': 'Heart\nHealth', 'icon': Icons.monitor_heart, 'color': Colors.redAccent},
-      {'title': 'Diabetes\nCare', 'icon': Icons.water_drop, 'color': Colors.lightBlue},
-      {'title': 'Liver\nFunction', 'icon': Icons.healing, 'color': Colors.deepOrange}, 
-      {'title': 'Kidney\nFunction', 'icon': Icons.spa_outlined, 'color': Colors.orange}, 
-      {'title': 'Thyroid\nTests', 'icon': Icons.coronavirus_outlined, 'color': Colors.pink}, 
-      {'title': 'Immunity &\nVitamins', 'icon': Icons.shield_outlined, 'color': Colors.teal},
+    final styles = [
+      {'icon': Icons.bloodtype, 'color': Colors.red},
+      {'icon': Icons.monitor_heart, 'color': Colors.redAccent},
+      {'icon': Icons.water_drop, 'color': Colors.lightBlue},
+      {'icon': Icons.healing, 'color': Colors.deepOrange}, 
+      {'icon': Icons.spa_outlined, 'color': Colors.orange}, 
+      {'icon': Icons.coronavirus_outlined, 'color': Colors.pink}, 
+      {'icon': Icons.shield_outlined, 'color': Colors.teal},
     ];
 
     return SingleChildScrollView(
@@ -27,9 +29,13 @@ class LabTestCategoriesRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: categories.map((cat) {
+        children: categories.asMap().entries.map((entry) {
+          final index = entry.key;
+          final categoryTitle = entry.value;
+          final style = styles[index % styles.length];
+
           return GestureDetector(
-            onTap: () => onCategoryTap(cat['title'] as String),
+            onTap: () => onCategoryTap(categoryTitle),
             child: Container(
               width: 72,
               margin: const EdgeInsets.only(right: 12.0),
@@ -51,14 +57,14 @@ class LabTestCategoriesRow extends StatelessWidget {
                       ],
                     ),
                     child: Icon(
-                      cat['icon'] as IconData,
-                      color: cat['color'] as Color,
+                      style['icon'] as IconData,
+                      color: style['color'] as Color,
                       size: 28,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    cat['title'] as String,
+                    categoryTitle,
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

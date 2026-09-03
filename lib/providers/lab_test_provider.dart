@@ -17,6 +17,7 @@ class LabTestState {
   final GlobalLabTest? selectedTestDetails;
   final List<LabPackage> labsForSelectedTest;
   final bool isLoadingLabsForTest;
+  final List<String> popularCategories;
 
   LabTestState({
     this.selectedTestIds = const {},
@@ -27,6 +28,7 @@ class LabTestState {
     this.selectedTestDetails,
     this.labsForSelectedTest = const [],
     this.isLoadingLabsForTest = false,
+    this.popularCategories = const [],
   });
 
   LabTestState copyWith({
@@ -38,6 +40,7 @@ class LabTestState {
     GlobalLabTest? selectedTestDetails,
     List<LabPackage>? labsForSelectedTest,
     bool? isLoadingLabsForTest,
+    List<String>? popularCategories,
   }) {
     return LabTestState(
       selectedTestIds: selectedTestIds ?? this.selectedTestIds,
@@ -48,6 +51,7 @@ class LabTestState {
       selectedTestDetails: selectedTestDetails ?? this.selectedTestDetails,
       labsForSelectedTest: labsForSelectedTest ?? this.labsForSelectedTest,
       isLoadingLabsForTest: isLoadingLabsForTest ?? this.isLoadingLabsForTest,
+      popularCategories: popularCategories ?? this.popularCategories,
     );
   }
 }
@@ -58,6 +62,22 @@ class LabTestNotifier extends StateNotifier<LabTestState> {
   LabTestNotifier(this._service) : super(LabTestState()) {
     // Fetch initial popular tests
     searchTests("");
+    fetchPopularCategories();
+  }
+
+  Future<void> fetchPopularCategories() async {
+    try {
+      final response = await _service.getLabTestCategories(limit: 15);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = response.data['data'] ?? {};
+        final List<dynamic> data = responseData['getLabTestCategories'] ?? [];
+        final categories = data.map((b) => b.toString()).toList();
+        state = state.copyWith(popularCategories: categories);
+      }
+    } catch (e) {
+      // It's okay if categories fail to load, UI will handle empty state.
+      debugPrint('Error fetching categories: $e');
+    }
   }
 
   Future<void> selectTestAndFindLabs(GlobalLabTest test) async {

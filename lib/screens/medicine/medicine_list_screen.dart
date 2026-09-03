@@ -30,7 +30,10 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     Future.microtask(
-      () => ref.read(medicineProvider.notifier).fetchAllMedicines(),
+      () {
+        ref.read(medicineProvider.notifier).fetchAllMedicines();
+        ref.read(medicineProvider.notifier).fetchPopularBrands();
+      }
     );
   }
 
@@ -166,14 +169,17 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 const SizedBox(height: 16),
 
                 // Popular Brands
-                SectionHeader(
-                  title: 'Popular Brands',
-                  onSeeAllTap: () {},
-                ),
-                PopularBrandsRow(
-                  onBrandTap: (brand) {},
-                ),
-                const SizedBox(height: 16),
+                if (medicineState.popularBrands.length >= 5) ...[
+                  SectionHeader(
+                    title: 'Popular Brands',
+                    onSeeAllTap: () {},
+                  ),
+                  PopularBrandsRow(
+                    brands: medicineState.popularBrands,
+                    onBrandTap: (brand) {},
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Frequently Ordered Header
                 Padding(

@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class PopularBrandsRow extends StatelessWidget {
+  final List<String> brands;
   final Function(String) onBrandTap;
 
   const PopularBrandsRow({
     super.key,
+    required this.brands,
     required this.onBrandTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final brands = [
-      {'name': 'Cipla', 'discount': 'Upto 20% OFF', 'color': Colors.blue},
-      {'name': 'Sun Pharma', 'discount': 'Upto 20% OFF', 'color': Colors.orange},
-      {'name': 'Abbott', 'discount': 'Upto 15% OFF', 'color': Colors.lightBlue},
-      {'name': 'Dr. Reddy\'s', 'discount': 'Upto 15% OFF', 'color': Colors.deepPurple},
-      {'name': 'Zydus', 'discount': 'Upto 15% OFF', 'color': Colors.indigo},
-      {'name': 'Lupin', 'discount': 'Upto 10% OFF', 'color': Colors.green},
+    final colors = [
+      Colors.blue,
+      Colors.orange,
+      Colors.lightBlue,
+      Colors.deepPurple,
+      Colors.indigo,
+      Colors.green,
     ];
 
     return SingleChildScrollView(
@@ -25,9 +27,13 @@ class PopularBrandsRow extends StatelessWidget {
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
-        children: brands.map((brand) {
+        children: brands.asMap().entries.map((entry) {
+          final index = entry.key;
+          final brandName = entry.value;
+          final color = colors[index % colors.length];
+
           return GestureDetector(
-            onTap: () => onBrandTap(brand['name'] as String),
+            onTap: () => onBrandTap(brandName),
             child: Container(
               width: 110,
               margin: const EdgeInsets.only(right: 12.0),
@@ -50,12 +56,12 @@ class PopularBrandsRow extends StatelessWidget {
                   // Placeholder for Brand Logo
                   Icon(
                     Icons.business,
-                    color: brand['color'] as Color,
+                    color: color,
                     size: 32,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    brand['name'] as String,
+                    brandName,
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -63,18 +69,6 @@ class PopularBrandsRow extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    brand['discount'] as String,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.primaryAccent, 
                     ),
                   ),
                 ],

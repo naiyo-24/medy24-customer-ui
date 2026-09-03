@@ -53,6 +53,28 @@ class MedicineService {
     }
   """;
 
+  static const String _getPopularBrandsQuery = """
+    query GetPopularBrands(\$limit: Int!) {
+      getPopularBrands(limit: \$limit)
+    }
+  """;
+
+  Future<Response> getPopularBrands({int limit = 20}) async {
+    try {
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _getPopularBrandsQuery,
+          'variables': {
+            'limit': limit,
+          },
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Response> getAllMedicines({int page = 1, int limit = 20}) async {
     try {
       final offset = (page - 1) * limit;

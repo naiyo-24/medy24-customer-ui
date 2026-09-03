@@ -59,6 +59,28 @@ class LabTestService {
     }
   """;
 
+  static const String _getLabTestCategoriesQuery = """
+    query GetLabTestCategories(\$limit: Int!) {
+      getLabTestCategories(limit: \$limit)
+    }
+  """;
+
+  Future<Response> getLabTestCategories({int limit = 20}) async {
+    try {
+      return await _dio.post(
+        ApiUrl.graphql,
+        data: {
+          'query': _getLabTestCategoriesQuery,
+          'variables': {
+            'limit': limit,
+          },
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Response> searchLabTests(String query) async {
     try {
       return await _dio.post(

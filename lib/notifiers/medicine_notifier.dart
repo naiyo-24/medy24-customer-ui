@@ -18,6 +18,7 @@ class MedicineState {
   final List<String>? lastPriceRange;
   final String? lastCategory;
   final List<String>? listPriceRange;
+  final List<String> popularBrands;
 
   MedicineState({
     this.medicines = const [],
@@ -35,6 +36,7 @@ class MedicineState {
     this.lastPriceRange,
     this.lastCategory,
     this.listPriceRange,
+    this.popularBrands = const [],
   });
 
   MedicineState copyWith({
@@ -53,6 +55,7 @@ class MedicineState {
     List<String>? lastPriceRange,
     String? lastCategory,
     List<String>? listPriceRange,
+    List<String>? popularBrands,
   }) {
     return MedicineState(
       medicines: medicines ?? this.medicines,
@@ -70,6 +73,7 @@ class MedicineState {
       lastPriceRange: lastPriceRange ?? this.lastPriceRange,
       lastCategory: lastCategory ?? this.lastCategory,
       listPriceRange: listPriceRange ?? this.listPriceRange,
+      popularBrands: popularBrands ?? this.popularBrands,
     );
   }
 }
@@ -141,6 +145,21 @@ class MedicineNotifier extends StateNotifier<MedicineState> {
         isFetchingMore: false,
         error: e.toString(),
       );
+    }
+  }
+
+  Future<void> fetchPopularBrands() async {
+    try {
+      final response = await _service.getPopularBrands(limit: 15);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = response.data['data'] ?? {};
+        final List<dynamic> data = responseData['getPopularBrands'] ?? [];
+        final brands = data.map((b) => b.toString()).toList();
+        state = state.copyWith(popularBrands: brands);
+      }
+    } catch (e) {
+      // It's okay if brands fail to load, UI will handle empty state.
+      state = state.copyWith(error: e.toString());
     }
   }
 

@@ -120,16 +120,19 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
               const SizedBox(height: 16),
 
               // Popular Test Categories
-              SectionHeader(
-                title: 'Popular Test Categories',
-                onSeeAllTap: () => context.push('/lab-test-active-search'),
-              ),
-              LabTestCategoriesRow(
-                onCategoryTap: (category) {
-                  // Navigate or filter
-                },
-              ),
-              const SizedBox(height: 16),
+              if (labTestState.popularCategories.length >= 5) ...[
+                SectionHeader(
+                  title: 'Popular Test Categories',
+                  onSeeAllTap: () => context.push('/lab-test-active-search'),
+                ),
+                LabTestCategoriesRow(
+                  categories: labTestState.popularCategories,
+                  onCategoryTap: (category) {
+                    // Navigate or filter
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Health Packages For You
               SectionHeader(

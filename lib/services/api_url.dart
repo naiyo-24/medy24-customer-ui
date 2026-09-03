@@ -4,8 +4,10 @@ class ApiUrl {
   // Read base URL from .env, fallback to localhost if not found
   static String get baseUrl {
     final url = dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8000";
+    // final url = dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8000";
     return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
+
   // About Us Endpoints
   static String get aboutUs => "$baseUrl/api/rest/about-us";
   static String get getAboutUsAll => "$aboutUs/get-all";
@@ -53,7 +55,7 @@ class ApiUrl {
   static String get sendOtp => "$authCustomers/send-otp";
   static String get verifyOtp => "$authCustomers/verify-otp";
   static String get customerLogin => "$authCustomers/login";
-  
+
   // Customer Profile Endpoints
   static String get customers => "$baseUrl/customers";
   static String customerLogout(String id) => "$customers/logout/$id";
@@ -101,7 +103,8 @@ class ApiUrl {
   static String get placeOrder => "$ordersBase/place";
   static String get uploadPrescription => "$ordersBase/upload-prescription";
   static String acceptBid(String orderId) => "$ordersBase/$orderId/accept-bid";
-  static String checkoutOrder(String orderId) => "$ordersBase/$orderId/checkout";
+  static String checkoutOrder(String orderId) =>
+      "$ordersBase/$orderId/checkout";
   static String cancelOrder(String orderId) => "$ordersBase/$orderId/cancel";
 
   // WebSocket Endpoints for Orders
@@ -119,7 +122,8 @@ class ApiUrl {
   static String get platformFee => "$baseUrl/admin/earnings/list";
 
   // Payment Endpoints
-  static String get razorpayCreateOrder => "$baseUrl/api/payments/razorpay/create-order";
+  static String get razorpayCreateOrder =>
+      "$baseUrl/api/payments/razorpay/create-order";
   static String get razorpayVerify => "$baseUrl/api/payments/razorpay/verify";
 
   /// Get Razorpay Key ID from environment variables
