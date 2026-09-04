@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../providers/ad_provider.dart';
+import '../../theme/app_theme.dart';
 
 class BannerAdWidget extends ConsumerStatefulWidget {
   final AdSize size;
@@ -15,9 +16,12 @@ class BannerAdWidget extends ConsumerStatefulWidget {
   ConsumerState<BannerAdWidget> createState() => _BannerAdWidgetState();
 }
 
-class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
+class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> with AutomaticKeepAliveClientMixin {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -52,6 +56,7 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     // Listen to ad state so if an ad wasn't ready initially, we grab it when it is
     ref.listen<AdState>(adProvider, (previous, next) {
       if (!_isLoaded && next.bannerAds.isNotEmpty) {
@@ -68,18 +73,29 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
       );
     }
     
-    // Return a shimmer or empty box while loading
-    return SizedBox(
+    // Return a skeleton while loading (without flutter_animate to avoid Impeller errors)
+    return Container(
       width: widget.size.width.toDouble(),
       height: widget.size.height.toDouble(),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withAlpha(20)),
+      ),
       child: Center(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.grey.withAlpha(20),
-            borderRadius: BorderRadius.circular(12),
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.ad_units, color: Colors.grey, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              'Advertisement',
+              style: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );

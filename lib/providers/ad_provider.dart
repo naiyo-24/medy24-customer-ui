@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../theme/app_theme.dart';
 
 class AdState {
@@ -34,15 +35,29 @@ class AdNotifier extends StateNotifier<AdState> {
   static const int _maxNativeAds = 2;
   static const int _maxBannerAds = 2;
 
+  static String _getAdUnitId(String key, String fallback) {
+    final val = dotenv.env[key];
+    if (val != null && val.isNotEmpty) {
+      return val;
+    }
+    return fallback;
+  }
+
   final String _nativeAdUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/2247696110'
-      : 'ca-app-pub-3940256099942544/3986624511';
+      ? _getAdUnitId('ADMOB_NATIVE_ANDROID', 'ca-app-pub-3940256099942544/2247696110')
+      : _getAdUnitId('ADMOB_NATIVE_IOS', 'ca-app-pub-3940256099942544/3986624511');
 
   final String _bannerAdUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/6300978111'
-      : 'ca-app-pub-3940256099942544/2934735716';
+      ? _getAdUnitId('ADMOB_BANNER_ANDROID', 'ca-app-pub-3940256099942544/6300978111')
+      : _getAdUnitId('ADMOB_BANNER_IOS', 'ca-app-pub-3940256099942544/2934735716');
 
   Future<void> _initAds() async {
+    // Set test device ID to avoid Error 3 (NO_FILL) during development
+    RequestConfiguration configuration = RequestConfiguration(
+      testDeviceIds: ['4D6E30A9DD34758AE58431905A044486'],
+    );
+    await MobileAds.instance.updateRequestConfiguration(configuration);
+
     // Pre-load the initial batch of ads
     _preloadNativeAds();
     _preloadBannerAds();

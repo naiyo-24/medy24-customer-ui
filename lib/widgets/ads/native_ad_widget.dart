@@ -16,9 +16,12 @@ class NativeAdWidget extends ConsumerStatefulWidget {
   ConsumerState<NativeAdWidget> createState() => _NativeAdWidgetState();
 }
 
-class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> {
+class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> with AutomaticKeepAliveClientMixin {
   NativeAd? _nativeAd;
   bool _isLoaded = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -46,6 +49,7 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     ref.listen<AdState>(adProvider, (previous, next) {
       if (!_isLoaded && next.nativeAds.isNotEmpty) {
         _loadAd();
@@ -82,15 +86,22 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: Colors.grey.withAlpha(20)),
       ),
       child: Center(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.grey.withAlpha(20),
-            borderRadius: BorderRadius.circular(16.0),
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.ad_units, color: Colors.grey, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              'Advertisement',
+              style: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );
