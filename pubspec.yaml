@@ -96,6 +96,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -168,3 +169,8 @@ flutter:
         - asset: assets/font/Fraunces,Lexend/Fraunces/static/Fraunces_72pt-BlackItalic.ttf
           weight: 900
           style: italic
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo/medy24logo.png"

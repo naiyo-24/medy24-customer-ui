@@ -29,6 +29,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
+        if (!mounted) return;
         bool? shouldRequest = await showDialog<bool>(
           context: context,
           barrierDismissible: false,

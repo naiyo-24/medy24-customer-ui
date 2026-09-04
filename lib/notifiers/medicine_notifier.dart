@@ -19,6 +19,7 @@ class MedicineState {
   final String? lastCategory;
   final List<String>? listPriceRange;
   final List<String> popularBrands;
+  final bool isVetMode;
 
   MedicineState({
     this.medicines = const [],
@@ -37,6 +38,7 @@ class MedicineState {
     this.lastCategory,
     this.listPriceRange,
     this.popularBrands = const [],
+    this.isVetMode = false,
   });
 
   MedicineState copyWith({
@@ -56,6 +58,7 @@ class MedicineState {
     String? lastCategory,
     List<String>? listPriceRange,
     List<String>? popularBrands,
+    bool? isVetMode,
   }) {
     return MedicineState(
       medicines: medicines ?? this.medicines,
@@ -74,6 +77,7 @@ class MedicineState {
       lastCategory: lastCategory ?? this.lastCategory,
       listPriceRange: listPriceRange ?? this.listPriceRange,
       popularBrands: popularBrands ?? this.popularBrands,
+      isVetMode: isVetMode ?? this.isVetMode,
     );
   }
 }
@@ -82,6 +86,11 @@ class MedicineNotifier extends StateNotifier<MedicineState> {
   final MedicineService _service = MedicineService();
 
   MedicineNotifier() : super(MedicineState());
+
+  void toggleVetMode() {
+    state = state.copyWith(isVetMode: !state.isVetMode);
+    fetchAllMedicines();
+  }
 
   Future<void> fetchAllMedicines({
     bool loadMore = false,
@@ -107,10 +116,12 @@ class MedicineNotifier extends StateNotifier<MedicineState> {
 
     try {
       final page = loadMore ? state.currentPage + 1 : 1;
+      final vetCategory = state.isVetMode ? 'Veterinary' : null;
 
-      final response = (newPriceRange != null && newPriceRange.isNotEmpty)
+      final response = (newPriceRange != null && newPriceRange.isNotEmpty) || vetCategory != null
           ? await _service.searchMedicines(
               priceRange: newPriceRange,
+              category: vetCategory,
               page: page,
             )
           : await _service.getAllMedicines(page: page);
@@ -273,5 +284,8 @@ class MedicineNotifier extends StateNotifier<MedicineState> {
 
   void selectMedicine(MedicineModel medicine) {
     state = state.copyWith(selectedMedicine: medicine);
+    if (medicine.medicineId != null) {
+      fetchMedicineById(medicine.medicineId!);
+    }
   }
 }

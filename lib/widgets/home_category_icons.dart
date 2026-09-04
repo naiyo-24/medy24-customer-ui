@@ -11,6 +11,7 @@ class HomeCategoryIcons extends StatelessWidget {
     final categories = [
       {'title': 'Medicines', 'icon': Icons.medication, 'color': Colors.blue},
       {'title': 'Lab Tests', 'icon': Icons.science, 'color': Colors.indigo},
+      {'title': 'Pet\nMedicines', 'icon': Icons.pets, 'color': Colors.deepOrange},
       {'title': 'Upload\nPrescription', 'icon': Icons.camera_alt, 'color': Colors.blueGrey},
     ];
 

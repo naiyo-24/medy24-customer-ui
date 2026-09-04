@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/medicine.dart';
+import '../../providers/medicine_provider.dart';
 import '../../cards/medicine/medicine_card.dart';
 
-class MedicineHorizontalList extends StatelessWidget {
+class MedicineHorizontalList extends ConsumerWidget {
   final List<MedicineModel> medicines;
 
   const MedicineHorizontalList({
@@ -12,7 +14,7 @@ class MedicineHorizontalList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (medicines.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
@@ -30,7 +32,8 @@ class MedicineHorizontalList extends StatelessWidget {
               child: MedicineCard(
                 medicine: medicines[index],
                 onTap: () {
-                  context.push('/medicine-details/${medicines[index].medicineId}', extra: medicines[index]);
+                  ref.read(medicineProvider.notifier).selectMedicine(medicines[index]);
+                  context.push('/medicine-details');
                 },
               ),
             ),

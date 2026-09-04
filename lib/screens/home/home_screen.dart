@@ -183,6 +183,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   } else if (index == 1) {
                     context.push('/lab-tests');
                   } else if (index == 2) {
+                    if (!ref.read(medicineProvider).isVetMode) {
+                      ref.read(medicineProvider.notifier).toggleVetMode();
+                    }
+                    context.push('/medicine-list');
+                  } else if (index == 3) {
                     context.push('/order-with-prescription');
                   }
                 },

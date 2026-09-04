@@ -143,19 +143,8 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Browse Categories (Commented out as categories are not available on backend)
-                /*
-                SectionHeader(
-                  title: 'Browse Categories',
-                  onSeeAllTap: () {},
-                ),
-                MedicineCategoriesRow(
-                  onCategoryTap: (category) {
-                    // Filter logic or navigation
-                  },
-                ),
-                const SizedBox(height: 16),
-                */
+                // Vet/Pet Toggle (Swiggy-style)
+                _buildVetToggle(medicineState.isVetMode),
 
                 // Top Deals on Medicines
                 SectionHeader(
@@ -173,11 +162,13 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 if (medicineState.popularBrands.length >= 5) ...[
                   SectionHeader(
                     title: 'Popular Brands',
-                    onSeeAllTap: () {},
                   ),
                   PopularBrandsRow(
                     brands: medicineState.popularBrands,
-                    onBrandTap: (brand) {},
+                    onBrandTap: (brand) {
+                      ref.read(medicineProvider.notifier).searchMedicines(searchTerm: brand);
+                      context.push('/medicine-search');
+                    },
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -213,6 +204,118 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
               const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVetToggle(bool isVetMode) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              ref.read(medicineProvider.notifier).toggleVetMode();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isVetMode
+                    ? const Color(0xFFFF6B35).withAlpha(25)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isVetMode
+                      ? const Color(0xFFFF6B35)
+                      : AppColors.divider,
+                  width: isVetMode ? 1.8 : 1,
+                ),
+                boxShadow: isVetMode
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFFFF6B35).withAlpha(30),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.pets,
+                    size: 18,
+                    color: isVetMode
+                        ? const Color(0xFFFF6B35)
+                        : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Pet / Vet',
+                    style: TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 13,
+                      fontWeight: isVetMode ? FontWeight.w600 : FontWeight.w500,
+                      color: isVetMode
+                          ? const Color(0xFFFF6B35)
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    width: 32,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(9),
+                      color: isVetMode
+                          ? const Color(0xFFFF6B35)
+                          : AppColors.divider,
+                    ),
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      alignment: isVetMode
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isVetMode) ...[
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35).withAlpha(15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                '🐾 Showing Veterinary Medicines',
+                style: TextStyle(
+                  fontFamily: 'Lexend',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFFFF6B35),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

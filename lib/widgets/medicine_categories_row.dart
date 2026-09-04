@@ -19,6 +19,7 @@ class MedicineCategoriesRow extends StatelessWidget {
       {'title': 'Pain Relief', 'icon': Icons.accessibility_new_outlined, 'color': Colors.teal},
       {'title': 'Skin Care', 'icon': Icons.face_retouching_natural, 'color': Colors.orange},
       {'title': 'Baby Care', 'icon': Icons.child_care, 'color': Colors.pink},
+      {'title': 'Veterinary', 'icon': Icons.pets, 'color': Colors.deepOrange},
     ];
 
     return SingleChildScrollView(
