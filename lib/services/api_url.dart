@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiUrl {
   // Read base URL from .env, fallback to localhost if not found
   static String get baseUrl {
-    final url = dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8000";
+    final url = dotenv.env['API_BASE_URL'] ?? "https://medybackend.naiyo24.com";
     // final url = dotenv.env['API_BASE_URL'] ?? "http://192.168.0.222:8000";
     return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
