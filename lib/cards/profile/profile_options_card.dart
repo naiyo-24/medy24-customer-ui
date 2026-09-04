@@ -56,7 +56,7 @@ class ProfileOptionsCard extends ConsumerWidget {
                   title: 'My Cart',
                   subtitle: 'View items in your basket',
                   color: AppColors.primary,
-                  onTap: () => context.push('/cart'),
+                  onTap: () => context.go('/cart'),
                 ),
                 _buildDivider(),
                 _buildOption(

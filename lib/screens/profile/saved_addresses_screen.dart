@@ -63,13 +63,23 @@ class SavedAddressesScreen extends ConsumerWidget {
                 return SavedAddressCard(
                   address: address,
                   onDelete: () async {
+                    final addressId = address['address_id']?.toString();
+                    if (addressId == null) return;
+                    
                     final success = await ref
                         .read(profileProvider.notifier)
-                        .deleteAddress(address['address_id']);
-                    if (success && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Address deleted')),
-                      );
+                        .deleteAddress(addressId);
+                    if (context.mounted) {
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Address deleted')),
+                        );
+                      } else {
+                        final error = ref.read(profileProvider).error;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(error ?? 'Failed to delete address')),
+                        );
+                      }
                     }
                   },
                   onEdit: () {

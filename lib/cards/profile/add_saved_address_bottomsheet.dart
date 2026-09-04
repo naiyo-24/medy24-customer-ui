@@ -6,7 +6,14 @@ import '../../theme/app_theme.dart';
 import '../../providers/profile_provider.dart';
 
 class AddSavedAddressBottomSheet extends ConsumerStatefulWidget {
-  const AddSavedAddressBottomSheet({super.key});
+  final double? initialLat;
+  final double? initialLng;
+
+  const AddSavedAddressBottomSheet({
+    super.key,
+    this.initialLat,
+    this.initialLng,
+  });
 
   @override
   ConsumerState<AddSavedAddressBottomSheet> createState() => _AddSavedAddressBottomSheetState();
@@ -18,6 +25,13 @@ class _AddSavedAddressBottomSheetState extends ConsumerState<AddSavedAddressBott
   double? _lat;
   double? _lng;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _lat = widget.initialLat;
+    _lng = widget.initialLng;
+  }
 
   @override
   void dispose() {
@@ -111,11 +125,11 @@ class _AddSavedAddressBottomSheetState extends ConsumerState<AddSavedAddressBott
               const SizedBox(height: 24),
               OutlinedButton.icon(
                 onPressed: () async {
-                  final result = await context.push<Map<String, double>>('/map-picker');
+                  final result = await context.push<dynamic>('/map-picker');
                   if (result != null) {
                     setState(() {
-                      _lat = result['lat'];
-                      _lng = result['lng'];
+                      _lat = result['lat'] as double?;
+                      _lng = result['lng'] as double?;
                     });
                   }
                 },

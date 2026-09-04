@@ -14,7 +14,9 @@ import '../../cards/cart/cart_tip_card.dart';
 
 import '../../cards/cart/cart_address_card.dart';
 import '../../cards/cart/cart_order_pop_up.dart';
+import '../../cards/profile/add_saved_address_bottomsheet.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -97,25 +99,42 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   children: [
                     // Delivery Address Row
                     GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          useRootNavigator: false,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
+                      onTap: () async {
+                        if (savedAddresses.isEmpty) {
+                          // Immediately go to map picker
+                          final result = await context.push<dynamic>('/map-picker');
+                          if (result != null && context.mounted) {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              useRootNavigator: false,
+                              backgroundColor: Colors.transparent,
+                              builder: (ctx) => AddSavedAddressBottomSheet(
+                                initialLat: result['lat'] as double?,
+                                initialLng: result['lng'] as double?,
+                              ),
+                            );
+                          }
+                        } else {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            useRootNavigator: false,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(24),
+                              ),
                             ),
-                          ),
-                          builder: (ctx) => Padding(
-                            padding: EdgeInsets.only(
-                              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                            builder: (ctx) => Padding(
+                              padding: EdgeInsets.only(
+                                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                              ),
+                              child: const SingleChildScrollView(
+                                child: CartAddressCard(),
+                              ),
                             ),
-                            child: const SingleChildScrollView(
-                              child: CartAddressCard(),
-                            ),
-                          ),
-                        );
+                          );
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(

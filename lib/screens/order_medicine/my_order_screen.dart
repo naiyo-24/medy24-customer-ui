@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../providers/order_provider.dart';
 import '../../cards/medicine_orders/order_card.dart';
 import '../../theme/app_theme.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../widgets/ads/native_ad_widget.dart';
 
 class MyOrderScreen extends ConsumerStatefulWidget {
   const MyOrderScreen({super.key});
@@ -69,7 +71,7 @@ class _MyOrderScreenState extends ConsumerState<MyOrderScreen> {
                         itemCount: orderState.orders.length,
                         itemBuilder: (context, index) {
                           final order = orderState.orders[index];
-                          return OrderCard(
+                          final card = OrderCard(
                             order: order,
                             onTap: () {
                               if (order.orderId != null) {
@@ -77,6 +79,19 @@ class _MyOrderScreenState extends ConsumerState<MyOrderScreen> {
                               }
                             },
                           );
+                          
+                          // Inject Ad after the 2nd order
+                          if (index == 1) {
+                            return Column(
+                              children: [
+                                card,
+                                const SizedBox(height: 12),
+                                const NativeAdWidget(templateType: TemplateType.small),
+                                const SizedBox(height: 12),
+                              ],
+                            );
+                          }
+                          return card;
                         },
                       ),
                     ),

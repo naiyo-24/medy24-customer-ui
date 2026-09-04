@@ -9,7 +9,11 @@ import '../../widgets/home_search_input.dart';
 import '../../widgets/promo_banner_carousel.dart';
 import '../../models/advertisement.dart';
 import '../../widgets/section_header.dart';
+
 import '../../widgets/lab_test_categories_row.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/ads/native_ad_widget.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../widgets/health_packages_horizontal_list.dart';
 import '../../widgets/why_choose_us_row.dart';
 import '../../widgets/top_health_tests_horizontal_list.dart';
@@ -64,7 +68,7 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                 deliveryTime: '30 mins',
                 cartCount: cartCount,
                 onLocationTap: () => context.push('/map-picker'),
-                onCartTap: () => context.push('/cart'),
+                onCartTap: () => context.go('/cart'),
                 onProfileTap: () => context.push('/profile'),
               ),
             ),
@@ -106,13 +110,17 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: PromoBannerCarousel(
-                  banners: [
+                  items: [
                     AdvertisementModel(
                       id: 'demo_lab',
                       title: 'Up to 15% OFF on Lab Tests',
                       imageUrl: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=800&auto=format&fit=crop',
                       isActive: true,
                       createdAt: DateTime.now(),
+                    ),
+                    const ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
+                      child: BannerAdWidget(size: AdSize.mediumRectangle),
                     ),
                   ],
                 ),
@@ -145,6 +153,13 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
                   ref.read(labTestProvider.notifier).selectTestAndFindLabs(test);
                   context.push('/lab-test-details');
                 },
+              ),
+              const SizedBox(height: 16),
+
+              // Native Ad Divider
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: NativeAdWidget(templateType: TemplateType.small),
               ),
               const SizedBox(height: 16),
 

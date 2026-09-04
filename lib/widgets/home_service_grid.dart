@@ -23,8 +23,9 @@ class HomeServiceGridItem {
 
 class HomeServiceGrid extends StatelessWidget {
   final List<HomeServiceGridItem> items;
+  final Widget? trailingWidget;
 
-  const HomeServiceGrid({super.key, required this.items});
+  const HomeServiceGrid({super.key, required this.items, this.trailingWidget});
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +60,10 @@ class HomeServiceGrid extends StatelessWidget {
                 const Expanded(child: SizedBox()),
             ],
           ),
+          if (trailingWidget != null) ...[
+            const SizedBox(height: 12),
+            trailingWidget!,
+          ],
         ],
       ),
     );

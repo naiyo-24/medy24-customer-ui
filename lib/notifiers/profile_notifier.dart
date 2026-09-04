@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_services.dart';
@@ -160,19 +159,17 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
 
   Future<bool> deleteAddress(String addressId) async {
     final currentUser = state.user;
-    if (currentUser?.customerId == null) return false;
+    if (currentUser == null || currentUser.customerId == null) return false;
 
     state = state.copyWith(isLoading: true, error: null);
     try {
-      // Get fresh Firebase ID token
-      final firebaseToken = await FirebaseAuth.instance.currentUser
-          ?.getIdToken();
-      if (firebaseToken == null) throw 'Authentication token expired';
+      final token = currentUser.token;
+      if (token == null) throw 'Authentication token expired';
 
       final response = await _authService.deleteAddress(
-        customerId: currentUser!.customerId!,
+        customerId: currentUser.customerId!,
         addressId: addressId,
-        token: firebaseToken,
+        token: token,
       );
 
       final success = response.data['data']['deleteSavedAddress'] == true;

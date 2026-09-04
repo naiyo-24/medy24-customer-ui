@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../providers/order_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../cards/medicine_orders/quote_approval_card.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../widgets/ads/native_ad_widget.dart';
 
 class OrderTrackingScreen extends ConsumerStatefulWidget {
   final String orderId;
@@ -480,6 +482,60 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                     ),
                   );
                 }(),
+
+              // --- AdMob Native Ad ---
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: NativeAdWidget(templateType: TemplateType.medium),
+              ),
+
+              // --- Cancel Order Button ---
+              if (order.orderStatus == 'pending' ||
+                  order.orderStatus == 'bidding' ||
+                  order.orderStatus == 'searching_for_pharmacy' ||
+                  order.orderStatus == 'awaiting_customer_approval')
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Cancel Order'),
+                            content: const Text('Are you sure you want to cancel this order?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('No'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Yes, Cancel', style: TextStyle(color: AppColors.error)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true && order.orderId != null) {
+                          await ref.read(orderProvider.notifier).cancelOrder(order.orderId!);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error.withAlpha(25),
+                        foregroundColor: AppColors.error,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: AppColors.error, width: 1.5),
+                        ),
+                      ),
+                      icon: const Icon(Icons.cancel_outlined),
+                      label: const Text('Cancel Order', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                ),
 
               // --- 5. Advertisement Banner ---
               Container(

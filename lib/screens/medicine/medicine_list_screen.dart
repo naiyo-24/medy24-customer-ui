@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../providers/medicine_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -13,6 +14,8 @@ import '../../widgets/section_header.dart';
 import '../../widgets/medicine_horizontal_list.dart';
 import '../../widgets/popular_brands_row.dart';
 import '../../cards/medicine/medicine_design_variants.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
+import '../../widgets/ads/native_ad_widget.dart';
 
 class MedicineListScreen extends ConsumerStatefulWidget {
   const MedicineListScreen({super.key});
@@ -91,7 +94,7 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                   deliveryTime: '30 mins',
                   cartCount: cartCount,
                   onLocationTap: () => context.push('/map-picker'),
-                  onCartTap: () => context.push('/cart'),
+                  onCartTap: () => context.go('/cart'),
                   onProfileTap: () => context.push('/profile'),
                 ),
               ),
@@ -130,13 +133,17 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: PromoBannerCarousel(
-                    banners: [
+                    items: [
                       AdvertisementModel(
                         id: 'demo1',
                         title: 'Flat 20% OFF',
                         imageUrl: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=800&auto=format&fit=crop',
                         isActive: true,
                         createdAt: DateTime.now(),
+                      ),
+                      const ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(24)),
+                        child: BannerAdWidget(size: AdSize.mediumRectangle),
                       ),
                     ],
                   ),
@@ -172,6 +179,13 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
+
+                // Native Ad Divider
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: NativeAdWidget(templateType: TemplateType.small),
+                ),
+                const SizedBox(height: 24),
 
                 // Frequently Ordered Header
                 Padding(

@@ -10,7 +10,9 @@ import '../../widgets/home_top_header.dart';
 import '../../widgets/home_search_input.dart';
 import '../../widgets/promo_banner_carousel.dart';
 import '../../widgets/home_service_grid.dart';
-import '../../widgets/home_order_via_section.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../widgets/ads/native_ad_widget.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/footer_card.dart';
 import '../../widgets/category_content_sliver.dart';
 import '../../providers/medicine_provider.dart';
@@ -74,11 +76,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return 'Kolkata 700086';
   }
 
-  Future<void> _launchWhatsApp() async {
-    // WhatsApp ordering — can integrate url_launcher if added to pubspec
-    context.push('/order-with-prescription');
-  }
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -104,7 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 deliveryTime: '30 mins',
                 cartCount: cartCount,
                 onLocationTap: () => context.push('/map-picker'),
-                onCartTap: () => context.push('/cart'),
+                onCartTap: () => context.go('/cart'),
                 onProfileTap: () => context.push('/profile'),
               ),
             ),
@@ -147,7 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: PromoBannerCarousel(
-                  banners: [
+                  items: [
                     AdvertisementModel(
                       id: 'demo1',
                       title: 'Demo Ad 1',
@@ -155,12 +152,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       isActive: true,
                       createdAt: DateTime.now(),
                     ),
-                    AdvertisementModel(
-                      id: 'demo2',
-                      title: 'Demo Ad 2',
-                      imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800&auto=format&fit=crop',
-                      isActive: true,
-                      createdAt: DateTime.now(),
+                    const ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
+                      child: BannerAdWidget(size: AdSize.mediumRectangle),
                     ),
                     AdvertisementModel(
                       id: 'demo3',
@@ -193,6 +187,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
               ),
 
+              const SizedBox(height: 20),
+
+              // ── Mid-Screen Ad Divider
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: NativeAdWidget(templateType: TemplateType.small),
+              ),
+              
               const SizedBox(height: 20),
 
               // ── 2x2 Service Grid
@@ -236,6 +238,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         context.push('/order-with-prescription'),
                   ),
                 ],
+                trailingWidget: const NativeAdWidget(templateType: TemplateType.small),
               ),
 
 
@@ -317,13 +320,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
               const SizedBox(height: 24),
 
-              // ── Order Via Section
-              HomeOrderViaSection(
-                onWhatsAppTap: _launchWhatsApp,
-                onPrescriptionTap: () =>
-                    context.push('/order-with-prescription'),
-                onCallTap: () {},
-              ),
 
 
 

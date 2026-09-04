@@ -8,9 +8,9 @@ import '../services/api_url.dart';
 import '../theme/app_theme.dart';
 
 class PromoBannerCarousel extends StatefulWidget {
-  final List<AdvertisementModel> banners;
+  final List<dynamic> items;
 
-  const PromoBannerCarousel({super.key, required this.banners});
+  const PromoBannerCarousel({super.key, required this.items});
 
   @override
   State<PromoBannerCarousel> createState() => _PromoBannerCarouselState();
@@ -29,9 +29,9 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
   }
 
   void _startAutoScroll() {
-    if (widget.banners.isEmpty) return;
+    if (widget.items.isEmpty) return;
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_currentPage < widget.banners.length - 1) {
+      if (_currentPage < widget.items.length - 1) {
         _currentPage++;
       } else {
         _currentPage = 0;
@@ -55,7 +55,7 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.banners.isEmpty) return const SizedBox.shrink();
+    if (widget.items.isEmpty) return const SizedBox.shrink();
 
     return Column(
       children: [
@@ -66,11 +66,13 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
             onPageChanged: (index) {
               setState(() => _currentPage = index);
             },
-            itemCount: widget.banners.length,
+            itemCount: widget.items.length,
             itemBuilder: (context, index) {
+              final item = widget.items[index];
+              final child = item is Widget ? item : _PromoBannerCard(banner: item as AdvertisementModel);
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _PromoBannerCard(banner: widget.banners[index]),
+                child: child,
               );
             },
           ),
@@ -79,7 +81,7 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            widget.banners.length,
+            widget.items.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.only(right: 6),

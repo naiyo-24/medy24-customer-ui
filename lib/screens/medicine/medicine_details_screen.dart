@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../../services/cart_animation_service.dart';
+import '../../widgets/floating_cart_pill.dart';
 
 class MedicineDetailsScreen extends ConsumerStatefulWidget {
   const MedicineDetailsScreen({super.key});
@@ -36,6 +37,8 @@ class _MedicineDetailsScreenState extends ConsumerState<MedicineDetailsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: const FloatingCartPill(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SingleChildScrollView(
         child: Column(
           children: [
