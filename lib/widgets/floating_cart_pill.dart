@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
+import 'medicine_image.dart';
 import '../routes/app_router.dart';
 
 class FloatingCartPill extends ConsumerWidget {
@@ -61,6 +62,7 @@ class FloatingCartPill extends ConsumerWidget {
                     height: 40,
                     child: Stack(
                       children: List.generate(imagesToShow.length, (index) {
+                        final item = imagesToShow[index];
                         return Positioned(
                           left: index * 20.0,
                           child: Container(
@@ -70,9 +72,12 @@ class FloatingCartPill extends ConsumerWidget {
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
                               color: Colors.white,
-                              image: DecorationImage(
-                                image: const AssetImage('assets/logo/demo_med_image.png'),
+                            ),
+                            child: ClipOval(
+                              child: MedicineImage(
+                                photoUrl: item.medicine.medicinePhoto,
                                 fit: BoxFit.cover,
+                                iconSize: 20.0,
                               ),
                             ),
                           ),

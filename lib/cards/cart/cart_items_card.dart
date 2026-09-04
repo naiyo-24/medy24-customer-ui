@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/cart.dart';
 import '../../providers/cart_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/medicine_image.dart';
 
 class CartItemsCard extends ConsumerWidget {
   const CartItemsCard({super.key});
@@ -81,8 +82,8 @@ class CartItemsCard extends ConsumerWidget {
               color: AppColors.background,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Image.asset(
-              'assets/logo/demo_med_image.png',
+            child: MedicineImage(
+              photoUrl: item.medicine.medicinePhoto,
               fit: BoxFit.cover,
             ),
           ),

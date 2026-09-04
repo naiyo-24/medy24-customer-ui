@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/medicine.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/medicine_image.dart';
 import '../../providers/cart_provider.dart';
 
 // --- Shared Helpers ---
@@ -117,11 +118,13 @@ class MedicineDesign1 extends ConsumerWidget {
             // Image
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                'assets/logo/demo_med_image.png',
+              child: SizedBox(
                 width: 70,
                 height: 70,
-                fit: BoxFit.cover,
+                child: MedicineImage(
+                  photoUrl: medicine.medicinePhoto,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -196,7 +199,11 @@ class MedicineDesign2 extends ConsumerWidget {
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSpacing.cardRadius)),
-                child: Image.asset('assets/logo/demo_med_image.png', width: double.infinity, fit: BoxFit.cover),
+                child: MedicineImage(
+                  photoUrl: medicine.medicinePhoto,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             Padding(
@@ -306,7 +313,14 @@ class MedicineDesign4 extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSpacing.cardRadius)),
-              child: Image.asset('assets/logo/demo_med_image.png', height: 160, width: double.infinity, fit: BoxFit.cover),
+              child: SizedBox(
+                height: 160,
+                width: double.infinity,
+                child: MedicineImage(
+                  photoUrl: medicine.medicinePhoto,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -374,7 +388,10 @@ class MedicineDesign5 extends ConsumerWidget {
         child: Column(
           children: [
             Expanded(
-              child: Image.asset('assets/logo/demo_med_image.png', fit: BoxFit.contain),
+              child: MedicineImage(
+                photoUrl: medicine.medicinePhoto,
+                fit: BoxFit.contain,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -438,11 +455,9 @@ class MedicineDesign6 extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                child: Image.asset(
-                  'assets/logo/demo_med_image.png',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.contain,
+                child: MedicineImage(
+                  photoUrl: medicine.medicinePhoto,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),

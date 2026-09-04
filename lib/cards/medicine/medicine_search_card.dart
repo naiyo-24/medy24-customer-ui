@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/medicine.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/medicine_image.dart';
 
 
 class MedicineSearchCard extends StatelessWidget {
@@ -43,8 +44,8 @@ class MedicineSearchCard extends StatelessWidget {
                 width: 80,
                 height: 80,
                 color: AppColors.divider,
-                child: Image.asset(
-                  'assets/logo/demo_med_image.png',
+                child: MedicineImage(
+                  photoUrl: medicine.medicinePhoto,
                   fit: BoxFit.cover,
                 ),
               ),

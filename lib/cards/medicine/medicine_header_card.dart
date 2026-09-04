@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/medicine.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/medicine_image.dart';
 
 import 'package:go_router/go_router.dart';
 
@@ -25,8 +26,8 @@ class MedicineHeaderCard extends StatelessWidget {
           Positioned.fill(
             child: Container(
               key: imageKey,
-              child: Image.asset(
-                'assets/logo/demo_med_image.png',
+              child: MedicineImage(
+                photoUrl: medicine.medicinePhoto,
                 fit: BoxFit.cover,
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/medicine.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/medicine_image.dart';
 
 import '../../providers/cart_provider.dart';
 
@@ -46,8 +47,8 @@ class _MedicineCardState extends ConsumerState<MedicineCard> {
                       width: double.infinity,
                       height: double.infinity,
                       key: _imageKey,
-                      child: Image.asset(
-                        'assets/logo/demo_med_image.png',
+                      child: MedicineImage(
+                        photoUrl: widget.medicine.medicinePhoto,
                         fit: BoxFit.cover,
                       ),
                     ),
