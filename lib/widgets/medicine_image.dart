@@ -20,13 +20,11 @@ class MedicineImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (photoUrl == null || photoUrl!.isEmpty) {
-      return Container(
+      return Image.asset(
+        'assets/logo/demo_med_image.png',
+        fit: fit,
         width: width,
         height: height,
-        color: Colors.grey.shade100,
-        child: Center(
-          child: Icon(Iconsax.health, size: iconSize, color: Colors.grey.shade400),
-        ),
       );
     }
 
@@ -36,13 +34,11 @@ class MedicineImage extends StatelessWidget {
       width: width,
       height: height,
       errorBuilder: (context, error, stackTrace) {
-        return Container(
+        return Image.asset(
+          'assets/logo/demo_med_image.png',
+          fit: fit,
           width: width,
           height: height,
-          color: Colors.grey.shade100,
-          child: Center(
-            child: Icon(Iconsax.health, size: iconSize, color: Colors.grey.shade400),
-          ),
         );
       },
     );
