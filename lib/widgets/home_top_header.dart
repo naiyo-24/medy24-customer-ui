@@ -24,6 +24,12 @@ class HomeTopHeader extends StatelessWidget {
     required this.onCartTap,
     required this.onProfileTap,
   });
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,10 +48,10 @@ class HomeTopHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // "Good Morning," text
-                const Text(
-                  'Good Morning,',
-                  style: TextStyle(
+                // Dynamic greeting text
+                Text(
+                  _getGreeting(),
+                  style: const TextStyle(
                     fontFamily: 'Lexend',
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
