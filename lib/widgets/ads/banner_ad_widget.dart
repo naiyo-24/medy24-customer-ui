@@ -1,15 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../providers/ad_provider.dart';
 import '../../theme/app_theme.dart';
 
 class BannerAdWidget extends ConsumerStatefulWidget {
-  final AdSize size;
+  final AdSize? size;
   
   const BannerAdWidget({
     super.key,
-    this.size = AdSize.banner,
+    this.size, // If null, uses Anchored Adaptive Banner
   });
 
   @override
@@ -19,6 +21,7 @@ class BannerAdWidget extends ConsumerStatefulWidget {
 class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> with AutomaticKeepAliveClientMixin {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
+  AdSize? _actualAdSize;
 
   @override
   bool get wantKeepAlive => true;
@@ -26,30 +29,49 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> with AutomaticK
   @override
   void initState() {
     super.initState();
-    // Schedule the ad grab after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadAd();
     });
   }
 
-  void _loadAd() {
-    // Try to get a pre-fetched ad from the provider
-    final preloadedAd = ref.read(adProvider.notifier).getBannerAd();
-    if (preloadedAd != null) {
-      setState(() {
-        _bannerAd = preloadedAd;
-        _isLoaded = true;
-      });
-    } else {
-      // If none available, we could listen for changes, or just show shimmer
-      // For now, the provider immediately begins loading a new one, 
-      // but we will just wait until next build or rebuild when state changes.
+  Future<void> _loadAd() async {
+    final String adUnitId = Platform.isAndroid
+        ? (dotenv.env['ADMOB_BANNER_ANDROID'] ?? 'ca-app-pub-3940256099942544/6300978111')
+        : (dotenv.env['ADMOB_BANNER_IOS'] ?? 'ca-app-pub-3940256099942544/2934735716');
+
+    AdSize? targetSize = widget.size;
+    if (targetSize == null) {
+      // Get the adaptive size
+      final screenWidth = MediaQuery.of(context).size.width.truncate();
+      targetSize = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(screenWidth);
+      targetSize ??= AdSize.banner; // fallback
     }
+
+    if (!mounted) return;
+
+    _bannerAd = BannerAd(
+      adUnitId: adUnitId,
+      request: const AdRequest(),
+      size: targetSize,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _isLoaded = true;
+              _actualAdSize = (ad as BannerAd).size;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('BannerAd failed to load: $error');
+          ad.dispose();
+        },
+      ),
+    )..load();
   }
 
   @override
   void dispose() {
-    // We dispose of the ad when the widget leaves the screen
     _bannerAd?.dispose();
     super.dispose();
   }
@@ -57,26 +79,22 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> with AutomaticK
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // Listen to ad state so if an ad wasn't ready initially, we grab it when it is
-    ref.listen<AdState>(adProvider, (previous, next) {
-      if (!_isLoaded && next.bannerAds.isNotEmpty) {
-        _loadAd();
-      }
-    });
 
-    if (_isLoaded && _bannerAd != null) {
-      return Container(
-        width: widget.size.width.toDouble(),
-        height: widget.size.height.toDouble(),
-        alignment: Alignment.center,
+    if (_isLoaded && _bannerAd != null && _actualAdSize != null) {
+      return SizedBox(
+        width: _actualAdSize!.width.toDouble(),
+        height: _actualAdSize!.height.toDouble(),
         child: AdWidget(ad: _bannerAd!),
       );
     }
     
-    // Return a skeleton while loading (without flutter_animate to avoid Impeller errors)
+    // Return a skeleton while loading
+    final width = widget.size?.width.toDouble() ?? double.infinity;
+    final height = widget.size?.height.toDouble() ?? 60.0;
+    
     return Container(
-      width: widget.size.width.toDouble(),
-      height: widget.size.height.toDouble(),
+      width: width,
+      height: height,
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -86,13 +104,13 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> with AutomaticK
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.ad_units, color: Colors.grey, size: 32),
-            const SizedBox(height: 8),
+            const Icon(Icons.ad_units, color: Colors.grey, size: 24),
+            const SizedBox(height: 4),
             Text(
               'Advertisement',
               style: TextStyle(
                 color: Colors.grey.shade400,
-                fontSize: 12,
+                fontSize: 10,
               ),
             ),
           ],

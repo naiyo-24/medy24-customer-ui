@@ -183,7 +183,7 @@ class _MedicineListScreenState extends ConsumerState<MedicineListScreen> {
                 // Native Ad Divider
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: NativeAdWidget(templateType: TemplateType.small),
+                  child: BannerAdWidget(),
                 ),
                 const SizedBox(height: 24),
 

@@ -156,10 +156,10 @@ class _LabTestSearchScreenState extends ConsumerState<LabTestSearchScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Native Ad Divider
+              // Promotional / Ad Block
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: NativeAdWidget(templateType: TemplateType.small),
+                child: BannerAdWidget(),
               ),
               const SizedBox(height: 16),
 

@@ -339,14 +339,15 @@ class OrderNotifier extends StateNotifier<OrderState> {
       if (response.data['status'] == 'success') {
         final orderId = response.data['order_id'];
         
+        // Clear cart immediately on success
+        await ref.read(cartProvider.notifier).clearCart();
+        
         _orderService.connectBidding(orderId);
         await fetchOrders(refresh: true);
         state = state.copyWith(isLoading: false, activeBiddingOrderId: orderId);
         
         final index = state.orders.indexWhere((o) => o.orderId == orderId);
         if (index >= 0) {
-          // Clear cart on success
-          await ref.read(cartProvider.notifier).clearCart();
           return state.orders[index];
         }
       } else {

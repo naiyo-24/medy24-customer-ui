@@ -15,6 +15,15 @@ Future<void> main() async {
 
   // Initialize Google Mobile Ads
   await MobileAds.instance.initialize();
+  
+  // Set test device IDs to avoid NO_FILL errors on real devices
+  RequestConfiguration configuration = RequestConfiguration(
+    testDeviceIds: [
+      '4D6E30A9DD34758AE58431905A044486',
+      '5FB405FF0104CE4D8020A9B8A97A7A46',
+    ],
+  );
+  await MobileAds.instance.updateRequestConfiguration(configuration);
 
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(

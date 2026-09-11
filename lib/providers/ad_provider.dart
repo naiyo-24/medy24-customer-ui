@@ -54,7 +54,10 @@ class AdNotifier extends StateNotifier<AdState> {
   Future<void> _initAds() async {
     // Set test device ID to avoid Error 3 (NO_FILL) during development
     RequestConfiguration configuration = RequestConfiguration(
-      testDeviceIds: ['4D6E30A9DD34758AE58431905A044486'],
+      testDeviceIds: [
+        '4D6E30A9DD34758AE58431905A044486',
+        '5FB405FF0104CE4D8020A9B8A97A7A46', // New device
+      ],
     );
     await MobileAds.instance.updateRequestConfiguration(configuration);
 
@@ -68,7 +71,6 @@ class AdNotifier extends StateNotifier<AdState> {
     for (int i = 0; i < needed; i++) {
       final ad = NativeAd(
         adUnitId: _nativeAdUnitId,
-        factoryId: '', // Unused for Template style
         listener: NativeAdListener(
           onAdLoaded: (ad) {
             debugPrint('Preloaded NativeAd.');

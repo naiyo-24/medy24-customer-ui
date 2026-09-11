@@ -223,8 +223,11 @@ class CartNotifier extends StateNotifier<CartState> {
 
   Future<void> clearCart() async {
     final cid = _customerId;
+    
+    // Optimistic UI update
+    clearCartLocal();
+    
     if (cid == null) {
-      clearCartLocal();
       return;
     }
 

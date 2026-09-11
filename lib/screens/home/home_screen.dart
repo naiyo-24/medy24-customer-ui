@@ -192,7 +192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // ── Mid-Screen Ad Divider
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: NativeAdWidget(templateType: TemplateType.small),
+                child: BannerAdWidget(),
               ),
               
               const SizedBox(height: 20),
@@ -238,7 +238,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         context.push('/order-with-prescription'),
                   ),
                 ],
-                trailingWidget: const NativeAdWidget(templateType: TemplateType.small),
+                trailingWidget: const BannerAdWidget(),
               ),
 
 
