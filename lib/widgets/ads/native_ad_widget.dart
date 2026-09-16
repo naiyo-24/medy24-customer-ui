@@ -79,31 +79,6 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> with AutomaticK
       );
     }
     
-    final double adHeight = widget.templateType == TemplateType.small ? 120 : 320;
-    return Container(
-      height: adHeight,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Colors.grey.withAlpha(20)),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.ad_units, color: Colors.grey, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              'Advertisement',
-              style: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }

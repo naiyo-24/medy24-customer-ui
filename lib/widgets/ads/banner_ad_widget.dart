@@ -87,34 +87,6 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> with AutomaticK
       );
     }
     
-    // Return a skeleton while loading
-    final width = widget.size?.width.toDouble() ?? double.infinity;
-    final height = widget.size?.height.toDouble() ?? 60.0;
-    
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withAlpha(20)),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.ad_units, color: Colors.grey, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              'Advertisement',
-              style: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }
