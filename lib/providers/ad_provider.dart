@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -69,7 +68,7 @@ class AdNotifier extends StateNotifier<AdState> {
   void _preloadNativeAds() {
     final needed = _maxNativeAds - state.nativeAds.length;
     for (int i = 0; i < needed; i++) {
-      final ad = NativeAd(
+      NativeAd(
         adUnitId: _nativeAdUnitId,
         listener: NativeAdListener(
           onAdLoaded: (ad) {
@@ -113,14 +112,14 @@ class AdNotifier extends StateNotifier<AdState> {
             size: 14.0,
           ),
         ),
-      )..load();
+      ).load();
     }
   }
 
   void _preloadBannerAds() {
     final needed = _maxBannerAds - state.bannerAds.length;
     for (int i = 0; i < needed; i++) {
-      final ad = BannerAd(
+      BannerAd(
         adUnitId: _bannerAdUnitId,
         request: const AdRequest(),
         size: AdSize.mediumRectangle,
@@ -136,7 +135,7 @@ class AdNotifier extends StateNotifier<AdState> {
             ad.dispose();
           },
         ),
-      )..load();
+      ).load();
     }
   }
 

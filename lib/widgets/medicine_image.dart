@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class MedicineImage extends StatelessWidget {
   final String? photoUrl;

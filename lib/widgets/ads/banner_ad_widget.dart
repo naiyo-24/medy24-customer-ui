@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../../providers/ad_provider.dart';
 import '../../theme/app_theme.dart';
 
 class BannerAdWidget extends ConsumerStatefulWidget {
@@ -43,7 +42,7 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> with AutomaticK
     if (targetSize == null) {
       // Get the adaptive size
       final screenWidth = MediaQuery.of(context).size.width.truncate();
-      targetSize = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(screenWidth);
+      targetSize = await AdSize.getLargeAnchoredAdaptiveBannerAdSizeWithOrientation(Orientation.portrait, screenWidth);
       targetSize ??= AdSize.banner; // fallback
     }
 

@@ -12,7 +12,6 @@ import '../../widgets/section_header.dart';
 
 import '../../widgets/lab_test_categories_row.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
-import '../../widgets/ads/native_ad_widget.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../widgets/health_packages_horizontal_list.dart';
 import '../../widgets/why_choose_us_row.dart';

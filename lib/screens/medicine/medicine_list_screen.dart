@@ -15,7 +15,6 @@ import '../../widgets/medicine_horizontal_list.dart';
 import '../../widgets/popular_brands_row.dart';
 import '../../cards/medicine/medicine_design_variants.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
-import '../../widgets/ads/native_ad_widget.dart';
 
 class MedicineListScreen extends ConsumerStatefulWidget {
   const MedicineListScreen({super.key});

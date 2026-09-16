@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:math' as math;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/order_provider.dart';
@@ -20,7 +20,7 @@ class OrderTrackingScreen extends ConsumerStatefulWidget {
 }
 
 class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
-  final MapController _mapController = MapController();
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -75,10 +75,15 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     );
 
     // Determine Map Bounds to fit both points
-    final bounds = LatLngBounds.fromPoints([
-      customerLocation,
-      pharmacyLocation,
-    ]);
+    double minLat = math.min(customerLocation.latitude, pharmacyLocation.latitude);
+    double maxLat = math.max(customerLocation.latitude, pharmacyLocation.latitude);
+    double minLng = math.min(customerLocation.longitude, pharmacyLocation.longitude);
+    double maxLng = math.max(customerLocation.longitude, pharmacyLocation.longitude);
+    
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
 
     // Active Status mapping
     final isDispatched =
@@ -121,58 +126,46 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
               // --- 1. Live Map Section ---
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.35,
-                child: FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: customerLocation,
-                    initialZoom: 13.0,
-                    initialCameraFit: CameraFit.bounds(
-                      bounds: bounds,
-                      padding: const EdgeInsets.all(50),
-                    ),
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: customerLocation,
+                    zoom: 13.0,
                   ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.medy24.app',
+                  onMapCreated: (controller) {
+                    _mapController = controller;
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      _mapController?.animateCamera(
+                        CameraUpdate.newLatLngBounds(bounds, 50),
+                      );
+                    });
+                  },
+                  polylines: {
+                    Polyline(
+                      polylineId: const PolylineId('route'),
+                      points: [pharmacyLocation, customerLocation],
+                      color: AppColors.primary,
+                      width: 4,
                     ),
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: [pharmacyLocation, customerLocation],
-                          color: AppColors.primary,
-                          strokeWidth: 4.0,
-                        ),
-                      ],
+                  },
+                  markers: {
+                    Marker(
+                      markerId: const MarkerId('pharmacy'),
+                      position: pharmacyLocation,
+                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
                     ),
-                    MarkerLayer(
-                      markers: [
-                        // Pharmacy Marker
-                        Marker(
-                          point: pharmacyLocation,
-                          width: 50,
-                          height: 50,
-                          child: const Icon(
-                            Icons.local_pharmacy,
-                            color: AppColors.primary,
-                            size: 35,
-                          ),
-                        ),
-                        // Customer Marker
-                        Marker(
-                          point: customerLocation,
-                          width: 50,
-                          height: 50,
-                          child: const Icon(
-                            Icons.location_on,
-                            color: AppColors.error,
-                            size: 35,
-                          ),
-                        ),
-                      ],
+                    Marker(
+                      markerId: const MarkerId('customer'),
+                      position: customerLocation,
+                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
                     ),
-                  ],
+                  },
+                  myLocationEnabled: false,
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                  scrollGesturesEnabled: false,
+                  zoomGesturesEnabled: false,
+                  rotateGesturesEnabled: false,
+                  tiltGesturesEnabled: false,
                 ),
               ),
 

@@ -11,7 +11,6 @@ import '../../widgets/home_search_input.dart';
 import '../../widgets/promo_banner_carousel.dart';
 import '../../widgets/home_service_grid.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../../widgets/ads/native_ad_widget.dart';
 import '../../widgets/ads/banner_ad_widget.dart';
 import '../../widgets/footer_card.dart';
 import '../../widgets/category_content_sliver.dart';

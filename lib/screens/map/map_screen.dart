@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -16,7 +15,7 @@ class MapPickerScreen extends StatefulWidget {
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
   LatLng _selectedLocation = const LatLng(22.5726, 88.3639); // Kolkata
-  final MapController _mapController = MapController();
+  GoogleMapController? _mapController;
   bool _isLocating = false;
 
   Future<void> _getCurrentLocation() async {
@@ -69,7 +68,9 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         _selectedLocation = latLng;
         _isLocating = false;
       });
-      _mapController.move(latLng, 15);
+      _mapController?.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(target: latLng, zoom: 15),
+      ));
     } catch (e) {
       setState(() => _isLocating = false);
       if (mounted) {
@@ -90,25 +91,23 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       ),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _selectedLocation,
-              initialZoom: 13,
-              onPositionChanged: (position, hasGesture) {
-                if (hasGesture) {
-                  setState(() {
-                    _selectedLocation = position.center;
-                  });
-                }
-              },
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _selectedLocation,
+              zoom: 13,
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.medy24.app',
-              ),
-            ],
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
+            onCameraMove: (CameraPosition position) {
+              _selectedLocation = position.target;
+            },
+            onCameraIdle: () {
+              setState(() {});
+            },
+            myLocationEnabled: false,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
           ),
           // Static Marker at Center
           Center(

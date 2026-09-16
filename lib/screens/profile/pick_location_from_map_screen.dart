@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../theme/app_theme.dart';
@@ -15,7 +14,7 @@ class PickLocationFromMapScreen extends StatefulWidget {
 }
 
 class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
-  final MapController _mapController = MapController();
+  GoogleMapController? _mapController;
   LatLng? _currentPosition;
   LatLng? _selectedPosition;
   bool _isLoadingLocation = true;
@@ -36,12 +35,8 @@ class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Location services are not enabled don't continue
-      // accessing the position and request users of the 
-      // App to enable the location services.
       setState(() {
         _isLoadingLocation = false;
       });
@@ -83,7 +78,6 @@ class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
 
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        // Permissions are denied
         setState(() {
           _isLoadingLocation = false;
           _permissionDenied = true;
@@ -93,7 +87,6 @@ class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
     }
     
     if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately. 
       setState(() {
         _isLoadingLocation = false;
         _permissionDenied = true;
@@ -101,8 +94,6 @@ class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
       return;
     } 
 
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
     try {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
@@ -169,43 +160,33 @@ class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
       );
     }
 
-    // Default to a central location if we still don't have one (e.g. New Delhi)
     final initialCenter = _currentPosition ?? const LatLng(28.6139, 77.2090);
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            initialCenter: initialCenter,
-            initialZoom: 15.0,
-            onTap: (tapPosition, point) {
-              setState(() {
-                _selectedPosition = point;
-              });
-            },
+        GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: initialCenter,
+            zoom: 15.0,
           ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.medapp.customer_app',
-            ),
-            if (_selectedPosition != null)
-              MarkerLayer(
-                markers: [
+          onMapCreated: (controller) {
+            _mapController = controller;
+          },
+          onTap: (LatLng location) {
+            setState(() {
+              _selectedPosition = location;
+            });
+          },
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          markers: _selectedPosition != null
+              ? {
                   Marker(
-                    point: _selectedPosition!,
-                    width: 80,
-                    height: 80,
-                    child: const Icon(
-                      Icons.location_on,
-                      color: AppColors.primary,
-                      size: 40,
-                    ),
-                  ),
-                ],
-              ),
-          ],
+                    markerId: const MarkerId('selected_location'),
+                    position: _selectedPosition!,
+                  )
+                }
+              : {},
         ),
         Positioned(
           bottom: 0,
@@ -269,8 +250,12 @@ class _PickLocationFromMapScreenState extends State<PickLocationFromMapScreen> {
           child: FloatingActionButton(
             backgroundColor: AppColors.primary,
             onPressed: () {
-              if (_currentPosition != null) {
-                _mapController.move(_currentPosition!, 15.0);
+              if (_currentPosition != null && _mapController != null) {
+                _mapController!.animateCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(target: _currentPosition!, zoom: 15.0),
+                  ),
+                );
                 setState(() {
                   _selectedPosition = _currentPosition;
                 });

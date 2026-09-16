@@ -125,8 +125,8 @@ class _OrderWithPrescriptionScreenState
         ].where((e) => e != null).join(', ');
         deliveryAddress = {
           'address': addressString,
-          'lat': _selectedSavedAddress?['latitude'] ?? 0.0,
-          'lng': _selectedSavedAddress?['longitude'] ?? 0.0,
+          'lat': _selectedSavedAddress?['latitude'] ?? _selectedSavedAddress?['lat'] ?? 0.0,
+          'lng': _selectedSavedAddress?['longitude'] ?? _selectedSavedAddress?['lng'] ?? 0.0,
         };
       } else {
         receiverName = _nameController.text.isNotEmpty
