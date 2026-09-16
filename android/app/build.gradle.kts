@@ -22,7 +22,7 @@ val envProperties = Properties()
 if (envFile.exists()) {
     envProperties.load(FileInputStream(envFile))
 }
-val googleMapsApiKey = envProperties["GOOGLE_MAPS_API_KEY"] as String? ?: ""
+val googleMapsApiKey = envProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
 
 android {
     namespace = "com.medy24.customer"
