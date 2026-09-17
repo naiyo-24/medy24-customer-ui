@@ -237,7 +237,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           );
 
                           final selectedAddress =
-                              cartState.selectedAddress
+                              (cartState.selectedAddress ?? displayAddress)
                                   as Map<String, dynamic>?;
                           final addressString = [
                             selectedAddress?['address_1'],

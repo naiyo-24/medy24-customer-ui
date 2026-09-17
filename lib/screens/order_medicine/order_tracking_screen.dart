@@ -8,6 +8,7 @@ import '../../providers/order_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../cards/medicine_orders/quote_approval_card.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/ads/native_ad_widget.dart';
 
 class OrderTrackingScreen extends ConsumerStatefulWidget {
@@ -19,8 +20,11 @@ class OrderTrackingScreen extends ConsumerStatefulWidget {
       _OrderTrackingScreenState();
 }
 
-class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
+class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with SingleTickerProviderStateMixin {
   GoogleMapController? _mapController;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+  List<LatLng> _parabolicPoints = [];
 
   @override
   void initState() {
@@ -28,6 +32,53 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(orderProvider.notifier).startTracking(widget.orderId);
     });
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    )..addListener(() {
+        setState(() {}); // Trigger rebuild to draw more points
+      });
+  }
+
+  void _generateParabolicPoints(LatLng start, LatLng end) {
+    if (_parabolicPoints.isNotEmpty) return;
+    final points = <LatLng>[];
+    
+    // Midpoint
+    double latM = (start.latitude + end.latitude) / 2;
+    double lngM = (start.longitude + end.longitude) / 2;
+    
+    // Diff
+    double dLat = end.latitude - start.latitude;
+    double dLng = end.longitude - start.longitude;
+    
+    // Perpendicular vector for the curve
+    double pLat = -dLng;
+    double pLng = dLat;
+    
+    // Control point (0.2 is the curve factor, positive or negative flips the curve)
+    double cLat = latM + (pLat * 0.2);
+    double cLng = lngM + (pLng * 0.2);
+    
+    // Generate Bezier curve points
+    const int numPoints = 100;
+    for (int i = 0; i <= numPoints; i++) {
+      double t = i / numPoints;
+      double lat = math.pow(1 - t, 2) * start.latitude +
+          2 * (1 - t) * t * cLat +
+          math.pow(t, 2) * end.latitude;
+      double lng = math.pow(1 - t, 2) * start.longitude +
+          2 * (1 - t) * t * cLng +
+          math.pow(t, 2) * end.longitude;
+      points.add(LatLng(lat, lng));
+    }
+    _parabolicPoints = points;
+    _animationController.forward();
   }
 
   @override
@@ -35,6 +86,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
     // Only stop tracking if we are actually leaving the tracking state completely
     // but typically it's safe to disconnect when the screen is disposed.
     ref.read(orderProvider.notifier).stopTracking();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -84,6 +136,15 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
       southwest: LatLng(minLat, minLng),
       northeast: LatLng(maxLat, maxLng),
     );
+
+    // Generate parabolic points if not generated yet
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _generateParabolicPoints(pharmacyLocation, customerLocation);
+    });
+
+    // Calculate visible points based on animation progress
+    final int visiblePointCount = (_parabolicPoints.length * _animation.value).round();
+    final List<LatLng> currentPolylinePoints = _parabolicPoints.take(visiblePointCount).toList();
 
     // Active Status mapping
     final isDispatched =
@@ -140,12 +201,15 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                     });
                   },
                   polylines: {
-                    Polyline(
-                      polylineId: const PolylineId('route'),
-                      points: [pharmacyLocation, customerLocation],
-                      color: AppColors.primary,
-                      width: 4,
-                    ),
+                    if (currentPolylinePoints.isNotEmpty)
+                      Polyline(
+                        polylineId: const PolylineId('route'),
+                        points: currentPolylinePoints,
+                        color: AppColors.primary,
+                        width: 4,
+                        geodesic: true,
+                        patterns: [PatternItem.dash(20), PatternItem.gap(10)], // Optional: dotted line
+                      ),
                   },
                   markers: {
                     Marker(
@@ -217,7 +281,15 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                             Icons.call,
                             color: AppColors.success,
                           ),
-                          onPressed: () {},
+                          onPressed: () async {
+                            final Uri launchUri = Uri(
+                              scheme: 'tel',
+                              path: order.shopPhone,
+                            );
+                            if (await canLaunchUrl(launchUri)) {
+                              await launchUrl(launchUri);
+                            }
+                          },
                         ),
                     ],
                   ),
@@ -268,8 +340,14 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                                 Icons.call,
                                 color: AppColors.success,
                               ),
-                              onPressed: () {
-                                // Direct call intent
+                              onPressed: () async {
+                                final Uri launchUri = Uri(
+                                  scheme: 'tel',
+                                  path: order.riderPhone,
+                                );
+                                if (await canLaunchUrl(launchUri)) {
+                                  await launchUrl(launchUri);
+                                }
                               },
                             ),
                         ],
@@ -361,7 +439,8 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> {
                       order.orderStatus == 'bidding' ||
                       order.orderStatus == 'searching_for_pharmacy' ||
                       order.orderStatus == 'awaiting_customer_approval' ||
-                      order.orderStatus == 'pending_payment') &&
+                      order.orderStatus == 'pending_payment' ||
+                      order.orderStatus == 'checkout_pending') &&
                   order.quotes.isNotEmpty)
                 ...order.quotes.map(
                   (quote) => Padding(

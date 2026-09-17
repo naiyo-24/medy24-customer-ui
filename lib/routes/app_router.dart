@@ -46,9 +46,39 @@ final _shellNavigatorTestsKey = GlobalKey<NavigatorState>(debugLabel: 'tests');
 final _shellNavigatorCartKey = GlobalKey<NavigatorState>(debugLabel: 'cart');
 final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
+// Global observer to track the current route
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+final ValueNotifier<String> currentRouteNotifier = ValueNotifier<String>('');
+
+class MyNavigatorObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route.settings.name != null) {
+      currentRouteNotifier.value = route.settings.name!;
+    }
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (previousRoute?.settings.name != null) {
+      currentRouteNotifier.value = previousRoute!.settings.name!;
+    }
+  }
+  
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    if (newRoute?.settings.name != null) {
+      currentRouteNotifier.value = newRoute!.settings.name!;
+    }
+  }
+}
+
+final globalNavigatorObserver = MyNavigatorObserver();
+
 final appRouter = GoRouter(
   initialLocation: '/splash',
   navigatorKey: _rootNavigatorKey,
+  observers: [globalNavigatorObserver],
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     // GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
@@ -313,6 +343,7 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
+      name: 'order-tracking',
       path: '/order-tracking/:orderId',
       builder: (context, state) {
         final orderId = state.pathParameters['orderId']!;

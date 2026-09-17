@@ -52,7 +52,7 @@ class MedicineHeaderCard extends StatelessWidget {
 
           // Back Button
           Positioned(
-            top: 50,
+            top: MediaQuery.of(context).padding.top + 12,
             left: 20,
             child: GestureDetector(
               onTap: () => context.pop(),

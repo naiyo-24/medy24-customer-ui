@@ -41,7 +41,7 @@ class _QuoteApprovalCardState extends ConsumerState<QuoteApprovalCard> {
       OrderModel? updatedOrder;
       
       // If already pending payment, just re-initiate Razorpay, don't approve again
-      if (widget.order.orderStatus == 'pending_payment') {
+      if (widget.order.orderStatus == 'pending_payment' || widget.order.orderStatus == 'checkout_pending') {
         updatedOrder = widget.order;
       } else {
         updatedOrder = await ref.read(orderProvider.notifier).approveQuote(widget.order.orderId ?? '', quoteId, _paymentMode);
@@ -87,10 +87,9 @@ class _QuoteApprovalCardState extends ConsumerState<QuoteApprovalCard> {
           return;
         }
 
-        final double amount = (rpResponse['amount'] is int)
-            ? (rpResponse['amount'] as int).toDouble()
-            : (rpResponse['amount'] ?? 0.0);
-        final amountPaise = (amount * 100).round();
+        // Calculate amountPaise from our locally calculated amountToPay (in INR)
+        // to avoid issues if the backend response contains rupees instead of paise.
+        final amountPaise = (amountToPay * 100).round();
 
         final user = ref.read(profileProvider).user ?? ref.read(authProvider).user;
 
@@ -129,7 +128,12 @@ class _QuoteApprovalCardState extends ConsumerState<QuoteApprovalCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.order.orderStatus != 'awaiting_customer_approval' && widget.order.orderStatus != 'pending_payment' && widget.order.orderStatus != 'bidding') return const SizedBox.shrink();
+    if (widget.order.orderStatus != 'awaiting_customer_approval' && 
+        widget.order.orderStatus != 'pending_payment' && 
+        widget.order.orderStatus != 'checkout_pending' && 
+        widget.order.orderStatus != 'bidding') {
+      return const SizedBox.shrink();
+    }
     if (widget.order.quotes.isEmpty) return const SizedBox.shrink();
 
     return _buildQuoteItem(widget.quote);

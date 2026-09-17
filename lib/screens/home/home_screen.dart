@@ -20,6 +20,7 @@ import '../../widgets/welcome_popup.dart';
 import '../../providers/order_provider.dart';
 import '../../cards/medicine_orders/order_card.dart';
 import '../../models/advertisement.dart';
+import '../../models/order.dart';
 import '../../widgets/home_category_icons.dart';
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -84,6 +85,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final cartState = ref.watch(cartProvider);
     final cartCount = cartState.items.length;
 
+    final orderState = ref.watch(orderProvider);
+    final activeOrder = orderState.orders.cast<OrderModel?>().firstWhere(
+      (o) => o != null && o.orderStatus != 'delivered' && o.orderStatus != 'cancelled',
+      orElse: () => null,
+    );
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -102,6 +109,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onLocationTap: () => context.push('/map-picker'),
                 onCartTap: () => context.go('/cart'),
                 onProfileTap: () => context.push('/profile'),
+                onTrackOrderTap: activeOrder != null
+                    ? () {
+                        if (activeOrder.orderStatus == 'pending' || activeOrder.orderStatus == 'bidding') {
+                          ref.read(orderProvider.notifier).startTracking(activeOrder.orderId!);
+                          // In the updated code we push to order-tracking directly for bidding as well
+                          // since order-tracking handles bidding states
+                          context.push('/order-tracking/${activeOrder.orderId}');
+                        } else {
+                          context.push('/order-tracking/${activeOrder.orderId}');
+                        }
+                      }
+                    : null,
               ),
             ),
           ),

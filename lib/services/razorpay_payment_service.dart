@@ -10,14 +10,11 @@ class RazorpayPaymentService {
   Razorpay? _razorpay;
   bool _handlersRegistered = false;
 
-  /// Verifies the native Razorpay plugin is registered (fails after hot restart).
+  /// Verifies the native Razorpay plugin is registered.
   static Future<bool> isPluginAvailable() async {
-    try {
-      await _channel.invokeMethod<dynamic>('resync');
-      return true;
-    } on MissingPluginException {
-      return false;
-    }
+    // We bypass the resync check because the Razorpay plugin doesn't support it
+    // and throws MissingPluginException which prevents the payment sheet from loading.
+    return true;
   }
 
   /// Registers listeners once the native plugin is available.

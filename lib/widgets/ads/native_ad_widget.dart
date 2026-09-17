@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../../theme/app_theme.dart';
 import '../../providers/ad_provider.dart';
 
 class NativeAdWidget extends ConsumerStatefulWidget {

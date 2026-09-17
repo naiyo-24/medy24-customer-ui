@@ -62,7 +62,7 @@ class _MedicineDetailsScreenState extends ConsumerState<MedicineDetailsScreen> {
           ],
         ),
       ),
-      bottomSheet: Container(
+      bottomNavigationBar: Container(
         padding: const EdgeInsets.all(AppSpacing.screenPadding),
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -110,19 +110,22 @@ class _MedicineDetailsScreenState extends ConsumerState<MedicineDetailsScreen> {
                             onTap: () => ref.read(cartProvider.notifier).updateQuantity(medicine.medicineId!, cartItem!.quantity - 1),
                             borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
                             child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               child: Icon(Iconsax.minus, color: Colors.white, size: 20),
                             ),
                           ),
-                          Text(
-                            '${cartItem!.quantity} in Cart',
-                            style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                          Flexible(
+                            child: Text(
+                              '${cartItem!.quantity} in Cart',
+                              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           InkWell(
                             onTap: () => ref.read(cartProvider.notifier).updateQuantity(medicine.medicineId!, cartItem.quantity + 1),
                             borderRadius: const BorderRadius.horizontal(right: Radius.circular(24)),
                             child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               child: Icon(Iconsax.add, color: Colors.white, size: 20),
                             ),
                           ),

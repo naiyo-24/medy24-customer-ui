@@ -12,6 +12,7 @@ class HomeTopHeader extends StatelessWidget {
   final VoidCallback onLocationTap;
   final VoidCallback onCartTap;
   final VoidCallback onProfileTap;
+  final VoidCallback? onTrackOrderTap;
 
   const HomeTopHeader({
     super.key,
@@ -23,6 +24,7 @@ class HomeTopHeader extends StatelessWidget {
     required this.onLocationTap,
     required this.onCartTap,
     required this.onProfileTap,
+    this.onTrackOrderTap,
   });
   String _getGreeting() {
     final hour = DateTime.now().hour;
@@ -122,10 +124,32 @@ class HomeTopHeader extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          // Right Side: Profile & Cart
+          // Right Side: Track, Profile & Cart
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Track Order Icon
+              if (onTrackOrderTap != null) ...[
+                GestureDetector(
+                  onTap: onTrackOrderTap,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFFF2F4F7), // Light greyish background
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.local_shipping, // Or Iconsax.truck_fast if available
+                        size: 20,
+                        color: AppColors.primaryAccent,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
               // Profile Icon
               GestureDetector(
                 onTap: onProfileTap,
