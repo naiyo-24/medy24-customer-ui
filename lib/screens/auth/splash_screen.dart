@@ -44,9 +44,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (mounted) {
       final user = ref.read(authProvider).user;
       if (user != null) {
-        context.go('/home');
+        if (user.role == 'retailer' || user.role == 'shop') {
+          context.go('/retailer-live-orders');
+        } else if (user.role == 'distributor') {
+          context.go('/distributor-dashboard');
+        } else {
+          context.go('/home'); // Customer
+        }
       } else {
-        context.go('/login');
+        context.go('/role-selection');
       }
     }
   }

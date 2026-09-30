@@ -154,6 +154,17 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
         order.orderStatus == 'out_for_delivery' ||
         order.orderStatus == 'delivered';
 
+    final isCancelled = order.orderStatus == 'cancelled' || order.orderStatus == 'rejected';
+
+    final isOrderAccepted = order.acceptedAt != null || isDispatched || 
+        (order.orderStatus != 'pending' && 
+         order.orderStatus != 'bidding' && 
+         order.orderStatus != 'searching_for_pharmacy' && 
+         order.orderStatus != 'awaiting_customer_approval' && 
+         order.orderStatus != 'pending_payment' && 
+         order.orderStatus != 'checkout_pending' &&
+         !isCancelled);
+
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -184,53 +195,138 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
         body: SingleChildScrollView(
           child: Column(
             children: [
-              // --- 1. Live Map Section ---
+              // --- 1. Live Map Section / Waiting UI ---
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.35,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: customerLocation,
-                    zoom: 13.0,
-                  ),
-                  onMapCreated: (controller) {
-                    _mapController = controller;
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      _mapController?.animateCamera(
-                        CameraUpdate.newLatLngBounds(bounds, 50),
-                      );
-                    });
-                  },
-                  polylines: {
-                    if (currentPolylinePoints.isNotEmpty)
-                      Polyline(
-                        polylineId: const PolylineId('route'),
-                        points: currentPolylinePoints,
-                        color: AppColors.primary,
-                        width: 4,
-                        geodesic: true,
-                        patterns: [PatternItem.dash(20), PatternItem.gap(10)], // Optional: dotted line
+                child: isCancelled
+                    ? Container(
+                        width: double.infinity,
+                        color: Colors.white,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withAlpha(20),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.cancel_outlined,
+                                color: AppColors.error,
+                                size: 40,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Order Cancelled',
+                              style: AppTextStyles.header.copyWith(
+                                fontSize: 18,
+                                color: AppColors.error,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                              child: Text(
+                                order.orderStatus == 'rejected' ? 'This order was rejected by the pharmacy.' : 'This order has been cancelled.',
+                                textAlign: TextAlign.center,
+                                style: AppTextStyles.description.copyWith(
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : isOrderAccepted
+                        ? GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: customerLocation,
+                          zoom: 13.0,
+                        ),
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            _mapController?.animateCamera(
+                              CameraUpdate.newLatLngBounds(bounds, 50),
+                            );
+                          });
+                        },
+                        polylines: {
+                          if (currentPolylinePoints.isNotEmpty)
+                            Polyline(
+                              polylineId: const PolylineId('route'),
+                              points: currentPolylinePoints,
+                              color: AppColors.primary,
+                              width: 4,
+                              geodesic: true,
+                              patterns: [PatternItem.dash(20), PatternItem.gap(10)], // Optional: dotted line
+                            ),
+                        },
+                        markers: {
+                          Marker(
+                            markerId: const MarkerId('pharmacy'),
+                            position: pharmacyLocation,
+                            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                          ),
+                          Marker(
+                            markerId: const MarkerId('customer'),
+                            position: customerLocation,
+                            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                          ),
+                        },
+                        myLocationEnabled: false,
+                        myLocationButtonEnabled: false,
+                        zoomControlsEnabled: false,
+                        scrollGesturesEnabled: false,
+                        zoomGesturesEnabled: false,
+                        rotateGesturesEnabled: false,
+                        tiltGesturesEnabled: false,
+                      )
+                    : Container(
+                        width: double.infinity,
+                        color: Colors.white,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(20),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                  strokeWidth: 3,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Waiting for Pharmacy',
+                              style: AppTextStyles.header.copyWith(
+                                fontSize: 18,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                              child: Text(
+                                'We are finding the best pharmacy to fulfill your order. Please wait...',
+                                textAlign: TextAlign.center,
+                                style: AppTextStyles.description.copyWith(
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                  },
-                  markers: {
-                    Marker(
-                      markerId: const MarkerId('pharmacy'),
-                      position: pharmacyLocation,
-                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-                    ),
-                    Marker(
-                      markerId: const MarkerId('customer'),
-                      position: customerLocation,
-                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-                    ),
-                  },
-                  myLocationEnabled: false,
-                  myLocationButtonEnabled: false,
-                  zoomControlsEnabled: false,
-                  scrollGesturesEnabled: false,
-                  zoomGesturesEnabled: false,
-                  rotateGesturesEnabled: false,
-                  tiltGesturesEnabled: false,
-                ),
               ),
 
               // --- 1.5 Pharmacy Details ---
@@ -409,27 +505,35 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
                       style: AppTextStyles.header.copyWith(fontSize: 16),
                     ),
                     const SizedBox(height: 16),
-                    _buildStatusRow(
-                      'Order Placed',
-                      order.createdAt != null,
-                      true,
-                    ),
-                    _buildStatusRow(
-                      'Accepted by Pharmacy',
-                      order.acceptedAt != null || isDispatched,
-                      true,
-                    ),
-                    _buildStatusRow(
-                      'Out for Delivery',
-                      order.orderStatus == 'out_for_delivery' ||
-                          order.orderStatus == 'delivered',
-                      true,
-                    ),
-                    _buildStatusRow(
-                      'Delivered',
-                      order.orderStatus == 'delivered',
-                      false,
-                    ),
+                    if (isCancelled)
+                      _buildStatusRow(
+                        'Cancelled',
+                        true,
+                        false,
+                      )
+                    else ...[
+                      _buildStatusRow(
+                        'Order Placed',
+                        order.createdAt != null,
+                        true,
+                      ),
+                      _buildStatusRow(
+                        'Accepted by Pharmacy',
+                        order.acceptedAt != null || isDispatched,
+                        true,
+                      ),
+                      _buildStatusRow(
+                        'Out for Delivery',
+                        order.orderStatus == 'out_for_delivery' ||
+                            order.orderStatus == 'delivered',
+                        true,
+                      ),
+                      _buildStatusRow(
+                        'Delivered',
+                        order.orderStatus == 'delivered',
+                        false,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -590,7 +694,21 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
                           ),
                         );
                         if (confirm == true && order.orderId != null) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const Center(
+                              child: CircularProgressIndicator(color: AppColors.primary),
+                            ),
+                          );
                           await ref.read(orderProvider.notifier).cancelOrder(order.orderId!);
+                          if (mounted) {
+                            Navigator.pop(context); // Pop loading dialog
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Order Cancelled Successfully')),
+                            );
+                            context.pop(); // Go back
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(

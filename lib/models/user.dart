@@ -10,6 +10,7 @@ class UserModel {
   final String? profilePhoto;
   final String? status;
   final String? token;
+  final String? role;
 
   UserModel({
     this.customerId,
@@ -21,6 +22,7 @@ class UserModel {
     this.profilePhoto,
     this.status,
     this.token,
+    this.role,
   });
 
   UserModel copyWith({
@@ -33,6 +35,7 @@ class UserModel {
     String? profilePhoto,
     String? status,
     String? token,
+    String? role,
   }) {
     return UserModel(
       customerId: customerId ?? this.customerId,
@@ -44,6 +47,7 @@ class UserModel {
       profilePhoto: profilePhoto ?? this.profilePhoto,
       status: status ?? this.status,
       token: token ?? this.token,
+      role: role ?? this.role,
     );
   }
 
@@ -58,6 +62,7 @@ class UserModel {
       'profile_photo': profilePhoto,
       'status': status,
       'token': token,
+      'role': role,
     };
   }
 
@@ -73,6 +78,7 @@ class UserModel {
       profilePhoto: map['profile_photo'] ?? map['profilePhoto'] ?? map['profile_picture'],
       status: map['status'],
       token: map['token'] ?? map['backend_token'],
+      role: map['role'] ?? map['user_type'],
     );
   }
 

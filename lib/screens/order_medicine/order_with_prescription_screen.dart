@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
 import '../../providers/order_provider.dart';
@@ -84,14 +85,7 @@ class _OrderWithPrescriptionScreenState
   void _placePrescriptionOrder() async {
     if (_selectedImages.isEmpty) return;
 
-    if (_isOrderingForMyself) {
-      if (_selectedSavedAddress == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a delivery address')),
-        );
-        return;
-      }
-    } else {
+    if (!_isOrderingForMyself) {
       if (_addressController.text.isEmpty ||
           _nameController.text.isEmpty ||
           _phoneController.text.isEmpty) {
@@ -119,15 +113,55 @@ class _OrderWithPrescriptionScreenState
         final user = ref.read(profileProvider).user;
         receiverName = user?.fullName ?? 'Myself';
         receiverPhone = user?.phoneNumber ?? 'N/A';
-        final addressString = [
-          _selectedSavedAddress?['address_1'],
-          _selectedSavedAddress?['street_address'],
-        ].where((e) => e != null).join(', ');
-        deliveryAddress = {
-          'address': addressString,
-          'lat': _selectedSavedAddress?['latitude'] ?? _selectedSavedAddress?['lat'] ?? 0.0,
-          'lng': _selectedSavedAddress?['longitude'] ?? _selectedSavedAddress?['lng'] ?? 0.0,
-        };
+        
+        if (_selectedSavedAddress != null) {
+          final addressString = [
+            _selectedSavedAddress?['address_1'],
+            _selectedSavedAddress?['street_address'],
+          ].where((e) => e != null).join(', ');
+          deliveryAddress = {
+            'address': addressString,
+            'lat': _selectedSavedAddress?['latitude'] ?? _selectedSavedAddress?['lat'] ?? 0.0,
+            'lng': _selectedSavedAddress?['longitude'] ?? _selectedSavedAddress?['lng'] ?? 0.0,
+          };
+        } else {
+          try {
+            bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+            if (!serviceEnabled) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enable location services or select an address')));
+              setState(() => _isProcessing = false);
+              return;
+            }
+            LocationPermission permission = await Geolocator.checkPermission();
+            if (permission == LocationPermission.denied) {
+              permission = await Geolocator.requestPermission();
+              if (permission == LocationPermission.denied) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions denied. Please select an address manually.')));
+                setState(() => _isProcessing = false);
+                return;
+              }
+            }
+            if (permission == LocationPermission.deniedForever) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions permanently denied. Please select an address manually.')));
+              setState(() => _isProcessing = false);
+              return;
+            }
+            final position = await Geolocator.getCurrentPosition();
+            deliveryAddress = {
+              'address': 'Current Location',
+              'lat': position.latitude,
+              'lng': position.longitude,
+            };
+          } catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not get location: $e. Please select an address.')));
+            setState(() => _isProcessing = false);
+            return;
+          }
+        }
       } else {
         receiverName = _nameController.text.isNotEmpty
             ? _nameController.text
@@ -348,19 +382,55 @@ class _OrderWithPrescriptionScreenState
     final user = ref.read(profileProvider).user;
     final addresses = user?.savedAddresses ?? [];
 
-    if (addresses.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: AppCardStyles.sleekCard,
-        child: const Text(
-          'No saved addresses. Please add one in your profile.',
-          style: AppTextStyles.bodyMedium,
+    final currentLocationTile = InkWell(
+      onTap: () => setState(() => _selectedSavedAddress = null),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: _selectedSavedAddress == null ? AppColors.primary : AppColors.divider,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          color: _selectedSavedAddress == null
+              ? AppColors.primary.withAlpha(25)
+              : Colors.transparent,
         ),
-      );
-    }
+        child: Row(
+          children: [
+            Icon(
+              _selectedSavedAddress == null ? Iconsax.location_tick : Iconsax.location,
+              color: _selectedSavedAddress == null
+                  ? AppColors.primary
+                  : AppColors.textTertiary,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Current Location',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'Use my current location',
+                    style: AppTextStyles.caption,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 
     return Column(
-      children: addresses.map((address) {
+      children: [
+        currentLocationTile,
+        ...addresses.map((address) {
         final isSelected = _selectedSavedAddress == address;
         return InkWell(
           onTap: () => setState(
@@ -412,6 +482,7 @@ class _OrderWithPrescriptionScreenState
           ),
         );
       }).toList(),
+      ],
     );
   }
 

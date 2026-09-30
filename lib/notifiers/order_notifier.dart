@@ -480,6 +480,47 @@ class OrderNotifier extends StateNotifier<OrderState> {
              _orderService.disconnectBidding();
              state = state.copyWith(activeBiddingOrderId: null);
          }
+         
+         // Optmistic local update
+         final index = state.orders.indexWhere((o) => o.orderId == orderId);
+         if (index >= 0) {
+            final order = state.orders[index];
+            final updatedOrder = OrderModel(
+              orderId: order.orderId,
+              customerId: order.customerId,
+              shopId: order.shopId,
+              shopName: order.shopName,
+              shopPhone: order.shopPhone,
+              orderType: order.orderType,
+              prescriptionUrl: order.prescriptionUrl,
+              items: order.items,
+              quotes: order.quotes,
+              receiverName: order.receiverName,
+              receiverPhone: order.receiverPhone,
+              deliveryAddress: order.deliveryAddress,
+              itemTotal: order.itemTotal,
+              platformFee: order.platformFee,
+              deliveryFee: order.deliveryFee,
+              taxes: order.taxes,
+              totalBillAmount: order.totalBillAmount,
+              paymentMode: order.paymentMode,
+              paymentStatus: order.paymentStatus,
+              orderStatus: 'cancelled',
+              riderName: order.riderName,
+              riderPhone: order.riderPhone,
+              vehicleNumber: order.vehicleNumber,
+              vehicleModel: order.vehicleModel,
+              deliveryOtp: order.deliveryOtp,
+              transactionId: order.transactionId,
+              acceptedAt: order.acceptedAt,
+              deliveredAt: order.deliveredAt,
+              createdAt: order.createdAt,
+            );
+            final updatedOrders = List<OrderModel>.from(state.orders);
+            updatedOrders[index] = updatedOrder;
+            state = state.copyWith(orders: updatedOrders);
+         }
+
          await fetchOrders(refresh: true);
       } else {
          throw Exception(response.data['message'] ?? 'Failed to cancel order');

@@ -17,6 +17,7 @@ import '../../cards/cart/cart_order_pop_up.dart';
 import '../../cards/profile/add_saved_address_bottomsheet.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -212,14 +213,51 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           ),
                         ),
                         onPressed: () async {
-                          if (displayAddress == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please select an address first'),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                            return;
+                          Map<String, dynamic>? finalAddress = displayAddress as Map<String, dynamic>?;
+
+                          if (finalAddress == null) {
+                            try {
+                              bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+                              if (!serviceEnabled) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please enable location services or select an address'), backgroundColor: AppColors.error),
+                                );
+                                return;
+                              }
+                              LocationPermission permission = await Geolocator.checkPermission();
+                              if (permission == LocationPermission.denied) {
+                                permission = await Geolocator.requestPermission();
+                                if (permission == LocationPermission.denied) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Location permissions denied. Please add an address.'), backgroundColor: AppColors.error),
+                                  );
+                                  return;
+                                }
+                              }
+                              if (permission == LocationPermission.deniedForever) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Location permissions permanently denied. Please add an address.'), backgroundColor: AppColors.error),
+                                );
+                                return;
+                              }
+                              final position = await Geolocator.getCurrentPosition();
+                              finalAddress = {
+                                'address_1': 'Current Location',
+                                'street_address': '',
+                                'lat': position.latitude,
+                                'lng': position.longitude,
+                              };
+                              ref.read(cartProvider.notifier).selectAddress(finalAddress);
+                            } catch (e) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Could not get location: $e'), backgroundColor: AppColors.error),
+                              );
+                              return;
+                            }
                           }
                           
                           // If they haven't explicitly selected one but we defaulted to it,
@@ -236,13 +274,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             chargesState.selectedCharge,
                           );
 
-                          final selectedAddress =
-                              (cartState.selectedAddress ?? displayAddress)
-                                  as Map<String, dynamic>?;
                           final addressString = [
-                            selectedAddress?['address_1'],
-                            selectedAddress?['street_address'],
-                          ].where((e) => e != null).join(', ');
+                            finalAddress['address_1'],
+                            finalAddress['street_address'],
+                          ].where((e) => e != null && e.toString().isNotEmpty).join(', ');
 
                           final order = await ref
                               .read(orderProvider.notifier)
@@ -259,8 +294,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 receiverPhone: user?.phoneNumber ?? 'N/A',
                                 deliveryAddress: {
                                   'address': addressString,
-                                  'lat': selectedAddress?['latitude'] ?? selectedAddress?['lat'] ?? 0.0,
-                                  'lng': selectedAddress?['longitude'] ?? selectedAddress?['lng'] ?? 0.0,
+                                  'lat': finalAddress['latitude'] ?? finalAddress['lat'] ?? 0.0,
+                                  'lng': finalAddress['longitude'] ?? finalAddress['lng'] ?? 0.0,
                                 },
                               );
 

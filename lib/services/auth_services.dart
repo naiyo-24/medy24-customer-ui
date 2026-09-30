@@ -204,4 +204,112 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<Response> retailerLogin(String phone, String password) async {
+    try {
+      return await _dio.post(
+        '${ApiUrl.baseUrl}/api/auth/shop/login',
+        data: {'phone': phone, 'password': password},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> distributorLogin(String phone, String password) async {
+    try {
+      return await _dio.post(
+        '${ApiUrl.baseUrl}/api/v1/distributor/auth/login',
+        data: {'phone': phone, 'password': password},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> registerDistributor({
+    required String companyName,
+    required String ownerName,
+    required String phone,
+    required String password,
+    required String address,
+    required double latitude,
+    required double longitude,
+    required String gstinNo,
+    required String panNumber,
+    String? email,
+    String? bankAccountNo,
+    String? bankIfscCode,
+    required File license20bDoc,
+    required File license21bDoc,
+  }) async {
+    try {
+      final formDataMap = <String, dynamic>{
+        'company_name': companyName,
+        'owner_name': ownerName,
+        'phone': phone,
+        'password': password,
+        'address': address,
+        'latitude': latitude,
+        'longitude': longitude,
+        'gstin_no': gstinNo,
+        'pan_number': panNumber,
+      };
+
+      if (email != null) formDataMap['email'] = email;
+      if (bankAccountNo != null) formDataMap['bank_account_no'] = bankAccountNo;
+      if (bankIfscCode != null) formDataMap['bank_ifsc_code'] = bankIfscCode;
+
+      formDataMap['license_20b_doc'] = await MultipartFile.fromFile(
+        license20bDoc.path,
+        filename: license20bDoc.path.split('/').last,
+      );
+      formDataMap['license_21b_doc'] = await MultipartFile.fromFile(
+        license21bDoc.path,
+        filename: license21bDoc.path.split('/').last,
+      );
+
+      final formData = FormData.fromMap(formDataMap);
+      return await _dio.post(
+        '${ApiUrl.baseUrl}/api/v1/distributor/auth/register',
+        data: formData,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> registerRetailer({
+    required String phone,
+    String? email,
+    required String ownerName,
+    required String shopName,
+    required String address,
+    required double latitude,
+    required double longitude,
+    required String licenseNumber,
+    required String password,
+  }) async {
+    try {
+      return await _dio.post(
+        '${ApiUrl.baseUrl}/api/rest/shops/register',
+        data: {
+          'phone': phone,
+          'email': email,
+          'owner_name': ownerName,
+          'shop_name': shopName,
+          'address': address,
+          'latitude': latitude,
+          'longitude': longitude,
+          'license_number': licenseNumber,
+          'shop_password': password,
+          'drug_license_upload': '',
+          'pan_card_upload': '',
+          'registration_certificate_upload': '',
+        },
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -1,15 +1,3 @@
-# Flutter wrapper
--keep class io.flutter.app.** { *; }
--keep class io.flutter.plugin.**  { *; }
--keep class io.flutter.util.**  { *; }
--keep class io.flutter.view.**  { *; }
--keep class io.flutter.**  { *; }
--keep class io.flutter.plugins.**  { *; }
-
-# Firebase / Play Services
--keep class com.google.firebase.** { *; }
--keep class com.google.android.gms.** { *; }
-
 # Razorpay
 -keep class com.razorpay.** {*;}
 -keepclassmembers class * implements com.razorpay.CheckoutPresenter$CheckoutView {

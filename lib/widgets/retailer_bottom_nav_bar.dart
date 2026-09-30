@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../theme/app_theme.dart';
 
-class CustomBottomNavBar extends StatelessWidget {
+class RetailerBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
 
-  const CustomBottomNavBar({
+  const RetailerBottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
@@ -36,9 +36,9 @@ class CustomBottomNavBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _NavBarItem(
-                icon: Iconsax.home_1,
-                activeIcon: Iconsax.home_1,
-                label: 'Home',
+                icon: Iconsax.truck_fast,
+                activeIcon: Iconsax.truck_fast,
+                label: 'Live Orders',
                 isActive: currentIndex == 0,
                 onTap: () {
                   HapticFeedback.selectionClick();
@@ -46,9 +46,9 @@ class CustomBottomNavBar extends StatelessWidget {
                 },
               ),
               _NavBarItem(
-                icon: Iconsax.health,
-                activeIcon: Iconsax.health,
-                label: 'Meds',
+                icon: Iconsax.shop,
+                activeIcon: Iconsax.shop,
+                label: 'Wholesale',
                 isActive: currentIndex == 1,
                 onTap: () {
                   HapticFeedback.selectionClick();
@@ -56,9 +56,9 @@ class CustomBottomNavBar extends StatelessWidget {
                 },
               ),
               _NavBarItem(
-                icon: Iconsax.microscope,
-                activeIcon: Iconsax.microscope,
-                label: 'Tests',
+                icon: Iconsax.chart_2,
+                activeIcon: Iconsax.chart_2,
+                label: 'Earnings',
                 isActive: currentIndex == 2,
                 onTap: () {
                   HapticFeedback.selectionClick();
@@ -66,23 +66,13 @@ class CustomBottomNavBar extends StatelessWidget {
                 },
               ),
               _NavBarItem(
-                icon: Iconsax.shopping_cart,
-                activeIcon: Iconsax.shopping_cart,
-                label: 'Cart',
+                icon: Iconsax.verify,
+                activeIcon: Iconsax.verify,
+                label: 'Compliance',
                 isActive: currentIndex == 3,
                 onTap: () {
                   HapticFeedback.selectionClick();
                   onTap(3);
-                },
-              ),
-              _NavBarItem(
-                icon: Iconsax.user,
-                activeIcon: Iconsax.user,
-                label: 'Profile',
-                isActive: currentIndex == 4,
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  onTap(4);
                 },
               ),
             ],

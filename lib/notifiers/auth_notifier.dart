@@ -168,6 +168,156 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> loginRetailer(String phone, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _authService.retailerLogin(phone, password);
+      final backendToken = response.data['access_token'];
+      final customerId = response.data['user_id'];
+      
+      UserModel authenticatedUser = UserModel(
+        customerId: customerId,
+        phoneNumber: phone,
+        fullName: 'Retailer Shop',
+        token: backendToken,
+        role: 'retailer',
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user', authenticatedUser.toJson());
+
+      state = state.copyWith(user: authenticatedUser, isLoading: false);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.response?.data['detail'] ?? e.message,
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> loginDistributor(String phone, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _authService.distributorLogin(phone, password);
+      final backendToken = response.data['access_token'];
+      final customerId = response.data['distributor_id'];
+      
+      UserModel authenticatedUser = UserModel(
+        customerId: customerId,
+        phoneNumber: phone,
+        fullName: response.data['company_name'] ?? 'Distributor',
+        token: backendToken,
+        role: 'distributor',
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user', authenticatedUser.toJson());
+
+      state = state.copyWith(user: authenticatedUser, isLoading: false);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.response?.data['detail'] ?? e.message,
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> registerDistributor({
+    required String companyName,
+    required String ownerName,
+    required String phone,
+    required String password,
+    required String address,
+    required double latitude,
+    required double longitude,
+    required String gstinNo,
+    required String panNumber,
+    String? email,
+    String? bankAccountNo,
+    String? bankIfscCode,
+    required File license20bDoc,
+    required File license21bDoc,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.registerDistributor(
+        companyName: companyName,
+        ownerName: ownerName,
+        phone: phone,
+        password: password,
+        address: address,
+        latitude: latitude,
+        longitude: longitude,
+        gstinNo: gstinNo,
+        panNumber: panNumber,
+        email: email,
+        bankAccountNo: bankAccountNo,
+        bankIfscCode: bankIfscCode,
+        license20bDoc: license20bDoc,
+        license21bDoc: license21bDoc,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.response?.data['detail'] ?? e.message,
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> registerRetailer({
+    required String phone,
+    String? email,
+    required String ownerName,
+    required String shopName,
+    required String address,
+    required double latitude,
+    required double longitude,
+    required String licenseNumber,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _authService.registerRetailer(
+        phone: phone,
+        email: email,
+        ownerName: ownerName,
+        shopName: shopName,
+        address: address,
+        latitude: latitude,
+        longitude: longitude,
+        licenseNumber: licenseNumber,
+        password: password,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.response?.data['detail'] ?? e.message,
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   Future<void> demoLogin(String phoneNumber) async {
     final demoUser = UserModel(
       customerId: 'demo_user_123',

@@ -8,6 +8,12 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/auth/otp_screen.dart';
 import '../screens/auth/profile_creation_screen.dart';
+import '../screens/auth/role_selection_screen.dart';
+import '../screens/auth/retailer_login_screen.dart';
+import '../screens/auth/distributor_login_screen.dart';
+import '../screens/auth/retailer_signup_screen.dart';
+import '../screens/auth/distributor_signup_screen.dart';
+import '../screens/b2b/distributor_dashboard_screen.dart';
 import '../screens/order_medicine/my_order_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/about_us/about_us_screen.dart';
@@ -36,8 +42,13 @@ import '../screens/profile/saved_addresses_screen.dart';
 import '../screens/map/map_screen.dart';
 import '../screens/payment/checkout_screen.dart';
 import '../screens/cart/cart_screen.dart';
+import '../screens/b2b/b2b_market_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/retailer_bottom_nav_bar.dart';
 import '../widgets/floating_cart_pill.dart';
+import '../screens/retailer_dashboard/live_orders_screen.dart';
+import '../screens/retailer_dashboard/earnings_dashboard_screen.dart';
+import '../screens/retailer_dashboard/retailer_profile_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -45,6 +56,11 @@ final _shellNavigatorMedsKey = GlobalKey<NavigatorState>(debugLabel: 'meds');
 final _shellNavigatorTestsKey = GlobalKey<NavigatorState>(debugLabel: 'tests');
 final _shellNavigatorCartKey = GlobalKey<NavigatorState>(debugLabel: 'cart');
 final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+
+final _retailerShellNavigatorLiveOrdersKey = GlobalKey<NavigatorState>(debugLabel: 'live_orders');
+final _retailerShellNavigatorB2bKey = GlobalKey<NavigatorState>(debugLabel: 'retailer_b2b');
+final _retailerShellNavigatorEarningsKey = GlobalKey<NavigatorState>(debugLabel: 'earnings');
+final _retailerShellNavigatorComplianceKey = GlobalKey<NavigatorState>(debugLabel: 'compliance');
 
 // Global observer to track the current route
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
@@ -83,6 +99,12 @@ final appRouter = GoRouter(
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     // GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/role-selection', builder: (context, state) => const RoleSelectionScreen()),
+    GoRoute(path: '/retailer-login', builder: (context, state) => const RetailerLoginScreen()),
+    GoRoute(path: '/distributor-login', builder: (context, state) => const DistributorLoginScreen()),
+    GoRoute(path: '/retailer-signup', builder: (context, state) => const RetailerSignupScreen()),
+    GoRoute(path: '/distributor-signup', builder: (context, state) => const DistributorSignupScreen()),
+    GoRoute(path: '/distributor-dashboard', builder: (context, state) => const DistributorDashboardScreen()),
     GoRoute(
       path: '/otp',
       builder: (context, state) {
@@ -233,6 +255,60 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
+            ),
+          ],
+        ),
+      ],
+    ),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: RetailerBottomNavBar(
+            currentIndex: navigationShell.currentIndex,
+            onTap: (index) {
+              navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              );
+            },
+          ),
+        );
+      },
+      branches: [
+        StatefulShellBranch(
+          navigatorKey: _retailerShellNavigatorLiveOrdersKey,
+          routes: [
+            GoRoute(
+              path: '/retailer-live-orders',
+              builder: (context, state) => const LiveOrdersScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _retailerShellNavigatorB2bKey,
+          routes: [
+            GoRoute(
+              path: '/retailer-b2b-market',
+              builder: (context, state) => const B2bMarketScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _retailerShellNavigatorEarningsKey,
+          routes: [
+            GoRoute(
+              path: '/retailer-earnings',
+              builder: (context, state) => const EarningsDashboardScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          navigatorKey: _retailerShellNavigatorComplianceKey,
+          routes: [
+            GoRoute(
+              path: '/retailer-profile',
+              builder: (context, state) => const RetailerProfileScreen(),
             ),
           ],
         ),

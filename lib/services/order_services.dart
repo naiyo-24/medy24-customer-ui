@@ -38,10 +38,6 @@ class OrderService {
         order_id: orderId
         customer_id: customerId
         shop_id: shopId
-        shop_name: shopName
-        shop_phone: shopPhone
-        shop_lat: shopLat
-        shop_lng: shopLng
         order_type: orderType
         prescription_url: prescriptionUrl
         items
