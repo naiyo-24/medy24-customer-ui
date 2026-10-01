@@ -380,7 +380,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final user = state.user;
     if (user != null && user.token != null && user.customerId != null) {
       try {
-        await _authService.logout(user.customerId!, user.token!);
+        if (user.role == 'customer' || user.role == null) {
+          await _authService.logout(user.customerId!, user.token!);
+        }
       } catch (e) {
         // Ignore backend errors so the user can still log out locally
       }
