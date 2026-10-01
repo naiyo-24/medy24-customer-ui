@@ -49,6 +49,7 @@ import '../widgets/floating_cart_pill.dart';
 import '../screens/retailer_dashboard/live_orders_screen.dart';
 import '../screens/retailer_dashboard/earnings_dashboard_screen.dart';
 import '../screens/retailer_dashboard/retailer_profile_screen.dart';
+import '../screens/b2b/b2b_checkout_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
@@ -262,16 +263,81 @@ final appRouter = GoRouter(
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return Scaffold(
-          body: navigationShell,
-          bottomNavigationBar: RetailerBottomNavBar(
-            currentIndex: navigationShell.currentIndex,
-            onTap: (index) {
-              navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              );
-            },
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+            
+            if (navigationShell.currentIndex != 0) {
+              navigationShell.goBranch(0);
+              return;
+            }
+
+            final shouldExit = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: const Text(
+                  'Exit App',
+                  style: TextStyle(
+                    fontFamily: 'Lexend',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                content: const Text(
+                  'Are you sure you want to exit Medy24?',
+                  style: TextStyle(fontFamily: 'Lexend'),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontFamily: 'Lexend',
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Exit',
+                      style: TextStyle(
+                        fontFamily: 'Lexend',
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldExit == true) {
+              SystemNavigator.pop();
+            }
+          },
+          child: Scaffold(
+            body: navigationShell,
+            bottomNavigationBar: RetailerBottomNavBar(
+              currentIndex: navigationShell.currentIndex,
+              onTap: (index) {
+                navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                );
+              },
+            ),
           ),
         );
       },
@@ -402,6 +468,10 @@ final appRouter = GoRouter(
         final type = state.uri.queryParameters['type'] ?? 'lab_test';
         return CheckoutScreen(checkoutType: type);
       },
+    ),
+    GoRoute(
+      path: '/b2b-checkout',
+      builder: (context, state) => const B2bCheckoutScreen(),
     ),
     GoRoute(
       path: '/lab-test-details',

@@ -35,7 +35,7 @@ class B2BService {
         'lat': lat,
         'lng': lng,
       },
-      fetchPolicy: FetchPolicy.networkOnly, // Always fetch fresh wholesale rates
+      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await client.query(options);
@@ -46,5 +46,65 @@ class B2BService {
 
     final List rawData = result.data?['searchB2bMedicines'] ?? [];
     return rawData.map((data) => B2BMedicineModel.fromJson(data)).toList();
+  }
+
+  static const String nearbyDistributorsQuery = r'''
+    query GetNearbyDistributors($lat: Float!, $lng: Float!) {
+      getNearbyDistributors(lat: $lat, lng: $lng) {
+        distributorId
+        companyName
+        phone
+        address
+        distanceKm
+      }
+    }
+  ''';
+
+  Future<List<dynamic>> getNearbyDistributors(double lat, double lng) async {
+    final QueryOptions options = QueryOptions(
+      document: gql(nearbyDistributorsQuery),
+      variables: {
+        'lat': lat,
+        'lng': lng,
+      },
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+    final QueryResult result = await client.query(options);
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+    return result.data?['getNearbyDistributors'] ?? [];
+  }
+
+  static const String distributorCatalogQuery = r'''
+    query GetDistributorCatalog($distributorId: String!) {
+      getDistributorCatalog(distributorId: $distributorId) {
+        inventoryId
+        medicineId
+        medicineName
+        packSize
+        manufacturer
+        batchNumber
+        ptr
+        mrp
+        availableStockBoxes
+        moq
+      }
+    }
+  ''';
+
+  Future<List<dynamic>> getDistributorCatalog(String distributorId) async {
+    final QueryOptions options = QueryOptions(
+      document: gql(distributorCatalogQuery),
+      variables: {
+        'distributorId': distributorId,
+      },
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+    final QueryResult result = await client.query(options);
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+    return result.data?['getDistributorCatalog'] ?? [];
   }
 }

@@ -137,4 +137,11 @@ class ApiUrl {
     }
     return key;
   }
+
+  static String pharmacyDashboard(String shopId) => "$baseUrl/api/rest/dashboard/pharmacy/$shopId";
+
+  static String shopBiddingWebSocket(String shopId) {
+    final wsBaseUrl = baseUrl.replaceFirst('http', 'ws');
+    return "$wsBaseUrl/ws/bidding/shop/${Uri.encodeComponent(shopId)}";
+  }
 }

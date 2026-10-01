@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../notifiers/b2b_cart_notifier.dart';
 import '../../notifiers/b2b_checkout_notifier.dart';
 import '../../theme/app_theme.dart';
@@ -104,12 +105,113 @@ class _B2bCheckoutScreenState extends ConsumerState<B2bCheckoutScreen> {
         title: Text('Checkout', style: AppTextStyles.cardTitle), 
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          if (cartState.items.isNotEmpty)
+            TextButton.icon(
+              icon: const Icon(Icons.delete_outline, color: AppColors.error),
+              label: const Text('Clear Cart', style: TextStyle(color: AppColors.error)),
+              onPressed: () {
+                ref.read(b2bCartProvider.notifier).clearCart();
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/b2b');
+                }
+              },
+            ),
+        ],
       ),
       body: cartState.isLoading || checkoutState.isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : ListView(
               padding: const EdgeInsets.all(AppSpacing.screenPadding),
               children: [
+                // Items List
+                if (cartState.items.isNotEmpty) ...[
+                  Text('Items in Cart', style: AppTextStyles.cardTitle),
+                  const SizedBox(height: 12),
+                  ...cartState.items.map((item) {
+                    final inventoryId = item['inventoryId'] ?? '';
+                    final medicineName = item['medicineName'] ?? 'Unknown Medicine';
+                    final moq = item['moq'] ?? 1;
+                    final qtyBoxes = item['qtyBoxes'] ?? 0;
+                    final ptr = (item['ptr'] ?? 0).toDouble();
+                    
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 0,
+                      color: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                        side: BorderSide(color: AppColors.divider.withAlpha(128)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    medicineName, 
+                                    style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text('₹$ptr × $qtyBoxes boxes', style: AppTextStyles.caption),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.remove_circle_outline, size: 24, color: qtyBoxes > moq ? AppColors.textSecondary : AppColors.textSecondary.withAlpha(100)),
+                                      onPressed: qtyBoxes > moq ? () {
+                                        ref.read(b2bCartProvider.notifier).updateItemQty(inventoryId, qtyBoxes - 1);
+                                      } : () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Minimum Order Quantity (MOQ) is $moq for $medicineName', style: const TextStyle(color: Colors.white)),
+                                            backgroundColor: AppColors.primary,
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    Text('$qtyBoxes', style: AppTextStyles.cardTitle),
+                                    IconButton(
+                                      icon: const Icon(Icons.add_circle_outline, size: 24, color: AppColors.primary),
+                                      onPressed: () {
+                                        ref.read(b2bCartProvider.notifier).updateItemQty(inventoryId, qtyBoxes + 1);
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Iconsax.trash, size: 20, color: AppColors.error),
+                                      onPressed: () {
+                                        ref.read(b2bCartProvider.notifier).removeItem(inventoryId);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '₹${(ptr * qtyBoxes).toStringAsFixed(2)}',
+                                  style: AppTextStyles.cardTitle.copyWith(color: AppColors.primary),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  const SizedBox(height: 24),
+                ],
+
                 // Financial Summary
                 Container(
                   decoration: AppCardStyles.sleekCard,
@@ -143,8 +245,14 @@ class _B2bCheckoutScreenState extends ConsumerState<B2bCheckoutScreen> {
                 // Payment Terms
                 Text('Payment Terms', style: AppTextStyles.cardTitle),
                 const SizedBox(height: 8),
-                Container(
-                  decoration: AppCardStyles.sleekCard,
+                Card(
+                  elevation: 0,
+                  margin: EdgeInsets.zero,
+                  color: AppColors.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                    side: BorderSide(color: AppColors.divider.withAlpha(128)),
+                  ),
                   child: Column(
                     children: [
                       RadioListTile<String>(

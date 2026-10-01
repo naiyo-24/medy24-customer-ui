@@ -8,6 +8,7 @@ class B2BCartState {
   final double totalEstimatedPrice;
   final String? error;
   final bool requiresCartClearance;
+  final List<dynamic> items;
 
   B2BCartState({
     this.isLoading = false,
@@ -15,6 +16,7 @@ class B2BCartState {
     this.totalEstimatedPrice = 0.0,
     this.error,
     this.requiresCartClearance = false,
+    this.items = const [],
   });
 
   B2BCartState copyWith({
@@ -23,6 +25,7 @@ class B2BCartState {
     double? totalEstimatedPrice,
     String? error,
     bool? requiresCartClearance,
+    List<dynamic>? items,
   }) {
     return B2BCartState(
       isLoading: isLoading ?? this.isLoading,
@@ -30,6 +33,7 @@ class B2BCartState {
       totalEstimatedPrice: totalEstimatedPrice ?? this.totalEstimatedPrice,
       error: error,
       requiresCartClearance: requiresCartClearance ?? this.requiresCartClearance,
+      items: items ?? this.items,
     );
   }
 }
@@ -37,7 +41,30 @@ class B2BCartState {
 class B2BCartNotifier extends Notifier<B2BCartState> {
   @override
   B2BCartState build() {
+    Future.microtask(() => fetchCart());
     return B2BCartState();
+  }
+
+  Future<void> fetchCart() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final client = await ref.read(b2bGraphQLClientProvider.future);
+      final service = B2BCartService(client);
+      
+      final cartData = await service.fetchCart();
+      if (cartData != null) {
+        state = state.copyWith(
+          isLoading: false,
+          activeDistributorId: cartData['activeDistributorId'],
+          totalEstimatedPrice: (cartData['totalEstimatedPrice'] ?? 0).toDouble(),
+          items: cartData['items'] as List<dynamic>? ?? [],
+        );
+      } else {
+        state = state.copyWith(isLoading: false);
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
   Future<void> addItem({
@@ -63,6 +90,7 @@ class B2BCartNotifier extends Notifier<B2BCartState> {
         isLoading: false,
         activeDistributorId: result['activeDistributorId'],
         totalEstimatedPrice: (result['totalEstimatedPrice'] ?? 0).toDouble(),
+        items: result['items'] as List<dynamic>? ?? [],
       );
 
     } catch (e) {
@@ -94,6 +122,46 @@ class B2BCartNotifier extends Notifier<B2BCartState> {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  Future<void> removeItem(String inventoryId) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final client = await ref.read(b2bGraphQLClientProvider.future);
+      final service = B2BCartService(client);
+      
+      final result = await service.removeFromCart(inventoryId);
+      state = state.copyWith(
+        isLoading: false,
+        activeDistributorId: result['activeDistributorId'],
+        totalEstimatedPrice: (result['totalEstimatedPrice'] ?? 0).toDouble(),
+        items: result['items'] as List<dynamic>? ?? [],
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> updateItemQty(String inventoryId, int newQty) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final client = await ref.read(b2bGraphQLClientProvider.future);
+      final service = B2BCartService(client);
+      
+      final result = await service.updateCartQty(inventoryId, newQty);
+      state = state.copyWith(
+        isLoading: false,
+        activeDistributorId: result['activeDistributorId'],
+        totalEstimatedPrice: (result['totalEstimatedPrice'] ?? 0).toDouble(),
+        items: result['items'] as List<dynamic>? ?? [],
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void cancelCartClearance() {
+    state = state.copyWith(requiresCartClearance: false, error: null);
   }
 }
 
