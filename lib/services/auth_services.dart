@@ -205,6 +205,46 @@ class AuthService {
     }
   }
 
+    Future<Response> updateShopProfile(String shopId, Map<String, dynamic> data) async {
+    try {
+      return await _dio.put(
+        '${ApiUrl.baseUrl}/api/rest/shops/$shopId/update-profile',
+        data: data,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> uploadShopDocuments({
+    required String shopId,
+    File? drugLicense,
+    File? panCard,
+    File? registrationCert,
+  }) async {
+    try {
+      final formDataMap = <String, dynamic>{};
+      
+      if (drugLicense != null) {
+        formDataMap['drug_license_upload'] = await MultipartFile.fromFile(drugLicense.path);
+      }
+      if (panCard != null) {
+        formDataMap['pan_card_upload'] = await MultipartFile.fromFile(panCard.path);
+      }
+      if (registrationCert != null) {
+        formDataMap['registration_certificate_upload'] = await MultipartFile.fromFile(registrationCert.path);
+      }
+
+      final formData = FormData.fromMap(formDataMap);
+      return await _dio.post(
+        '${ApiUrl.baseUrl}/api/rest/shops/$shopId/upload-documents',
+        data: formData,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Response> retailerLogin(String phone, String password) async {
     try {
       return await _dio.post(
@@ -289,6 +329,12 @@ class AuthService {
     required double longitude,
     required String licenseNumber,
     required String password,
+    String? whatsappNumber,
+    String? alternativePhone,
+    String? gstinNo,
+    String? bankAccountNo,
+    String? bankIfscCode,
+    String? bankName,
   }) async {
     try {
       return await _dio.post(
@@ -303,6 +349,12 @@ class AuthService {
           'longitude': longitude,
           'license_number': licenseNumber,
           'shop_password': password,
+          if (whatsappNumber != null && whatsappNumber.isNotEmpty) 'whatsapp_number': whatsappNumber,
+          if (alternativePhone != null && alternativePhone.isNotEmpty) 'shop_alternative_phone_no': alternativePhone,
+          if (gstinNo != null && gstinNo.isNotEmpty) 'gstin_no': gstinNo,
+          if (bankAccountNo != null && bankAccountNo.isNotEmpty) 'bank_account_no': bankAccountNo,
+          if (bankIfscCode != null && bankIfscCode.isNotEmpty) 'bank_ifsc_code': bankIfscCode,
+          if (bankName != null && bankName.isNotEmpty) 'bank_name': bankName,
           'drug_license_upload': '',
           'pan_card_upload': '',
           'registration_certificate_upload': '',

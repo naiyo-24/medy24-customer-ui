@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:geolocator/geolocator.dart';
 
 class RetailerSignupScreen extends ConsumerStatefulWidget {
   const RetailerSignupScreen({super.key});
@@ -22,11 +25,52 @@ class _RetailerSignupScreenState extends ConsumerState<RetailerSignupScreen> {
   final _addressController = TextEditingController();
   final _licenseController = TextEditingController();
   final _emailController = TextEditingController();
+  final _whatsappController = TextEditingController();
+  final _altPhoneController = TextEditingController();
+  final _gstinController = TextEditingController();
+  final _bankAccountController = TextEditingController();
+  final _bankIfscController = TextEditingController();
+  final _bankNameController = TextEditingController();
+
+  File? _drugLicenseFile;
+  File? _panCardFile;
+  File? _regCertFile;
+
 
   bool _obscurePassword = true;
 
+  double? _latitude;
+  double? _longitude;
+  bool _isFetchingLocation = false;
+
+
+  @override
+  void dispose() {
+    _shopController.dispose();
+    _ownerController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _addressController.dispose();
+    _licenseController.dispose();
+    _emailController.dispose();
+    _whatsappController.dispose();
+    _altPhoneController.dispose();
+    _gstinController.dispose();
+    _bankAccountController.dispose();
+    _bankIfscController.dispose();
+    _bankNameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    if (_latitude == null || _longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fetch your location automatically first.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
     
     FocusScope.of(context).unfocus();
 
@@ -36,10 +80,19 @@ class _RetailerSignupScreenState extends ConsumerState<RetailerSignupScreen> {
       ownerName: _ownerController.text.trim(),
       shopName: _shopController.text.trim(),
       address: _addressController.text.trim(),
-      latitude: 0.0, // Hardcoded for demo
-      longitude: 0.0,
+      latitude: _latitude ?? 0.0,
+      longitude: _longitude ?? 0.0,
       licenseNumber: _licenseController.text.trim(),
       password: _passwordController.text,
+      whatsappNumber: _whatsappController.text.trim().isNotEmpty ? '+91${_whatsappController.text.trim()}' : null,
+      alternativePhone: _altPhoneController.text.trim().isNotEmpty ? '+91${_altPhoneController.text.trim()}' : null,
+      gstinNo: _gstinController.text.trim().isNotEmpty ? _gstinController.text.trim() : null,
+      bankAccountNo: _bankAccountController.text.trim().isNotEmpty ? _bankAccountController.text.trim() : null,
+      bankIfscCode: _bankIfscController.text.trim().isNotEmpty ? _bankIfscController.text.trim() : null,
+      bankName: _bankNameController.text.trim().isNotEmpty ? _bankNameController.text.trim() : null,
+      drugLicenseFile: _drugLicenseFile,
+      panCardFile: _panCardFile,
+      regCertFile: _regCertFile,
     );
 
     if (success && mounted) {
@@ -86,12 +139,61 @@ class _RetailerSignupScreenState extends ConsumerState<RetailerSignupScreen> {
               const SizedBox(height: 12),
               _buildTextField('Email Address (Optional)', _emailController, Iconsax.sms),
               const SizedBox(height: 12),
+              _buildTextField('WhatsApp Number (Optional)', _whatsappController, Iconsax.message, isPhone: true),
+              const SizedBox(height: 12),
+              _buildTextField('Alternative Phone (Optional)', _altPhoneController, Iconsax.call, isPhone: true),
+              const SizedBox(height: 12),
+              
+              Text('Location Details', style: AppTextStyles.header),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isFetchingLocation ? null : _fetchLocation,
+                  icon: _isFetchingLocation 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Icon(_latitude != null ? Icons.check_circle : Icons.my_location, color: _latitude != null ? Colors.green : AppColors.primary),
+                  label: Text(_latitude != null ? 'Location Captured' : 'Fetch Location Automatically'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: _latitude != null ? Colors.green : AppColors.primary),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                  ),
+                ),
+              ),
+              if (_latitude == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                  child: Text('Location is required for customers to find your pharmacy.', style: TextStyle(color: Colors.red.shade300, fontSize: 12)),
+                ),
+              const SizedBox(height: 12),
+              
               _buildTextField('Complete Address', _addressController, Iconsax.location, isRequired: true, maxLines: 3),
               
               const SizedBox(height: 32),
               Text('License Information', style: AppTextStyles.header),
               const SizedBox(height: 16),
               _buildTextField('Drug License Number', _licenseController, Iconsax.document, isRequired: true),
+              const SizedBox(height: 12),
+              _buildTextField('GSTIN (Optional)', _gstinController, Iconsax.bank),
+              
+              const SizedBox(height: 32),
+              Text('Bank Details', style: AppTextStyles.header),
+              const SizedBox(height: 16),
+              _buildTextField('Bank Name (Optional)', _bankNameController, Iconsax.bank),
+              const SizedBox(height: 12),
+              _buildTextField('Account Number (Optional)', _bankAccountController, Iconsax.card),
+              const SizedBox(height: 12),
+              _buildTextField('IFSC Code (Optional)', _bankIfscController, Iconsax.code),
+
+              const SizedBox(height: 32),
+              Text('Document Uploads', style: AppTextStyles.header),
+              const SizedBox(height: 16),
+              _buildFilePicker('Drug License Image', _drugLicenseFile, 'drug'),
+              const SizedBox(height: 12),
+              _buildFilePicker('PAN Card Image', _panCardFile, 'pan'),
+              const SizedBox(height: 12),
+              _buildFilePicker('Registration Certificate Image', _regCertFile, 'reg'),
               
               const SizedBox(height: 40),
               SizedBox(
@@ -112,6 +214,91 @@ class _RetailerSignupScreenState extends ConsumerState<RetailerSignupScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _fetchLocation() async {
+    setState(() => _isFetchingLocation = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied, we cannot request permissions.');
+      } 
+
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location fetched successfully!'), backgroundColor: Colors.green)
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching location: $e'), backgroundColor: Colors.red)
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isFetchingLocation = false);
+    }
+  }
+
+  Future<void> _pickFile(String type) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        if (type == 'drug') _drugLicenseFile = File(pickedFile.path);
+        if (type == 'pan') _panCardFile = File(pickedFile.path);
+        if (type == 'reg') _regCertFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Widget _buildFilePicker(String label, File? file, String type) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _pickFile(type),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Row(
+              children: [
+                Icon(file != null ? Iconsax.document_1 : Iconsax.document_upload, color: file != null ? Colors.green : AppColors.textTertiary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    file != null ? file.path.split('/').last : 'Upload Image',
+                    style: TextStyle(color: file != null ? AppColors.textPrimary : AppColors.textTertiary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

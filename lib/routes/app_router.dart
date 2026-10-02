@@ -49,6 +49,10 @@ import '../widgets/floating_cart_pill.dart';
 import '../screens/retailer_dashboard/live_orders_screen.dart';
 import '../screens/retailer_dashboard/earnings_dashboard_screen.dart';
 import '../screens/retailer_dashboard/retailer_profile_screen.dart';
+import '../screens/retailer_dashboard/profile/retailer_location_screen.dart';
+import '../screens/retailer_dashboard/profile/retailer_bank_details_screen.dart';
+import '../screens/retailer_dashboard/profile/retailer_documents_screen.dart';
+
 import '../screens/b2b/b2b_checkout_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -376,6 +380,19 @@ final appRouter = GoRouter(
               path: '/retailer-profile',
               builder: (context, state) => const RetailerProfileScreen(),
             ),
+            GoRoute(
+              path: '/retailer-profile/location',
+              builder: (context, state) => const RetailerLocationScreen(),
+            ),
+            GoRoute(
+              path: '/retailer-profile/bank',
+              builder: (context, state) => const RetailerBankDetailsScreen(),
+            ),
+            GoRoute(
+              path: '/retailer-profile/documents',
+              builder: (context, state) => const RetailerDocumentsScreen(),
+            ),
+
           ],
         ),
       ],

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../notifiers/b2b_cart_notifier.dart';
 import '../../notifiers/b2b_checkout_notifier.dart';
+import '../../notifiers/incoming_wholesale_notifier.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 
 class B2bCheckoutScreen extends ConsumerStatefulWidget {
@@ -37,8 +39,13 @@ class _B2bCheckoutScreenState extends ConsumerState<B2bCheckoutScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Payment Successful!', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.success)
     );
-    ref.read(b2bCheckoutProvider.notifier).resetState();
-    context.go('/b2b-orders'); 
+        ref.read(b2bCheckoutProvider.notifier).resetState();
+    ref.read(b2bCartProvider.notifier).fetchCart();
+    final user = ref.read(authProvider).user;
+    if (user?.customerId != null) {
+      ref.read(incomingWholesaleProvider.notifier).fetchOrders(user!.customerId!);
+    }
+    context.go('/retailer-live-orders'); 
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -89,9 +96,14 @@ class _B2bCheckoutScreenState extends ConsumerState<B2bCheckoutScreen> {
       }
       if (next.successfulPoId != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Credit Order Placed!', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.success)
+          SnackBar(content: Text('Credit Order Placed Successfully!', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.success)
         );
-        context.go('/b2b-orders');
+                ref.read(b2bCartProvider.notifier).fetchCart();
+        final user = ref.read(authProvider).user;
+        if (user?.customerId != null) {
+          ref.read(incomingWholesaleProvider.notifier).fetchOrders(user!.customerId!);
+        }
+        context.go('/retailer-live-orders');
       }
     });
 

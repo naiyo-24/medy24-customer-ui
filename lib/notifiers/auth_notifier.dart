@@ -290,10 +290,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required double longitude,
     required String licenseNumber,
     required String password,
+    String? whatsappNumber,
+    String? alternativePhone,
+    String? gstinNo,
+    String? bankAccountNo,
+    String? bankIfscCode,
+    String? bankName,
+    File? drugLicenseFile,
+    File? panCardFile,
+    File? regCertFile,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _authService.registerRetailer(
+      final response = await _authService.registerRetailer(
         phone: phone,
         email: email,
         ownerName: ownerName,
@@ -303,7 +312,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
         longitude: longitude,
         licenseNumber: licenseNumber,
         password: password,
+        whatsappNumber: whatsappNumber,
+        alternativePhone: alternativePhone,
+        gstinNo: gstinNo,
+        bankAccountNo: bankAccountNo,
+        bankIfscCode: bankIfscCode,
+        bankName: bankName,
       );
+      
+      final shopId = response.data['shop_id'];
+      if (shopId != null && (drugLicenseFile != null || panCardFile != null || regCertFile != null)) {
+        await _authService.uploadShopDocuments(
+          shopId: shopId,
+          drugLicense: drugLicenseFile,
+          panCard: panCardFile,
+          registrationCert: regCertFile,
+        );
+      }
+
       state = state.copyWith(isLoading: false);
       return true;
     } on DioException catch (e) {
