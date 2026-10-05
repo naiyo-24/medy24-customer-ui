@@ -28,6 +28,22 @@ class B2BCheckoutService {
     }
   ''';
 
+  static const String verifyPaymentMutation = r'''
+    mutation VerifyB2bPayment(
+      $razorpayOrderId: String!
+      $razorpayPaymentId: String!
+      $razorpaySignature: String!
+      $poId: String!
+    ) {
+      verifyB2bPayment(
+        razorpayOrderId: $razorpayOrderId
+        razorpayPaymentId: $razorpayPaymentId
+        razorpaySignature: $razorpaySignature
+        poId: $poId
+      )
+    }
+  ''';
+
   Future<Map<String, dynamic>> processCheckout(String paymentTerms) async {
     final MutationOptions options = MutationOptions(
       document: gql(checkoutMutation),
@@ -56,5 +72,31 @@ class B2BCheckoutService {
       throw Exception('Failed to initialize Razorpay.');
     }
     return result.data?['createB2bRazorpayOrder'] ?? {};
+  }
+
+  Future<void> verifyPayment({
+    required String razorpayOrderId,
+    required String razorpayPaymentId,
+    required String razorpaySignature,
+    required String poId,
+  }) async {
+    final MutationOptions options = MutationOptions(
+      document: gql(verifyPaymentMutation),
+      variables: {
+        'razorpayOrderId': razorpayOrderId,
+        'razorpayPaymentId': razorpayPaymentId,
+        'razorpaySignature': razorpaySignature,
+        'poId': poId,
+      },
+    );
+
+    final QueryResult result = await client.mutate(options);
+
+    if (result.hasException) {
+      final errMsg = result.exception?.graphqlErrors.isNotEmpty == true
+          ? result.exception!.graphqlErrors.first.message
+          : 'Payment verification failed.';
+      throw Exception(errMsg);
+    }
   }
 }

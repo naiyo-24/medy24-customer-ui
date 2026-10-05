@@ -121,6 +121,12 @@ class ApiUrl {
   // Platform Fee Endpoints
   static String get platformFee => "$baseUrl/admin/earnings/list";
 
+  // Manufacturer Endpoints (B2B Procurement)
+  static String get manufacturers => "$baseUrl/manufacturers";
+  static String get getManufacturersAll => "$manufacturers/get-all";
+  static String getManufacturerCatalog(String id) => "$manufacturers/$id/catalog";
+  static String get placeManufacturerOrder => "$manufacturers/orders/place";
+
   // Payment Endpoints
   static String get razorpayCreateOrder =>
       "$baseUrl/api/payments/razorpay/create-order";

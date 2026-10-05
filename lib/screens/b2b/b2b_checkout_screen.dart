@@ -36,16 +36,13 @@ class _B2bCheckoutScreenState extends ConsumerState<B2bCheckoutScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Successful!', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.success)
+    // CRITICAL: Call backend to verify signature and mark PO as paid in DB
+    ref.read(b2bCheckoutProvider.notifier).verifyPayment(
+      razorpayOrderId: response.orderId ?? '',
+      razorpayPaymentId: response.paymentId ?? '',
+      razorpaySignature: response.signature ?? '',
     );
-        ref.read(b2bCheckoutProvider.notifier).resetState();
-    ref.read(b2bCartProvider.notifier).fetchCart();
-    final user = ref.read(authProvider).user;
-    if (user?.customerId != null) {
-      ref.read(incomingWholesaleProvider.notifier).fetchOrders(user!.customerId!);
-    }
-    context.go('/retailer-live-orders'); 
+    // Navigation happens via ref.listen when successfulPoId is set
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -94,11 +91,20 @@ class _B2bCheckoutScreenState extends ConsumerState<B2bCheckoutScreen> {
       if (next.razorpayConfig != null) {
         _launchRazorpay(next.razorpayConfig!);
       }
-      if (next.successfulPoId != null) {
+      if (next.successfulPoId != null && (previous?.successfulPoId != next.successfulPoId)) {
+        final isPrepaid = next.razorpayConfig != null || previous?.razorpayConfig != null;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Credit Order Placed Successfully!', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.success)
+          SnackBar(
+            content: Text(
+              isPrepaid ? 'Payment Verified! Order Confirmed ✓' : 'Credit Order Placed Successfully!',
+              style: AppTextStyles.caption.copyWith(color: Colors.white),
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 3),
+          )
         );
-                ref.read(b2bCartProvider.notifier).fetchCart();
+        ref.read(b2bCheckoutProvider.notifier).resetState();
+        ref.read(b2bCartProvider.notifier).fetchCart();
         final user = ref.read(authProvider).user;
         if (user?.customerId != null) {
           ref.read(incomingWholesaleProvider.notifier).fetchOrders(user!.customerId!);

@@ -8,6 +8,8 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/auth/otp_screen.dart';
 import '../screens/auth/profile_creation_screen.dart';
+import '../screens/b2b/manufacturer/manufacturer_catalog_screen.dart';
+import '../models/manufacturer_models.dart';
 import '../screens/auth/role_selection_screen.dart';
 import '../screens/auth/retailer_login_screen.dart';
 import '../screens/auth/distributor_login_screen.dart';
@@ -111,6 +113,13 @@ final appRouter = GoRouter(
     GoRoute(path: '/distributor-signup', builder: (context, state) => const DistributorSignupScreen()),
     GoRoute(path: '/distributor-dashboard', builder: (context, state) => const DistributorDashboardScreen()),
     GoRoute(
+      path: '/manufacturer-catalog',
+      builder: (context, state) {
+        final manufacturer = state.extra as ManufacturerModel;
+        return ManufacturerCatalogScreen(manufacturer: manufacturer);
+      },
+    ),
+    GoRoute(
       path: '/otp',
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
@@ -135,85 +144,20 @@ final appRouter = GoRouter(
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) async {
-            if (didPop) return;
-            
-            if (navigationShell.currentIndex != 0) {
-              navigationShell.goBranch(0);
-              return;
-            }
-
-            final shouldExit = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: const Text(
-                  'Exit App',
-                  style: TextStyle(
-                    fontFamily: 'Lexend',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                content: const Text(
-                  'Are you sure you want to exit Medy24?',
-                  style: TextStyle(fontFamily: 'Lexend'),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
-                        fontFamily: 'Lexend',
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEF4444),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Exit',
-                      style: TextStyle(
-                        fontFamily: 'Lexend',
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-
-            if (shouldExit == true) {
-              SystemNavigator.pop();
-            }
-          },
-          child: Scaffold(
-            body: navigationShell,
-            floatingActionButton: navigationShell.currentIndex == 3
-                ? null
-                : const FloatingCartPill(),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-            bottomNavigationBar: CustomBottomNavBar(
-              currentIndex: navigationShell.currentIndex,
-              onTap: (index) {
-                navigationShell.goBranch(
-                  index,
-                  initialLocation: index == navigationShell.currentIndex,
-                );
-              },
-            ),
+        return Scaffold(
+          body: navigationShell,
+          floatingActionButton: navigationShell.currentIndex == 3
+              ? null
+              : const FloatingCartPill(),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          bottomNavigationBar: CustomBottomNavBar(
+            currentIndex: navigationShell.currentIndex,
+            onTap: (index) {
+              navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              );
+            },
           ),
         );
       },
@@ -267,81 +211,16 @@ final appRouter = GoRouter(
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) async {
-            if (didPop) return;
-            
-            if (navigationShell.currentIndex != 0) {
-              navigationShell.goBranch(0);
-              return;
-            }
-
-            final shouldExit = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: const Text(
-                  'Exit App',
-                  style: TextStyle(
-                    fontFamily: 'Lexend',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                content: const Text(
-                  'Are you sure you want to exit Medy24?',
-                  style: TextStyle(fontFamily: 'Lexend'),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
-                        fontFamily: 'Lexend',
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEF4444),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Exit',
-                      style: TextStyle(
-                        fontFamily: 'Lexend',
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-
-            if (shouldExit == true) {
-              SystemNavigator.pop();
-            }
-          },
-          child: Scaffold(
-            body: navigationShell,
-            bottomNavigationBar: RetailerBottomNavBar(
-              currentIndex: navigationShell.currentIndex,
-              onTap: (index) {
-                navigationShell.goBranch(
-                  index,
-                  initialLocation: index == navigationShell.currentIndex,
-                );
-              },
-            ),
+        return Scaffold(
+          body: navigationShell,
+          bottomNavigationBar: RetailerBottomNavBar(
+            currentIndex: navigationShell.currentIndex,
+            onTap: (index) {
+              navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              );
+            },
           ),
         );
       },
