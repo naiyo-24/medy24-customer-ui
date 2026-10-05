@@ -136,7 +136,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              if (context.canPop())
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                  onPressed: () => context.pop(),
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.centerLeft,
+                ),
               Expanded(
                 child: _buildPhoneSlide(authState),
               ),

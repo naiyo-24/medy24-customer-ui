@@ -110,6 +110,15 @@ class RetailerProfileScreen extends ConsumerWidget {
                             context.push('/retailer-profile/bank');
                           },
                         ),
+                        const Divider(height: 1, thickness: 1, color: AppColors.divider),
+                        _buildOption(
+                          icon: Iconsax.box,
+                          title: 'Wholesale PO History',
+                          subtitle: 'View your B2B purchase orders from distributors',
+                          onTap: () {
+                            context.push('/retailer-b2b-orders');
+                          },
+                        ),
                       ],
                     ),
                   ),

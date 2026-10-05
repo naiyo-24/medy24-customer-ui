@@ -111,6 +111,8 @@ class _DistributorDashboardScreenState extends ConsumerState<DistributorDashboar
                   context,
                   MaterialPageRoute(builder: (context) => const DistributorProfileScreen()),
                 );
+              } else if (value == 'orders') {
+                context.push('/distributor-po-history');
               } else if (value == 'logout') {
                 ref.read(authProvider.notifier).logout();
                 context.go('/role-selection');
@@ -128,6 +130,16 @@ class _DistributorDashboardScreenState extends ConsumerState<DistributorDashboar
                 ),
               ),
               const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'orders',
+                child: Row(
+                  children: [
+                    Icon(Icons.receipt_long, color: AppColors.textPrimary, size: 20),
+                    SizedBox(width: 12),
+                    Text('Procurement Orders', style: TextStyle(fontFamily: 'Lexend')),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'logout',
                 child: Row(

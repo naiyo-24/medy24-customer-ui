@@ -1,3 +1,5 @@
+import "../screens/b2b/distributor_po_history_screen.dart";
+import "../screens/b2b/b2b_order_history_screen.dart";
 import 'package:customer_app/screens/order_medicine/order_tracking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -112,6 +114,7 @@ final appRouter = GoRouter(
     GoRoute(path: '/retailer-signup', builder: (context, state) => const RetailerSignupScreen()),
     GoRoute(path: '/distributor-signup', builder: (context, state) => const DistributorSignupScreen()),
     GoRoute(path: '/distributor-dashboard', builder: (context, state) => const DistributorDashboardScreen()),
+    GoRoute(path: '/distributor-po-history', builder: (context, state) => const DistributorPoHistoryScreen()),
     GoRoute(
       path: '/manufacturer-catalog',
       builder: (context, state) {
@@ -271,7 +274,13 @@ final appRouter = GoRouter(
               path: '/retailer-profile/documents',
               builder: (context, state) => const RetailerDocumentsScreen(),
             ),
-
+            GoRoute(
+              path: '/retailer-b2b-orders',
+              builder: (context, state) {
+                final user = ref.read(authProvider).user;
+                return B2BOrderHistoryScreen(shopId: user?.customerId ?? '');
+              },
+            ),
           ],
         ),
       ],
