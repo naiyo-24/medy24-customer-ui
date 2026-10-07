@@ -1,22 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import '../services/manufacturer_service.dart';
-import '../models/manufacturer_models.dart';
+import re
 
-final _dioProvider = Provider<Dio>((ref) {
-  return Dio();
-});
+with open("lib/providers/manufacturer_provider.dart", "r") as f:
+    content = f.read()
 
-final manufacturerServiceProvider = Provider<ManufacturerService>((ref) {
-  final dio = ref.watch(_dioProvider);
-  return ManufacturerService(dio);
-});
-
-final manufacturersProvider = FutureProvider<List<ManufacturerModel>>((ref) async {
-  final service = ref.watch(manufacturerServiceProvider);
-  return service.fetchManufacturers();
-});
-
+new_provider = """
 class CatalogRequest {
   final String manufacturerId;
   final String? searchQuery;
@@ -39,3 +26,15 @@ final manufacturerCatalogProvider = FutureProvider.family<List<ManufacturerMedic
   final service = ref.watch(manufacturerServiceProvider);
   return service.fetchManufacturerCatalog(request.manufacturerId, searchQuery: request.searchQuery);
 });
+"""
+
+content = re.sub(
+    r"final manufacturerCatalogProvider = FutureProvider\.family<List<ManufacturerMedicineModel>, String>\(\(ref, manufacturerId\) async \{.*?\n\}\);",
+    new_provider.strip(),
+    content,
+    flags=re.DOTALL
+)
+
+with open("lib/providers/manufacturer_provider.dart", "w") as f:
+    f.write(content)
+print("Updated provider")

@@ -40,9 +40,18 @@ class _LiveOrdersScreenState extends ConsumerState<LiveOrdersScreen> {
         title: 'Live Orders',
         subtitle: biddingState.isConnected ? 'Connected to live feed' : 'Connecting...',
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.screenPadding),
-        child: Column(
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async {
+          final user = ref.read(authProvider).user;
+          if (user != null) {
+            await ref.read(incomingWholesaleProvider.notifier).fetchOrders(user.customerId ?? '');
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSpacing.screenPadding),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Radar Section
@@ -129,8 +138,9 @@ class _LiveOrdersScreenState extends ConsumerState<LiveOrdersScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildActiveOrderCard({
     required String orderId,

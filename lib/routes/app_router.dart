@@ -1,3 +1,5 @@
+import 'package:customer_app/providers/auth_provider.dart';
+
 import "../screens/b2b/distributor_po_history_screen.dart";
 import "../screens/b2b/b2b_order_history_screen.dart";
 import 'package:customer_app/screens/order_medicine/order_tracking_screen.dart';
@@ -64,12 +66,22 @@ final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _shellNavigatorMedsKey = GlobalKey<NavigatorState>(debugLabel: 'meds');
 final _shellNavigatorTestsKey = GlobalKey<NavigatorState>(debugLabel: 'tests');
 final _shellNavigatorCartKey = GlobalKey<NavigatorState>(debugLabel: 'cart');
-final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(
+  debugLabel: 'profile',
+);
 
-final _retailerShellNavigatorLiveOrdersKey = GlobalKey<NavigatorState>(debugLabel: 'live_orders');
-final _retailerShellNavigatorB2bKey = GlobalKey<NavigatorState>(debugLabel: 'retailer_b2b');
-final _retailerShellNavigatorEarningsKey = GlobalKey<NavigatorState>(debugLabel: 'earnings');
-final _retailerShellNavigatorComplianceKey = GlobalKey<NavigatorState>(debugLabel: 'compliance');
+final _retailerShellNavigatorLiveOrdersKey = GlobalKey<NavigatorState>(
+  debugLabel: 'live_orders',
+);
+final _retailerShellNavigatorB2bKey = GlobalKey<NavigatorState>(
+  debugLabel: 'retailer_b2b',
+);
+final _retailerShellNavigatorEarningsKey = GlobalKey<NavigatorState>(
+  debugLabel: 'earnings',
+);
+final _retailerShellNavigatorComplianceKey = GlobalKey<NavigatorState>(
+  debugLabel: 'compliance',
+);
 
 // Global observer to track the current route
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
@@ -89,7 +101,7 @@ class MyNavigatorObserver extends NavigatorObserver {
       currentRouteNotifier.value = previousRoute!.settings.name!;
     }
   }
-  
+
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     if (newRoute?.settings.name != null) {
@@ -108,13 +120,34 @@ final appRouter = GoRouter(
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     // GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(path: '/role-selection', builder: (context, state) => const RoleSelectionScreen()),
-    GoRoute(path: '/retailer-login', builder: (context, state) => const RetailerLoginScreen()),
-    GoRoute(path: '/distributor-login', builder: (context, state) => const DistributorLoginScreen()),
-    GoRoute(path: '/retailer-signup', builder: (context, state) => const RetailerSignupScreen()),
-    GoRoute(path: '/distributor-signup', builder: (context, state) => const DistributorSignupScreen()),
-    GoRoute(path: '/distributor-dashboard', builder: (context, state) => const DistributorDashboardScreen()),
-    GoRoute(path: '/distributor-po-history', builder: (context, state) => const DistributorPoHistoryScreen()),
+    GoRoute(
+      path: '/role-selection',
+      builder: (context, state) => const RoleSelectionScreen(),
+    ),
+    GoRoute(
+      path: '/retailer-login',
+      builder: (context, state) => const RetailerLoginScreen(),
+    ),
+    GoRoute(
+      path: '/distributor-login',
+      builder: (context, state) => const DistributorLoginScreen(),
+    ),
+    GoRoute(
+      path: '/retailer-signup',
+      builder: (context, state) => const RetailerSignupScreen(),
+    ),
+    GoRoute(
+      path: '/distributor-signup',
+      builder: (context, state) => const DistributorSignupScreen(),
+    ),
+    GoRoute(
+      path: '/distributor-dashboard',
+      builder: (context, state) => const DistributorDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/distributor-po-history',
+      builder: (context, state) => const DistributorPoHistoryScreen(),
+    ),
     GoRoute(
       path: '/manufacturer-catalog',
       builder: (context, state) {
@@ -152,7 +185,8 @@ final appRouter = GoRouter(
           floatingActionButton: navigationShell.currentIndex == 3
               ? null
               : const FloatingCartPill(),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           bottomNavigationBar: CustomBottomNavBar(
             currentIndex: navigationShell.currentIndex,
             onTap: (index) {
@@ -277,6 +311,7 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/retailer-b2b-orders',
               builder: (context, state) {
+                var ref;
                 final user = ref.read(authProvider).user;
                 return B2BOrderHistoryScreen(shopId: user?.customerId ?? '');
               },
@@ -308,7 +343,10 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final bookingId = state.pathParameters['bookingId']!;
         final labPhone = state.extra as String? ?? "";
-        return LabBookingWaitingScreen(bookingId: bookingId, labPhone: labPhone);
+        return LabBookingWaitingScreen(
+          bookingId: bookingId,
+          labPhone: labPhone,
+        );
       },
     ),
     GoRoute(

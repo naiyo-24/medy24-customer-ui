@@ -1,28 +1,9 @@
-import 'package:dio/dio.dart';
-import '../models/manufacturer_models.dart';
-import 'api_url.dart';
+import re
 
-class ManufacturerService {
-  final Dio _dio;
+with open("lib/services/manufacturer_service.dart", "r") as f:
+    content = f.read()
 
-  ManufacturerService(this._dio);
-
-  Future<List<ManufacturerModel>> fetchManufacturers() async {
-    try {
-      final response = await _dio.get(ApiUrl.getManufacturersAll);
-      if (response.statusCode == 200) {
-        final List data = response.data is List ? response.data : (response.data['data'] ?? []);
-        return data.map((e) => ManufacturerModel.fromJson(e)).toList();
-      }
-      throw Exception('Failed to load manufacturers');
-    } catch (e) {
-      // NOTE: Fallback to dummy data until backend is built.
-      print('Manufacturer fetch failed (expected if backend route missing). Returning dummy data.');
-      return dummyManufacturers;
-    }
-  }
-
-    Future<List<ManufacturerMedicineModel>> fetchManufacturerCatalog(String manufacturerId, {String? searchQuery}) async {
+new_method = """  Future<List<ManufacturerMedicineModel>> fetchManufacturerCatalog(String manufacturerId, {String? searchQuery}) async {
     try {
       final query = r'''
         query GetManufacturerCatalog($manufacturerId: String!, $searchQuery: String) {
@@ -72,5 +53,16 @@ class ManufacturerService {
       }
       return list;
     }
-  }
-}
+  }"""
+
+# Replace the existing method
+content = re.sub(
+    r"Future<List<ManufacturerMedicineModel>> fetchManufacturerCatalog\(String manufacturerId\) async \{.*?\n  \}",
+    new_method,
+    content,
+    flags=re.DOTALL
+)
+
+with open("lib/services/manufacturer_service.dart", "w") as f:
+    f.write(content)
+print("Updated manufacturer_service.dart")

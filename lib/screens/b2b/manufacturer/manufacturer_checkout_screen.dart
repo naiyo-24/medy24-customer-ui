@@ -6,6 +6,8 @@ import '../../../theme/app_theme.dart';
 import '../../../models/manufacturer_models.dart';
 import '../../../notifiers/manufacturer_cart_notifier.dart';
 import '../../../services/api_url.dart';
+import '../../../services/procurement_service.dart';
+import '../../../providers/auth_provider.dart';
 
 class ManufacturerCheckoutScreen extends ConsumerStatefulWidget {
   final ManufacturerModel manufacturer;
@@ -40,14 +42,39 @@ class _ManufacturerCheckoutScreenState extends ConsumerState<ManufacturerCheckou
     super.dispose();
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Successful! PO Placed.', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.success)
-    );
-    ref.read(manufacturerCartProvider.notifier).clearCart();
+  Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    final cartState = ref.read(manufacturerCartProvider);
+    final cartItems = widget.catalog.where((m) => cartState.quantities.containsKey(m.id)).toList();
     
-    // Go back to dashboard
-    context.go('/distributor-dashboard');
+    final items = cartItems.map((item) => {
+      'medicine_id': item.id,
+      'qty_cartons': cartState.quantities[item.id] ?? 1,
+      'ptd': item.ptr,
+      'batch_number': item.batchNumber,
+    }).toList();
+
+    final user = ref.read(authProvider).user;
+    if (user?.token != null) {
+      setState(() => _isLoading = true);
+      try {
+        await ProcurementService.checkout(user!.token!, widget.manufacturer.id, items);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment Successful! PO Placed.', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.success)
+        );
+        ref.read(manufacturerCartProvider.notifier).clearCart();
+        context.go('/distributor-dashboard');
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving order: $e', style: AppTextStyles.caption.copyWith(color: Colors.white)), backgroundColor: AppColors.error)
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {

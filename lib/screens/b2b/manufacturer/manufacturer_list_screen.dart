@@ -38,15 +38,27 @@ class ManufacturerListScreen extends ConsumerWidget {
             child: manufacturersAsyncValue.when(
               data: (manufacturers) {
                 if (manufacturers.isEmpty) {
-                  return const Center(child: Text('No manufacturers found.'));
+                  return RefreshIndicator(
+                    onRefresh: () async => ref.refresh(manufacturersProvider),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(height: 100),
+                        Center(child: Text('No manufacturers found.')),
+                      ],
+                    ),
+                  );
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
-                  itemCount: manufacturers.length,
+                return RefreshIndicator(
+                  onRefresh: () async => ref.refresh(manufacturersProvider),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+                    itemCount: manufacturers.length,
                   itemBuilder: (context, index) {
                     final manufacturer = manufacturers[index];
                     return _buildManufacturerCard(context, manufacturer);
                   },
+                  ),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),

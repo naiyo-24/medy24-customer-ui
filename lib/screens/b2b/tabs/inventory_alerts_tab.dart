@@ -63,14 +63,25 @@ class InventoryAlertsTab extends ConsumerWidget {
       body: alertsAsyncValue.when(
         data: (alerts) {
           if (alerts.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            return RefreshIndicator(
+              onRefresh: () async => ref.refresh(inventoryAlertsProvider),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  Icon(Icons.check_circle_outline, size: 64, color: AppColors.success),
-                  const SizedBox(height: 16),
-                  const Text('Inventory is healthy!', style: AppTextStyles.cardTitle),
-                  const Text('No low stock or expiration alerts.', style: AppTextStyles.description),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check_circle_outline, size: 64, color: AppColors.success),
+                          const SizedBox(height: 16),
+                          const Text('Inventory is healthy!', style: AppTextStyles.cardTitle),
+                          const Text('No low stock or expiration alerts.', style: AppTextStyles.description),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );
