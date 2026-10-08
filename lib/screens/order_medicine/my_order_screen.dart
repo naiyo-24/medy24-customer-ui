@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:go_router/go_router.dart';
@@ -41,6 +42,7 @@ class _MyOrderScreenState extends ConsumerState<MyOrderScreen> {
     final orderState = ref.watch(orderProvider);
 
     return Scaffold(
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       appBar: AppBar(
         leading: IconButton(

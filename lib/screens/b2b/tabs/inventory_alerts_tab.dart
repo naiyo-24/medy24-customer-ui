@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
@@ -52,13 +53,14 @@ final inventoryAlertsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) 
 });
 
 class InventoryAlertsTab extends ConsumerWidget {
-  const InventoryAlertsTab({Key? key}) : super(key: key);
+  const InventoryAlertsTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final alertsAsyncValue = ref.watch(inventoryAlertsProvider);
 
     return Scaffold(
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       body: alertsAsyncValue.when(
         data: (alerts) {
@@ -127,7 +129,7 @@ class InventoryAlertsTab extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: cardBorderColor.withOpacity(0.5), width: 1),
+        side: BorderSide(color: cardBorderColor.withValues(alpha: 0.5), width: 1),
       ),
       elevation: 2,
       child: Padding(
@@ -151,7 +153,7 @@ class InventoryAlertsTab extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: cardBorderColor.withOpacity(0.1),
+                    color: cardBorderColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

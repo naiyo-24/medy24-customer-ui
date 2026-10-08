@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_bar.dart';
@@ -26,6 +27,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = profileState.user;
 
     return Scaffold(
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(
         showBackButton: true,

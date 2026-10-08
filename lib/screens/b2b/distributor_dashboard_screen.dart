@@ -3,10 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/distributor_orders_provider.dart';
 import 'tabs/retailer_orders_tab.dart';
 import 'tabs/inventory_alerts_tab.dart';
 import 'manufacturer/manufacturer_list_screen.dart';
@@ -77,7 +75,7 @@ class _DistributorDashboardScreenState extends ConsumerState<DistributorDashboar
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.business, color: AppColors.primary),
@@ -99,7 +97,7 @@ class _DistributorDashboardScreenState extends ConsumerState<DistributorDashboar
             offset: const Offset(0, 50),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             icon: CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.2),
+              backgroundColor: AppColors.primary.withValues(alpha: 0.2),
               child: Text(
                 (user?.fullName ?? 'D').substring(0, 1).toUpperCase(),
                 style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),

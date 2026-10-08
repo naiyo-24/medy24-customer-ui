@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../theme/app_theme.dart';
+import '../../../widgets/promo_banner_carousel.dart';
 import '../../../models/manufacturer_models.dart';
+import '../../../models/advertisement.dart';
 import '../../../providers/manufacturer_provider.dart';
 
 class ManufacturerListScreen extends ConsumerWidget {
@@ -34,6 +37,24 @@ class ManufacturerListScreen extends ConsumerWidget {
               ],
             ),
           ),
+          
+          // Promotional Banners for Distributors
+          Padding(
+            padding: const EdgeInsets.only(top: 0.0, bottom: 12.0),
+            child: PromoBannerCarousel(
+              items: [
+                AdvertisementModel(id: 'demo1', title: 'Demo Ad 1', imageUrl: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=800&auto=format&fit=crop', createdAt: DateTime.now(), isActive: true),
+                AdvertisementModel(id: 'demo2', title: 'Demo Ad 2', imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop', createdAt: DateTime.now(), isActive: true),
+              ],
+            ),
+          ),
+          
+          // Google Ads
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12.0),
+            child: BannerAdWidget(),
+          ),
+          
           Expanded(
             child: manufacturersAsyncValue.when(
               data: (manufacturers) {

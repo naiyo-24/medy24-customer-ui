@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -214,6 +215,7 @@ class _OrderWithPrescriptionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(
         title: 'Upload Prescription',
@@ -481,7 +483,7 @@ class _OrderWithPrescriptionScreenState
             ),
           ),
         );
-      }).toList(),
+      }),
       ],
     );
   }

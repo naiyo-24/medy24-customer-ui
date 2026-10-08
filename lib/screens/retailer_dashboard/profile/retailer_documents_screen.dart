@@ -30,9 +30,13 @@ class _RetailerDocumentsScreenState extends ConsumerState<RetailerDocumentsScree
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        if (type == 'drug') _drugLicenseFile = File(image.path);
-        else if (type == 'pan') _panCardFile = File(image.path);
-        else if (type == 'reg') _regCertFile = File(image.path);
+        if (type == 'drug') {
+          _drugLicenseFile = File(image.path);
+        } else if (type == 'pan') {
+          _panCardFile = File(image.path);
+        } else if (type == 'reg') {
+          _regCertFile = File(image.path);
+        }
       });
     }
   }

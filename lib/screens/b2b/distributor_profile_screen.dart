@@ -51,7 +51,7 @@ class DistributorProfileScreen extends ConsumerWidget {
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                         child: Text(
                           (profile['company_name'] ?? 'D').toString().substring(0, 1).toUpperCase(),
                           style: const TextStyle(fontSize: 40, color: AppColors.primary, fontWeight: FontWeight.bold),
@@ -75,7 +75,7 @@ class DistributorProfileScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: isVerified ? AppColors.success.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                          color: isVerified ? AppColors.success.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -147,7 +147,7 @@ class DistributorProfileScreen extends ConsumerWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../../theme/app_theme.dart';
 import '../../../models/manufacturer_models.dart';
@@ -169,11 +168,11 @@ class CatalogItemCard extends StatefulWidget {
   final ManufacturerCartNotifier cartNotifier;
 
   const CatalogItemCard({
-    Key? key,
+    super.key,
     required this.med,
     required this.currentQty,
     required this.cartNotifier,
-  }) : super(key: key);
+  });
 
   @override
   State<CatalogItemCard> createState() => _CatalogItemCardState();

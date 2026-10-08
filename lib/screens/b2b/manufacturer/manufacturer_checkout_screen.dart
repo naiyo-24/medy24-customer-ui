@@ -14,10 +14,10 @@ class ManufacturerCheckoutScreen extends ConsumerStatefulWidget {
   final List<ManufacturerMedicineModel> catalog; // Passed to calculate total correctly
 
   const ManufacturerCheckoutScreen({
-    Key? key,
+    super.key,
     required this.manufacturer,
     required this.catalog,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<ManufacturerCheckoutScreen> createState() => _ManufacturerCheckoutScreenState();
@@ -154,7 +154,7 @@ class _ManufacturerCheckoutScreenState extends ConsumerState<ManufacturerCheckou
                                 width: 60,
                                 height: 60,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(Icons.medication, color: AppColors.primary),

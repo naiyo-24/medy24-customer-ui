@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -16,6 +17,7 @@ class RetailerProfileScreen extends ConsumerWidget {
     final shopProfileAsync = ref.watch(shopProfileProvider);
 
     return Scaffold(
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(
         showBackButton: false,

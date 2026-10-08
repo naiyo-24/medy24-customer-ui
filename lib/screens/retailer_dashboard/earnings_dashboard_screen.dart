@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
@@ -31,6 +32,7 @@ class _EarningsDashboardScreenState extends ConsumerState<EarningsDashboardScree
     final analyticsState = ref.watch(retailerAnalyticsProvider);
 
     return Scaffold(
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(
         showBackButton: false,

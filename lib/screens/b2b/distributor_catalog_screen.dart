@@ -278,6 +278,7 @@ class _DistributorCatalogScreenState extends ConsumerState<DistributorCatalogScr
                           
                           if (cartError == null && !requiresClear) {
                             if (context.mounted) {
+                              // ignore: use_build_context_synchronously
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Added ${item.medicineName} to cart', style: const TextStyle(color: Colors.white)),

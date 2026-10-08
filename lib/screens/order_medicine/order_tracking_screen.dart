@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:math' as math;
@@ -104,6 +105,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
 
     if (order == null) {
       return const Scaffold(
+      bottomNavigationBar: SafeArea(child: BannerAdWidget()),
         body: Center(child: Text("Order not found or still loading...")),
       );
     }
@@ -694,6 +696,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
                           ),
                         );
                         if (confirm == true && order.orderId != null) {
+                          if (!context.mounted) return;
                           showDialog(
                             context: context,
                             barrierDismissible: false,
@@ -702,7 +705,7 @@ class _OrderTrackingScreenState extends ConsumerState<OrderTrackingScreen> with 
                             ),
                           );
                           await ref.read(orderProvider.notifier).cancelOrder(order.orderId!);
-                          if (mounted) {
+                          if (context.mounted) {
                             Navigator.pop(context); // Pop loading dialog
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Order Cancelled Successfully')),

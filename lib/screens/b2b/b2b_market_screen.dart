@@ -7,8 +7,10 @@ import '../../notifiers/nearby_distributors_notifier.dart';
 import '../../notifiers/b2b_search_notifier.dart';
 import '../../notifiers/b2b_cart_notifier.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/promo_banner_carousel.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../models/distributor_models.dart';
+import '../../models/advertisement.dart';
 import 'distributor_catalog_screen.dart';
 import '../../cards/b2b_medicine_card.dart';
 
@@ -77,6 +79,17 @@ class _B2bMarketScreenState extends ConsumerState<B2bMarketScreen> {
       ),
       body: Column(
         children: [
+          // Promotional Banners for Retailers
+          Padding(
+            padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+            child: PromoBannerCarousel(
+              items: [
+                AdvertisementModel(id: 'demo1', title: 'Demo Ad 1', imageUrl: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=800&auto=format&fit=crop', createdAt: DateTime.now(), isActive: true),
+                AdvertisementModel(id: 'demo2', title: 'Demo Ad 2', imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop', createdAt: DateTime.now(), isActive: true),
+              ],
+            ),
+          ),
+          
           // Sleek Search Header
           Container(
             padding: const EdgeInsets.fromLTRB(AppSpacing.screenPadding, 0, AppSpacing.screenPadding, 16),

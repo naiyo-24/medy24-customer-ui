@@ -1,9 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../../providers/ad_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../theme/app_theme.dart';
 
-class NativeAdWidget extends ConsumerStatefulWidget {
+class NativeAdWidget extends StatefulWidget {
   final TemplateType templateType;
   
   const NativeAdWidget({
@@ -12,10 +13,10 @@ class NativeAdWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<NativeAdWidget> createState() => _NativeAdWidgetState();
+  State<NativeAdWidget> createState() => _NativeAdWidgetState();
 }
 
-class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> with AutomaticKeepAliveClientMixin {
+class _NativeAdWidgetState extends State<NativeAdWidget> with AutomaticKeepAliveClientMixin {
   NativeAd? _nativeAd;
   bool _isLoaded = false;
 
@@ -31,13 +32,65 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> with AutomaticK
   }
 
   void _loadAd() {
-    final preloadedAd = ref.read(adProvider.notifier).getNativeAd();
-    if (preloadedAd != null) {
-      setState(() {
-        _nativeAd = preloadedAd;
-        _isLoaded = true;
-      });
+    String adUnitId;
+    if (widget.templateType == TemplateType.medium) {
+      // Use Video Native Ad Unit for medium template
+      adUnitId = Platform.isAndroid
+          ? 'ca-app-pub-3940256099942544/1044960115'
+          : 'ca-app-pub-3940256099942544/2521693316';
+    } else {
+      // Use Image Native Ad Unit for small template
+      adUnitId = Platform.isAndroid
+          ? (dotenv.env['ADMOB_NATIVE_ANDROID'] ?? 'ca-app-pub-3940256099942544/2247696110')
+          : (dotenv.env['ADMOB_NATIVE_IOS'] ?? 'ca-app-pub-3940256099942544/3986624511');
     }
+
+    _nativeAd = NativeAd(
+      adUnitId: adUnitId,
+      listener: NativeAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _isLoaded = true;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('NativeAd failed to load: $error');
+          ad.dispose();
+        },
+      ),
+      request: const AdRequest(),
+      nativeTemplateStyle: NativeTemplateStyle(
+        templateType: widget.templateType,
+        mainBackgroundColor: AppColors.surface,
+        cornerRadius: 16.0,
+        callToActionTextStyle: NativeTemplateTextStyle(
+          textColor: Colors.white,
+          backgroundColor: AppColors.primary,
+          style: NativeTemplateFontStyle.bold,
+          size: 16.0,
+        ),
+        primaryTextStyle: NativeTemplateTextStyle(
+          textColor: AppColors.textPrimary,
+          backgroundColor: Colors.transparent,
+          style: NativeTemplateFontStyle.bold,
+          size: 16.0,
+        ),
+        secondaryTextStyle: NativeTemplateTextStyle(
+          textColor: AppColors.textSecondary,
+          backgroundColor: Colors.transparent,
+          style: NativeTemplateFontStyle.normal,
+          size: 14.0,
+        ),
+        tertiaryTextStyle: NativeTemplateTextStyle(
+          textColor: AppColors.textSecondary,
+          backgroundColor: Colors.transparent,
+          style: NativeTemplateFontStyle.normal,
+          size: 14.0,
+        ),
+      ),
+    )..load();
   }
 
   @override
@@ -49,14 +102,9 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget> with AutomaticK
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    ref.listen<AdState>(adProvider, (previous, next) {
-      if (!_isLoaded && next.nativeAds.isNotEmpty) {
-        _loadAd();
-      }
-    });
 
     if (_isLoaded && _nativeAd != null) {
-      final double adHeight = widget.templateType == TemplateType.small ? 120 : 320;
+      final double adHeight = widget.templateType == TemplateType.small ? 120 : 350;
       
       return Container(
         height: adHeight,

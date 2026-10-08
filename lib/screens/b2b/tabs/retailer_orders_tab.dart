@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../services/api_url.dart';
+import '../../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../providers/distributor_orders_provider.dart';
 
 class RetailerOrdersTab extends ConsumerWidget {
-  const RetailerOrdersTab({Key? key}) : super(key: key);
+  const RetailerOrdersTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsyncValue = ref.watch(distributorOrdersProvider);
 
     return Scaffold(
+      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       body: ordersAsyncValue.when(
         data: (orders) {
@@ -67,7 +71,7 @@ class RetailerOrdersTab extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -87,6 +91,26 @@ class RetailerOrdersTab extends ConsumerWidget {
                 Text('${order['items_count']} items', style: AppTextStyles.bodyMedium),
                 Text('₹$total', style: AppTextStyles.header.copyWith(fontSize: 18, color: AppColors.primary)),
               ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  if (poId != null) {
+                    final url = Uri.parse('${ApiUrl.baseUrl}/api/v1/b2b/invoices/$poId/download');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  }
+                },
+                icon: const Icon(Icons.download_rounded, size: 18),
+                label: const Text('Download Tax Invoice'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
             ),
             if (status != 'delivered' && status != 'cancelled' && status != 'rejected') ...[
               const SizedBox(height: 16),
@@ -126,7 +150,7 @@ class RetailerOrdersTab extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: selectedStatus,
+                    initialValue: selectedStatus,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -150,10 +174,12 @@ class RetailerOrdersTab extends ConsumerWidget {
                       try {
                         await ref.read(distributorOrderServiceProvider)!.updateOrderStatus(poId, selectedStatus!);
                         ref.invalidate(distributorOrdersProvider);
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Order status updated successfully'), backgroundColor: AppColors.success),
                         );
                       } catch (e) {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Failed to update status: $e'), backgroundColor: AppColors.error),
                         );

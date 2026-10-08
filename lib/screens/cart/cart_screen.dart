@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/ads/banner_ad_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/charges_provider.dart';
@@ -48,6 +49,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final displayAddress = cartState.selectedAddress ?? (savedAddresses.isNotEmpty ? savedAddresses.first : null);
 
     return Scaffold(
+      bottomSheet: const SafeArea(child: BannerAdWidget()),
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         title: 'Shopping Cart',
@@ -219,7 +221,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             try {
                               bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
                               if (!serviceEnabled) {
-                                if (!mounted) return;
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Please enable location services or select an address'), backgroundColor: AppColors.error),
                                 );
@@ -229,7 +231,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               if (permission == LocationPermission.denied) {
                                 permission = await Geolocator.requestPermission();
                                 if (permission == LocationPermission.denied) {
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Location permissions denied. Please add an address.'), backgroundColor: AppColors.error),
                                   );
@@ -237,7 +239,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 }
                               }
                               if (permission == LocationPermission.deniedForever) {
-                                if (!mounted) return;
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Location permissions permanently denied. Please add an address.'), backgroundColor: AppColors.error),
                                 );
@@ -252,7 +254,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               };
                               ref.read(cartProvider.notifier).selectAddress(finalAddress);
                             } catch (e) {
-                              if (!mounted) return;
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Could not get location: $e'), backgroundColor: AppColors.error),
                               );

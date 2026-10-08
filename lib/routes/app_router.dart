@@ -1,10 +1,10 @@
 import 'package:customer_app/providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import "../screens/b2b/distributor_po_history_screen.dart";
 import "../screens/b2b/b2b_order_history_screen.dart";
 import 'package:customer_app/screens/order_medicine/order_tracking_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/auth/splash_screen.dart';
 // import '../screens/auth/onboarding_screen.dart';
@@ -311,9 +311,12 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/retailer-b2b-orders',
               builder: (context, state) {
-                var ref;
-                final user = ref.read(authProvider).user;
-                return B2BOrderHistoryScreen(shopId: user?.customerId ?? '');
+                return Consumer(
+                  builder: (context, ref, child) {
+                    final user = ref.read(authProvider).user;
+                    return B2BOrderHistoryScreen(shopId: user?.customerId ?? '');
+                  },
+                );
               },
             ),
           ],

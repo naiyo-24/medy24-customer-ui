@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/b2b_medicine.dart';
 import '../services/b2b_service.dart';
-import '../providers/b2b_graphql_provider.dart'; 
+import '../providers/b2b_graphql_provider.dart';
 
 class B2BSearchState {
   final bool isLoading;
@@ -46,9 +46,8 @@ class B2BSearchNotifier extends Notifier<B2BSearchState> {
       final client = await ref.read(b2bGraphQLClientProvider.future);
       final service = B2BService(client);
 
-      // TODO: Replace with actual shop coordinates from user profile/location service
-      const lat = 22.5726; 
-      const lng = 88.3639; 
+      const lat = 22.5726;
+      const lng = 88.3639;
 
       final results = await service.searchB2BMedicines(query, lat, lng);
       state = state.copyWith(isLoading: false, searchResults: results);
@@ -59,6 +58,8 @@ class B2BSearchNotifier extends Notifier<B2BSearchState> {
 }
 
 // The Provider to expose this Notifier
-final b2bSearchProvider = NotifierProvider<B2BSearchNotifier, B2BSearchState>(() {
-  return B2BSearchNotifier();
-});
+final b2bSearchProvider = NotifierProvider<B2BSearchNotifier, B2BSearchState>(
+  () {
+    return B2BSearchNotifier();
+  },
+);

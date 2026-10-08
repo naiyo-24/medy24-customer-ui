@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../models/manufacturer_models.dart';
 import 'api_url.dart';
@@ -17,7 +18,7 @@ class ManufacturerService {
       throw Exception('Failed to load manufacturers');
     } catch (e) {
       // NOTE: Fallback to dummy data until backend is built.
-      print('Manufacturer fetch failed (expected if backend route missing). Returning dummy data.');
+      debugPrint('Manufacturer fetch failed (expected if backend route missing). Returning dummy data.');
       return dummyManufacturers;
     }
   }
@@ -39,7 +40,7 @@ class ManufacturerService {
       ''';
       
       final response = await _dio.post(
-        ApiUrl.baseUrl + '/graphql',
+        '${ApiUrl.baseUrl}/graphql',
         data: {
           'query': query,
           'variables': {
@@ -63,7 +64,7 @@ class ManufacturerService {
       }
       throw Exception('GraphQL error or no data');
     } catch (e) {
-      print('GraphQL Catalog fetch failed for $manufacturerId. Returning dummy data. Error: $e');
+      debugPrint('GraphQL Catalog fetch failed for $manufacturerId. Returning dummy data. Error: $e');
       // If we fall back to dummy data, do a local search filter
       var list = dummyManufacturerMedicines;
       if (searchQuery != null && searchQuery.isNotEmpty) {

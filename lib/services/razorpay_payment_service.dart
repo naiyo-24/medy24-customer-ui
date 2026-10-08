@@ -1,11 +1,9 @@
 import 'package:customer_app/services/api_url.dart';
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:flutter/services.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class RazorpayPaymentService {
-  static const MethodChannel _channel = MethodChannel('razorpay_flutter');
 
   Razorpay? _razorpay;
   bool _handlersRegistered = false;
