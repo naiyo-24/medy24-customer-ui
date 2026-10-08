@@ -56,9 +56,9 @@ class RetailerBottomNavBar extends StatelessWidget {
                 },
               ),
               _NavBarItem(
-                icon: Iconsax.chart_2,
-                activeIcon: Iconsax.chart_2,
-                label: 'Earnings',
+                icon: Iconsax.receipt,
+                activeIcon: Iconsax.receipt,
+                label: 'PO History',
                 isActive: currentIndex == 2,
                 onTap: () {
                   HapticFeedback.selectionClick();

@@ -8,6 +8,7 @@ import '../../notifiers/distributor_catalog_notifier.dart';
 import '../../notifiers/b2b_cart_notifier.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../models/distributor_models.dart';
+import 'medicine_details_screen.dart'; // Add this import
 
 class DistributorCatalogScreen extends ConsumerStatefulWidget {
   final String distributorId;
@@ -194,14 +195,27 @@ class _DistributorCatalogScreenState extends ConsumerState<DistributorCatalogScr
   }
 
   Widget _buildCatalogItemCard(DistributorCatalogItemModel item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: AppCardStyles.sleekCard,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.cardPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MedicineDetailsScreen(
+              medicine: item,
+              distributorId: widget.distributorId,
+            ),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: AppCardStyles.sleekCard,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.cardPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Row(
               children: [
                 Container(
@@ -298,6 +312,7 @@ class _DistributorCatalogScreenState extends ConsumerState<DistributorCatalogScr
             ),
           ],
         ),
+      ),
       ),
     );
   }

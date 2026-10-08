@@ -7,6 +7,7 @@ import '../../services/api_url.dart';
 import '../../notifiers/b2b_order_notifier.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state_widget.dart';
+import 'b2b_order_details_screen.dart'; // Add this import
 
 class B2BOrderHistoryScreen extends ConsumerStatefulWidget {
   final String shopId;
@@ -106,20 +107,34 @@ class _B2BOrderHistoryScreenState extends ConsumerState<B2BOrderHistoryScreen> {
                       ? DateFormat('dd MMM yyyy, hh:mm a').format(parsedDate)
                       : order.createdAt;
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: AppCardStyles.sleekCard,
-                    padding: const EdgeInsets.all(AppSpacing.cardPadding),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => B2BOrderDetailsScreen(order: order),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: AppCardStyles.sleekCard,
+                      padding: const EdgeInsets.all(AppSpacing.cardPadding),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'PO: ${order.poId}',
-                              style: AppTextStyles.cardTitle,
+                            Expanded(
+                              child: Text(
+                                'PO: ${order.poId}',
+                                style: AppTextStyles.cardTitle,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -210,7 +225,7 @@ class _B2BOrderHistoryScreenState extends ConsumerState<B2BOrderHistoryScreen> {
                         ),
                       ],
                     ),
-                  );
+                  ));
                 },
               ),
             ),

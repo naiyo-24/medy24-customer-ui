@@ -53,7 +53,7 @@ import '../widgets/bottom_nav_bar.dart';
 import '../widgets/retailer_bottom_nav_bar.dart';
 import '../widgets/floating_cart_pill.dart';
 import '../screens/retailer_dashboard/live_orders_screen.dart';
-import '../screens/retailer_dashboard/earnings_dashboard_screen.dart';
+// import '../screens/retailer_dashboard/earnings_dashboard_screen.dart';
 import '../screens/retailer_dashboard/retailer_profile_screen.dart';
 import '../screens/retailer_dashboard/profile/retailer_location_screen.dart';
 import '../screens/retailer_dashboard/profile/retailer_bank_details_screen.dart';
@@ -283,9 +283,20 @@ final appRouter = GoRouter(
         StatefulShellBranch(
           navigatorKey: _retailerShellNavigatorEarningsKey,
           routes: [
+            // GoRoute(
+            //   path: '/retailer-earnings',
+            //   builder: (context, state) => const EarningsDashboardScreen(),
+            // ),
             GoRoute(
-              path: '/retailer-earnings',
-              builder: (context, state) => const EarningsDashboardScreen(),
+              path: '/retailer-b2b-orders',
+              builder: (context, state) {
+                return Consumer(
+                  builder: (context, ref, child) {
+                    final user = ref.read(authProvider).user;
+                    return B2BOrderHistoryScreen(shopId: user?.customerId ?? '');
+                  },
+                );
+              },
             ),
           ],
         ),
@@ -308,17 +319,18 @@ final appRouter = GoRouter(
               path: '/retailer-profile/documents',
               builder: (context, state) => const RetailerDocumentsScreen(),
             ),
-            GoRoute(
-              path: '/retailer-b2b-orders',
-              builder: (context, state) {
-                return Consumer(
-                  builder: (context, ref, child) {
-                    final user = ref.read(authProvider).user;
-                    return B2BOrderHistoryScreen(shopId: user?.customerId ?? '');
-                  },
-                );
-              },
-            ),
+            // Moved to the Earnings tab branch
+            // GoRoute(
+            //   path: '/retailer-b2b-orders',
+            //   builder: (context, state) {
+            //     return Consumer(
+            //       builder: (context, ref, child) {
+            //         final user = ref.read(authProvider).user;
+            //         return B2BOrderHistoryScreen(shopId: user?.customerId ?? '');
+            //       },
+            //     );
+            //   },
+            // ),
           ],
         ),
       ],

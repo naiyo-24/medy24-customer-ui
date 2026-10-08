@@ -1,11 +1,13 @@
 class B2BOrderItemModel {
   final String medicineId;
+  final String? medicineName; // Add this field
   final String batchNumber;
   final int qtyBoxes;
   final double ptr;
 
   B2BOrderItemModel({
     required this.medicineId,
+    this.medicineName,
     required this.batchNumber,
     required this.qtyBoxes,
     required this.ptr,
@@ -14,6 +16,7 @@ class B2BOrderItemModel {
   factory B2BOrderItemModel.fromJson(Map<String, dynamic> json) {
     return B2BOrderItemModel(
       medicineId: json['medicineId'] ?? '',
+      medicineName: json['medicineName'], // Fetch from JSON
       batchNumber: json['batchNumber'] ?? '',
       qtyBoxes: json['qtyBoxes'] ?? 0,
       ptr: (json['ptr'] ?? 0).toDouble(),

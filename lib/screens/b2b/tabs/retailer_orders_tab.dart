@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../theme/app_theme.dart';
 import '../../../providers/distributor_orders_provider.dart';
+import '../retailer_order_details_screen.dart';
 
 class RetailerOrdersTab extends ConsumerWidget {
   const RetailerOrdersTab({super.key});
@@ -59,15 +60,32 @@ class RetailerOrdersTab extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RetailerOrderDetailsScreen(order: order),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('PO ID: ${poId.toString().substring(0, 8)}...', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(
+                    'PO ID: $poId', 
+                    style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -131,6 +149,7 @@ class RetailerOrdersTab extends ConsumerWidget {
             ]
           ],
         ),
+      ),
       ),
     );
   }

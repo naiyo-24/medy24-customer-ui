@@ -6,6 +6,7 @@ import '../../../models/manufacturer_models.dart';
 import '../../../providers/manufacturer_provider.dart';
 import '../../../notifiers/manufacturer_cart_notifier.dart';
 import 'manufacturer_checkout_screen.dart';
+import 'manufacturer_medicine_details_screen.dart';
 
 class ManufacturerCatalogScreen extends ConsumerStatefulWidget {
   final ManufacturerModel manufacturer;
@@ -225,9 +226,20 @@ class _CatalogItemCardState extends State<CatalogItemCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ManufacturerMedicineDetailsScreen(
+              medicine: widget.med,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 0,
       color: AppColors.surface,
       child: Padding(
@@ -312,6 +324,6 @@ class _CatalogItemCardState extends State<CatalogItemCard> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
